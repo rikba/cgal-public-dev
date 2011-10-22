@@ -44,6 +44,9 @@
 #include <CGAL/Uncertain.h>
 #include <CGAL/Interval_traits.h>
 #include <iostream>
+#ifdef __SSE2__
+#include <x86intrin.h>
+#endif
 
 namespace CGAL {
 
@@ -63,16 +66,30 @@ public:
 
   Interval_nt()
 #ifndef CGAL_NO_ASSERTIONS
+#ifdef __SSE2__
+      : _i(_mm_setr_pd(-1,0))
+#else
       : _inf(-1), _sup(0)
+#endif
              // to early and deterministically detect use of uninitialized
 #endif
     {}
 
   Interval_nt(int i)
-    : _inf(-static_cast<double>(i)), _sup(i) {}
+#ifdef __SSE2__
+    : _i(_mm_setr_pd(-static_cast<double>(i),i))
+#else
+    : _inf(-static_cast<double>(i)), _sup(i)
+#endif
+    {}
 
   Interval_nt(double d)
-    : _inf(-d), _sup(d) { CGAL_assertion(is_finite(d)); }
+#ifdef __SSE2__
+    : _i(_mm_setr_pd(-d,d))
+#else
+    : _inf(-d), _sup(d)
+#endif
+    { CGAL_assertion(is_finite(d)); }
 
 // The Intel compiler on Linux is aggressive with constant propagation and
 // it seems there is no flag to stop it, so disable this check for it.
@@ -82,7 +99,11 @@ public:
 #endif
 
   Interval_nt(double i, double s)
+#ifdef __SSE2__
+    : _i(_mm_setr_pd(-i,s))
+#else
     : _inf(-i), _sup(s)
+#endif
   {
       // VC++ should use instead : (i<=s) || !is_valid(i) || !is_valid(s)
       // Or should I use is_valid() ? or is_valid_or_nan() ?
@@ -94,7 +115,12 @@ public:
   }
 
   Interval_nt(const Pair & p)
-    : _inf(-p.first), _sup(p.second) {}
+#ifdef __SSE2__
+    : _i(_mm_setr_pd(-p.first,p.second))
+#else
+    : _inf(-p.first), _sup(p.second)
+#endif
+    {}
 
   IA operator-() const { return IA (-sup(), -inf()); }
 
@@ -118,8 +144,13 @@ public:
     return !(d.inf() > sup() || d.sup() < inf());
   }
 
+#ifdef __SSE2__
+  double inf() const { return -_mm_cvtsd_f64(_i); }
+  double sup() const { return _mm_cvtsd_f64(_mm_unpackhi_pd(_i,_i)); }
+#else
   double inf() const { return -_inf; }
   double sup() const { return _sup; }
+#endif
 
   std::pair<double, double> pair() const
   {
@@ -146,7 +177,11 @@ public:
 
 private:
   // Pair inf_sup;
+#ifdef __SSE2__
+  __m128d _i;
+#else
   double _inf, _sup;
+#endif
   // The value store in _inf is actually the negated lower bound.
 
   struct Test_runtime_rounding_modes {
