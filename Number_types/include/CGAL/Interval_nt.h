@@ -75,6 +75,12 @@ public:
 #endif
     {}
 
+#ifdef __SSE2__
+  // should be private, but that's a bit complicated.
+  Interval_nt(__m128d i)
+    : _i(i) {}
+#endif
+
   Interval_nt(int i)
 #ifdef __SSE2__
     : _i(_mm_setr_pd(-static_cast<double>(i),i))
@@ -122,7 +128,13 @@ public:
 #endif
     {}
 
-  IA operator-() const { return IA (-sup(), -inf()); }
+  IA operator-() const {
+#ifdef __SSE2__
+	  return IA (_mm_shuffle_pd(_i,_i,1));
+#else
+	  return IA (-sup(), -inf());
+#endif
+  }
 
   IA & operator+= (const IA &d) { return *this = *this + d; }
   IA & operator-= (const IA &d) { return *this = *this - d; }
@@ -175,11 +187,12 @@ public:
   }
 #endif
 
-private:
   // Pair inf_sup;
 #ifdef __SSE2__
   __m128d _i;
+private:
 #else
+private:
   double _inf, _sup;
 #endif
   // The value store in _inf is actually the negated lower bound.
@@ -587,8 +600,12 @@ Interval_nt<Protected>
 operator+ (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
 {
   typename Interval_nt<Protected>::Internal_protector P;
+#ifdef __SSE2__
+  return Interval_nt<Protected>(_mm_add_pd(a._i,b._i));
+#else
   return Interval_nt<Protected> (-CGAL_IA_SUB(-a.inf(), b.inf()),
                                   CGAL_IA_ADD(a.sup(), b.sup()));
+#endif
 }
 
 template <bool Protected>
@@ -635,9 +652,13 @@ inline
 Interval_nt<Protected>
 operator- (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
 {
+#ifdef __SSE2__
+  return a+(-b);
+#else
   typename Interval_nt<Protected>::Internal_protector P;
   return Interval_nt<Protected>(-CGAL_IA_SUB(b.sup(), a.inf()),
                                  CGAL_IA_SUB(a.sup(), b.inf()));
+#endif
 }
 
 template <bool Protected>
@@ -653,7 +674,7 @@ inline
 Interval_nt<Protected>
 operator- (const Interval_nt<Protected> & a, double b)
 {
-  return a-Interval_nt<Protected>(b);
+  return a+Interval_nt<Protected>(-b);
 }
 
 template <bool Protected>
@@ -669,7 +690,7 @@ inline
 Interval_nt<Protected>
 operator- (const Interval_nt<Protected> & a, int b)
 {
-  return a-Interval_nt<Protected>(b);
+  return a-static_cast<double>(b);
 }
 
 template <bool Protected>
