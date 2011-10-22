@@ -63,16 +63,16 @@ public:
 
   Interval_nt()
 #ifndef CGAL_NO_ASSERTIONS
-      : _inf(1), _sup(0)
+      : _inf(-1), _sup(0)
              // to early and deterministically detect use of uninitialized
 #endif
     {}
 
   Interval_nt(int i)
-    : _inf(i), _sup(i) {}
+    : _inf(-static_cast<double>(i)), _sup(i) {}
 
   Interval_nt(double d)
-    : _inf(d), _sup(d) { CGAL_assertion(is_finite(d)); }
+    : _inf(-d), _sup(d) { CGAL_assertion(is_finite(d)); }
 
 // The Intel compiler on Linux is aggressive with constant propagation and
 // it seems there is no flag to stop it, so disable this check for it.
@@ -82,7 +82,7 @@ public:
 #endif
 
   Interval_nt(double i, double s)
-    : _inf(i), _sup(s)
+    : _inf(-i), _sup(s)
   {
       // VC++ should use instead : (i<=s) || !is_valid(i) || !is_valid(s)
       // Or should I use is_valid() ? or is_valid_or_nan() ?
@@ -94,7 +94,7 @@ public:
   }
 
   Interval_nt(const Pair & p)
-    : _inf(p.first), _sup(p.second) {}
+    : _inf(-p.first), _sup(p.second) {}
 
   IA operator-() const { return IA (-sup(), -inf()); }
 
@@ -118,7 +118,7 @@ public:
     return !(d.inf() > sup() || d.sup() < inf());
   }
 
-  double inf() const { return _inf; }
+  double inf() const { return -_inf; }
   double sup() const { return _sup; }
 
   std::pair<double, double> pair() const
@@ -147,6 +147,7 @@ public:
 private:
   // Pair inf_sup;
   double _inf, _sup;
+  // The value store in _inf is actually the negated lower bound.
 
   struct Test_runtime_rounding_modes {
     Test_runtime_rounding_modes()
