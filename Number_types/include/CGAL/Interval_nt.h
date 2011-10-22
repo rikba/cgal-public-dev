@@ -700,6 +700,23 @@ operator* (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
 {
   typedef Interval_nt<Protected> IA;
   typename Interval_nt<Protected>::Internal_protector P;
+#ifdef __AVX__
+  __m128d x=a._i; // {-ai,as}
+  __m128d y=b._i; // {-bi,bs}
+  __m256d X1=_mm256_insertf128_pd(_mm256_castpd128_pd256(x),x,1); // {-ai,as,-ai,as}
+  // or __m256d X1=_mm256_broadcast_pd(&x);
+  __m256d X2=-_mm256_shuffle_pd(X1,X1,5); // {-as,ai,-as,ai}
+  // - is a xor with {-0.,-0.,-0.,-0.}
+  __m128d yl=_mm_xor_pd(y,_mm_setr_pd(-0.,0.)); // {bi,bs}
+  __m128d yr=_mm_shuffle_pd(yl,yl,1); // {bs,bi}
+  __m256d Y=_mm256_insertf128_pd(_mm256_castpd128_pd256(yl),yr,1); // {bi,bs,bs,bi}
+  __m256d m1=_mm256_mul_pd(X1,Y); // {-ai*bi,as*bs,-ai*bs,as*bi}
+  __m256d m2=_mm256_mul_pd(X2,Y); // {-as*bi,ai*bs,-as*bs,ai*bi}
+  __m256d m=_mm256_max_pd(m1,m2);
+  return _mm_max_pd(_mm256_extractf128_pd(m,0),_mm256_extractf128_pd(m,1));
+#else
+  // If someone manages to beat this with only SSE4.2...
+
   if (a.inf() >= 0.0)					// a>=0
   {
     // b>=0     [a.inf()*b.inf(); a.sup()*b.sup()]
@@ -743,6 +760,7 @@ operator* (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
     double tmp4 = CGAL_IA_MUL(a.sup(),  b.sup());
     return IA(-(std::max)(tmp1,tmp2), (std::max)(tmp3,tmp4));
   }
+#endif
 }
 
 template <bool Protected>
