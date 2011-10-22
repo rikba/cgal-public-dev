@@ -768,7 +768,7 @@ inline
 Interval_nt<Protected>
 operator* (double a, const Interval_nt<Protected> & b)
 {
-  return Interval_nt<Protected>(a)*b;
+  return b*a;
 }
 
 template <bool Protected>
@@ -776,7 +776,24 @@ inline
 Interval_nt<Protected>
 operator* (const Interval_nt<Protected> & a, double b)
 {
-  return a*Interval_nt<Protected>(b);
+  typedef Interval_nt<Protected> IA;
+  typename Interval_nt<Protected>::Internal_protector P;
+  if(b<0)
+  {
+#ifdef __SSE2__
+    return IA(_mm_mul_pd((-a)._i,_mm_set1_pd(-b)));
+#else
+    return IA(-CGAL_IA_MUL(-b,a.sup()),CGAL_IA_MUL(-b,-a.inf()));
+#endif
+  }
+  else
+  {
+#ifdef __SSE2__
+    return IA(_mm_mul_pd(a._i,_mm_set1_pd(b)));
+#else
+    return IA(-CGAL_IA_MUL(b,-a.inf()),CGAL_IA_MUL(b,a.sup()));
+#endif
+  }
 }
 
 template <bool Protected>
@@ -784,7 +801,7 @@ inline
 Interval_nt<Protected>
 operator* (int a, const Interval_nt<Protected> & b)
 {
-  return Interval_nt<Protected>(a)*b;
+  return static_cast<double>(a)*b;
 }
 
 template <bool Protected>
@@ -792,7 +809,7 @@ inline
 Interval_nt<Protected>
 operator* (const Interval_nt<Protected> & a, int b)
 {
-  return a*Interval_nt<Protected>(b);
+  return a*static_cast<double>(b);
 }
 
 template <bool Protected>
@@ -857,7 +874,7 @@ inline
 Interval_nt<Protected>
 operator/ (int a, const Interval_nt<Protected> & b)
 {
-  return Interval_nt<Protected>(a)/b;
+  return static_cast<double>(a)/b;
 }
 
 template <bool Protected>
@@ -865,7 +882,7 @@ inline
 Interval_nt<Protected>
 operator/ (const Interval_nt<Protected> & a, int b)
 {
-  return a/Interval_nt<Protected>(b);
+  return a/static_cast<double>(b);
 }
 
 // TODO: What about these two guys? Where do they belong to?
