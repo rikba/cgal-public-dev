@@ -118,8 +118,8 @@ public:
     return !(d.inf() > sup() || d.sup() < inf());
   }
 
-  const double & inf() const { return _inf; }
-  const double & sup() const { return _sup; }
+  double inf() const { return _inf; }
+  double sup() const { return _sup; }
 
   std::pair<double, double> pair() const
   {
