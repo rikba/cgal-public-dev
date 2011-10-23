@@ -652,13 +652,7 @@ inline
 Interval_nt<Protected>
 operator- (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
 {
-#ifdef __SSE2__
   return a+(-b);
-#else
-  typename Interval_nt<Protected>::Internal_protector P;
-  return Interval_nt<Protected>(-CGAL_IA_ADD(b.sup(), -a.inf()),
-                                 CGAL_IA_ADD(a.sup(), -b.inf()));
-#endif
 }
 
 template <bool Protected>
