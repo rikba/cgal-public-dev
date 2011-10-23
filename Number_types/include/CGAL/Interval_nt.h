@@ -860,7 +860,24 @@ inline
 Interval_nt<Protected>
 operator/ (const Interval_nt<Protected> & a, double b)
 {
-  return a/Interval_nt<Protected>(b);
+  typedef Interval_nt<Protected> IA;
+  typename Interval_nt<Protected>::Internal_protector P;
+  if(b<0)
+  {
+#ifdef __SSE2__
+    return IA(_mm_div_pd((-a)._i,_mm_set1_pd(-b)));
+#else
+    return IA(-CGAL_IA_DIV(-b,a.sup()),CGAL_IA_DIV(-b,-a.inf()));
+#endif
+  }
+  else
+  {
+#ifdef __SSE2__
+    return IA(_mm_div_pd(a._i,_mm_set1_pd(b)));
+#else
+    return IA(-CGAL_IA_DIV(b,-a.inf()),CGAL_IA_DIV(b,a.sup()));
+#endif
+  }
 }
 
 template <bool Protected>
