@@ -603,7 +603,7 @@ operator+ (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
 #ifdef __SSE2__
   return Interval_nt<Protected>(_mm_add_pd(a._i,b._i));
 #else
-  return Interval_nt<Protected> (-CGAL_IA_SUB(-a.inf(), b.inf()),
+  return Interval_nt<Protected> (-CGAL_IA_ADD(-a.inf(), -b.inf()),
                                   CGAL_IA_ADD(a.sup(), b.sup()));
 #endif
 }
@@ -656,8 +656,8 @@ operator- (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
   return a+(-b);
 #else
   typename Interval_nt<Protected>::Internal_protector P;
-  return Interval_nt<Protected>(-CGAL_IA_SUB(b.sup(), a.inf()),
-                                 CGAL_IA_SUB(a.sup(), b.inf()));
+  return Interval_nt<Protected>(-CGAL_IA_ADD(b.sup(), -a.inf()),
+                                 CGAL_IA_ADD(a.sup(), -b.inf()));
 #endif
 }
 
@@ -743,20 +743,20 @@ operator* (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
 	if (b.sup() < 0.0)
 	    bb=a.sup();
     }
-    return IA(-CGAL_IA_MUL(bb, -b.sup()), CGAL_IA_MUL(aa, b.inf()));
+    return IA(-CGAL_IA_MUL(-bb, b.sup()), CGAL_IA_MUL(aa, b.inf()));
   }
   else						// 0 \in a
   {
     if (b.inf()>=0.0)				// b>=0
-      return IA(-CGAL_IA_MUL(a.inf(), -b.sup()),
+      return IA(-CGAL_IA_MUL(-a.inf(), b.sup()),
                  CGAL_IA_MUL(a.sup(), b.sup()));
     if (b.sup()<=0.0)				// b<=0
       return IA(-CGAL_IA_MUL(a.sup(), -b.inf()),
-                 CGAL_IA_MUL(a.inf(), b.inf()));
+                 CGAL_IA_MUL(-a.inf(), -b.inf()));
         					// 0 \in b
-    double tmp1 = CGAL_IA_MUL(a.inf(), -b.sup());
+    double tmp1 = CGAL_IA_MUL(-a.inf(), b.sup());
     double tmp2 = CGAL_IA_MUL(a.sup(), -b.inf());
-    double tmp3 = CGAL_IA_MUL(a.inf(),  b.inf());
+    double tmp3 = CGAL_IA_MUL(-a.inf(),-b.inf());
     double tmp4 = CGAL_IA_MUL(a.sup(),  b.sup());
     return IA(-(std::max)(tmp1,tmp2), (std::max)(tmp3,tmp4));
   }
@@ -895,9 +895,15 @@ struct Min <Interval_nt<Protected> >
     Interval_nt<Protected> operator()( const Interval_nt<Protected>& d,
                                        const Interval_nt<Protected>& e) const
     {
+#ifdef __SSE4_1__
+	__m128d mi=_mm_min_pd(d._i,e._i);
+	__m128d ma=_mm_max_pd(d._i,e._i);
+	return Interval_nt<Protected>(_mm_blend_pd(mi,ma,1));
+#else
         return Interval_nt<Protected>(
                 (std::min)(d.inf(), e.inf()),
                 (std::min)(d.sup(), e.sup()));
+#endif
     }
 };
 
@@ -910,9 +916,15 @@ struct Max <Interval_nt<Protected> >
     Interval_nt<Protected> operator()( const Interval_nt<Protected>& d,
                                        const Interval_nt<Protected>& e) const
     {
+#ifdef __SSE4_1__
+	__m128d mi=_mm_min_pd(d._i,e._i);
+	__m128d ma=_mm_max_pd(d._i,e._i);
+	return Interval_nt<Protected>(_mm_blend_pd(mi,ma,2));
+#else
         return Interval_nt<Protected>(
                 (std::max)(d.inf(), e.inf()),
                 (std::max)(d.sup(), e.sup()));
+#endif
     }
 };
 
