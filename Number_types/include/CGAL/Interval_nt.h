@@ -1064,7 +1064,16 @@ namespace INTERN_INTERVAL_NT {
     // sqrt([-a,+b]) => [0;sqrt(+b)] => assumes roundoff error.
     // sqrt([-a,-b]) => [0;sqrt(-b)] => assumes user bug (unspecified result).
     FPU_set_cw(CGAL_FE_DOWNWARD);
-    double i = (d.inf() > 0.0) ? CGAL_IA_SQRT(d.inf()) : 0.0;
+    double i = (d.inf() > 0.0) ?
+#if defined __GNUC__ && ! defined __llvm__ && ! defined __INTEL_COMPILER
+// Work around a bug in gcc -frounding-math where, although it doesn't
+// assume a specific rounding mode, it assumes a constant rounding mode
+// and calls sqrt only once.
+	    CGAL_IA_SQRT(IA_force_to_double(d.inf()))
+#else
+	    CGAL_IA_SQRT(d.inf())
+#endif
+	    : 0.0;
     FPU_set_cw(CGAL_FE_UPWARD);
     return Interval_nt<Protected>(i, CGAL_IA_SQRT(d.sup()));
   }
