@@ -24,7 +24,7 @@ set( QT_USE_QTOPENGL  TRUE )
 
 find_package(Qt4)
 
-include_directories (BEFORE ${CGAL_DIR}/demo/Triangulation_2)
+include_directories (BEFORE ../../../demo/Triangulation_2)
 include_directories (BEFORE ../../include)
 # demos contain their own headers
 include_directories (BEFORE include)
