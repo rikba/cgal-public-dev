@@ -695,6 +695,7 @@ operator* (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
   typedef Interval_nt<Protected> IA;
   typename Interval_nt<Protected>::Internal_protector P;
 #ifdef __AVX__
+  // Try something with comparisons to have one less call to mul?
   __m128d x=a._i; // {-ai,as}
   __m128d y=b._i; // {-bi,bs}
   __m256d X1=_mm256_insertf128_pd(_mm256_castpd128_pd256(x),x,1); // {-ai,as,-ai,as}
@@ -708,6 +709,37 @@ operator* (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
   __m256d m2=_mm256_mul_pd(X2,Y); // {-as*bi,ai*bs,-as*bs,ai*bi}
   __m256d m=_mm256_max_pd(m1,m2);
   return _mm_max_pd(_mm256_extractf128_pd(m,0),_mm256_extractf128_pd(m,1));
+#elif defined(__SSE4_1__) && defined(MULV3)
+  // UNTESTED!
+  // Barely beats the scalar version
+  __m128d bb = _mm_xor_pd(b._i,_mm_setr_pd(-0.,0.)); // {bi,bs}
+  __m128d bbp = _mm_shuffle_pd (bb, bb, 1); // {bs,bi}
+  __m128d aa = - _mm_shuffle_pd (a._i, a._i, 1); // {-as,ai}
+  __m128d x = (bb>0) ? a._i : aa;
+  __m128d y = (bbp>0) ? a._i : aa;
+  return _mm_max_pd (bb*x, bbp*y);
+#elif defined(__SSE2__) && defined(MULV2)
+  // UNTESTED!
+  // Barely beats the scalar version
+  __m128d aa = - _mm_shuffle_pd (a._i, a._i, 1); // {-as,ai}
+  double nbi = -b.inf();
+  double bs = b.sup();
+  __m128d x = (bs >= 0) ? a._i : aa;
+  __m128d y = (nbi <= 0) ? a._i : aa;
+  return _mm_max_pd (bs*x, (-nbi)*y);
+#elif defined(__SSE2__)
+  // UNTESTED!
+  // Really FAST!!!
+  double t = -b.inf(); // -bi
+  if (t <= 0) return _mm_max_pd ((-t) * a._i, b.sup() * a._i);
+  __m128d ap = _mm_shuffle_pd (a._i, a._i, 1); // {as,-ai}
+  __m128d x = t * ap; // {-as*bi,ai*bi}
+
+  __m128d y;
+  double u = b.sup();
+  if (u < 0) y = (-u) * ap;
+  else y = u * a._i;
+  return _mm_max_pd (x, y);
 #else
   // If someone manages to beat this with only SSE4.2...
 
