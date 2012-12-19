@@ -70,35 +70,35 @@ public:
 
   Interval_nt()
 #ifndef CGAL_NO_ASSERTIONS
-      : _inf(1), _sup(0)
+      : _inf(-1), _sup(0)
              // to early and deterministically detect use of uninitialized
 #endif
     {}
 
   Interval_nt(int i)
-    : _inf(i), _sup(i) {}
+    : _inf(-(double)i), _sup(i) {}
 
   Interval_nt(unsigned i)
-    : _inf(i), _sup(i) {}
+    : _inf(-(double)i), _sup(i) {}
 
   Interval_nt(long long i)
-    : _inf((double)i), _sup((double)i)
+    : _inf(-(double)i), _sup((double)i)
   {
     // gcc ignores -frounding-math when converting integers to floats.
 #ifdef __GNUC__
     long long safe = 1LL << 52; // Use numeric_limits?
-    bool exact = ((long long)_inf == i) || (i <= safe && i >= -safe);
+    bool exact = ((long long)_sup == i) || (i <= safe && i >= -safe);
     if (!(__builtin_constant_p(exact) && exact))
 #endif
       *this += smallest();
   }
 
   Interval_nt(unsigned long long i)
-    : _inf((double)i), _sup((double)i)
+    : _inf(-(double)i), _sup((double)i)
   {
 #ifdef __GNUC__
     unsigned long long safe = 1ULL << 52; // Use numeric_limits?
-    bool exact = ((unsigned long long)_inf == i) || (i <= safe);
+    bool exact = ((unsigned long long)_sup == i) || (i <= safe);
     if (!(__builtin_constant_p(exact) && exact))
 #endif
       *this += smallest();
@@ -119,7 +119,7 @@ public:
   }
 
   Interval_nt(double d)
-    : _inf(d), _sup(d) { CGAL_assertion(is_finite(d)); }
+    : _inf(-d), _sup(d) { CGAL_assertion(is_finite(d)); }
 
 // The Intel compiler on Linux is aggressive with constant propagation and
 // it seems there is no flag to stop it, so disable this check for it.
@@ -129,7 +129,7 @@ public:
 #endif
 
   Interval_nt(double i, double s)
-    : _inf(i), _sup(s)
+    : _inf(-i), _sup(s)
   {
       // VC++ should use instead : (i<=s) || !is_valid(i) || !is_valid(s)
       // Or should I use is_valid() ? or is_valid_or_nan() ?
@@ -141,7 +141,7 @@ public:
   }
 
   Interval_nt(const Pair & p)
-    : _inf(p.first), _sup(p.second) {}
+    : _inf(-p.first), _sup(p.second) {}
 
   IA operator-() const { return IA (-sup(), -inf()); }
 
@@ -165,7 +165,7 @@ public:
     return !(d.inf() > sup() || d.sup() < inf());
   }
 
-  double inf() const { return _inf; }
+  double inf() const { return -_inf; }
   double sup() const { return _sup; }
 
   std::pair<double, double> pair() const
@@ -193,6 +193,7 @@ public:
 
 private:
   // Pair inf_sup;
+  // The value stored in _inf is the negated lower bound.
   double _inf, _sup;
 
   struct Test_runtime_rounding_modes {
