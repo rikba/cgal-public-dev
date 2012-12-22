@@ -734,9 +734,13 @@ operator* (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
 template <bool Protected>
 inline
 Interval_nt<Protected>
-operator* (double a, const Interval_nt<Protected> & b)
+operator* (double a, Interval_nt<Protected> b)
 {
-  return Interval_nt<Protected>(a)*b;
+  typedef Interval_nt<Protected> IA;
+  typename IA::Internal_protector P;
+  if (a < 0) { a = -a; b = -b; }
+  // Now a >= 0
+  return IA(-CGAL_IA_MUL(a, -b.inf()), CGAL_IA_MUL(a, b.sup()));
 }
 
 template <bool Protected>
@@ -815,9 +819,14 @@ operator/ (double a, const Interval_nt<Protected> & b)
 template <bool Protected>
 inline
 Interval_nt<Protected>
-operator/ (const Interval_nt<Protected> & a, double b)
+operator/ (Interval_nt<Protected> a, double b)
 {
-  return a/Interval_nt<Protected>(b);
+  typedef Interval_nt<Protected> IA;
+  typename IA::Internal_protector P;
+  if (b < 0) { a = -a; b = -b; }
+  else if (b == 0) return IA::largest();
+  // Now b > 0
+  return IA(-CGAL_IA_DIV(-a.inf(), b), CGAL_IA_DIV(a.sup(), b));
 }
 
 template <bool Protected>
