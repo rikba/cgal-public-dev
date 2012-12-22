@@ -69,12 +69,11 @@ public:
   typedef Protect_FPU_rounding<!Protected>          Protector;
 
   Interval_nt()
-  {
 #ifndef CGAL_NO_ASSERTIONS
-    *this = Interval_nt(-1, 0);
+      : _inf(-1), _sup(0)
              // to early and deterministically detect use of uninitialized
 #endif
-  }
+    {}
 
   Interval_nt(int i)
   {
@@ -124,8 +123,10 @@ public:
   }
 
   Interval_nt(double d)
-    : _inf(-d), _sup(d)
-  { CGAL_assertion(is_finite(d)); }
+  {
+    CGAL_assertion(is_finite(d));
+    *this = Interval_nt(d, d);
+  }
 
 // The Intel compiler on Linux is aggressive with constant propagation and
 // it seems there is no flag to stop it, so disable this check for it.
