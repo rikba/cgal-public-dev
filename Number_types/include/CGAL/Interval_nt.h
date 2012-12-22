@@ -52,6 +52,13 @@
 #include <CGAL/IO/io.h>
 #include <iostream>
 
+#if  defined(__SSE2__) \
+  || (defined(_M_IX86_FP) && _M_IX86_FP >= 2) \
+  || defined(_M_X64)
+#include <emmintrin.h>
+#define CGAL_USE_SSE2 1
+#endif
+
 namespace CGAL {
 
 template <bool Protected = true>
@@ -70,7 +77,11 @@ public:
 
   Interval_nt()
 #ifndef CGAL_NO_ASSERTIONS
+#ifdef CGAL_USE_SSE2
+      : val(_mm_setr_pd(-1, 0))
+#else
       : _inf(-1), _sup(0)
+#endif
              // to early and deterministically detect use of uninitialized
 #endif
     {}
@@ -87,22 +98,25 @@ public:
 
   Interval_nt(long long i)
   {
-    *this = Interval_nt(static_cast<double>(i));
-    // gcc ignores -frounding-math when converting integers to floats.
+    // Is this safe against excess precision? -- Marc Glisse, Dec 2012
+    double d = i;
+    *this = Interval_nt(d);
 #ifdef __GNUC__
     long long safe = 1LL << 52; // Use numeric_limits?
-    bool exact = ((long long)_sup == i) || (i <= safe && i >= -safe);
+    bool exact = ((long long)d == i) || (i <= safe && i >= -safe);
     if (!(__builtin_constant_p(exact) && exact))
 #endif
+    // gcc ignores -frounding-math when converting integers to floats.
       *this += smallest();
   }
 
   Interval_nt(unsigned long long i)
   {
-    *this = Interval_nt(static_cast<double>(i));
+    double d = i;
+    *this = Interval_nt(d);
 #ifdef __GNUC__
     unsigned long long safe = 1ULL << 52; // Use numeric_limits?
-    bool exact = ((unsigned long long)_sup == i) || (i <= safe);
+    bool exact = ((unsigned long long)d == i) || (i <= safe);
     if (!(__builtin_constant_p(exact) && exact))
 #endif
       *this += smallest();
@@ -135,8 +149,18 @@ public:
 #  define CGAL_DISABLE_ROUNDING_MATH_CHECK
 #endif
 
+#ifdef CGAL_USE_SSE2
+  // This constructor should really be private, like the simd() function, but
+  // that would mean a lot of new friends, so they are only undocumented.
+  explicit Interval_nt(__m128d v) : val(v) {}
+#endif
+
   Interval_nt(double i, double s)
+#ifdef CGAL_USE_SSE2
+    : val(_mm_setr_pd(-i, s))
+#else
     : _inf(-i), _sup(s)
+#endif
   {
       // VC++ should use instead : (i<=s) || !is_valid(i) || !is_valid(s)
       // Or should I use is_valid() ? or is_valid_or_nan() ?
@@ -153,7 +177,11 @@ public:
   }
 
   IA operator-() const {
+#ifdef CGAL_USE_SSE2
+    return IA (_mm_shuffle_pd(val, val, 1));
+#else
     return IA (-sup(), -inf());
+#endif
   }
 
   IA & operator+= (const IA &d) { return *this = *this + d; }
@@ -176,8 +204,23 @@ public:
     return !(d.inf() > sup() || d.sup() < inf());
   }
 
-  double inf() const { return -_inf; }
-  double sup() const { return _sup; }
+  double inf() const {
+#ifdef CGAL_USE_SSE2
+    return -_mm_cvtsd_f64(val);
+#else
+    return -_inf;
+#endif
+  }
+  double sup() const {
+#ifdef CGAL_USE_SSE2
+    return _mm_cvtsd_f64(_mm_unpackhi_pd(val, val));
+#else
+    return _sup;
+#endif
+  }
+#ifdef CGAL_USE_SSE2
+  __m128d simd() const { return val; }
+#endif
 
   std::pair<double, double> pair() const
   {
@@ -205,7 +248,11 @@ public:
 private:
   // Pair inf_sup;
   // The value stored in _inf is the negated lower bound.
+#ifdef CGAL_USE_SSE2
+  __m128d val;
+#else
   double _inf, _sup;
+#endif
 
   struct Test_runtime_rounding_modes {
     Test_runtime_rounding_modes()
@@ -598,8 +645,12 @@ Interval_nt<Protected>
 operator+ (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
 {
   typename Interval_nt<Protected>::Internal_protector P;
+#ifdef CGAL_USE_SSE2
+  return Interval_nt<Protected>(_mm_add_pd(a.simd(), b.simd()));
+#else
   return Interval_nt<Protected> (-CGAL_IA_ADD(-a.inf(), -b.inf()),
                                   CGAL_IA_ADD(a.sup(), b.sup()));
+#endif
 }
 
 template <bool Protected>
@@ -688,6 +739,25 @@ operator* (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
 {
   typedef Interval_nt<Protected> IA;
   typename Interval_nt<Protected>::Internal_protector P;
+
+#ifdef CGAL_USE_SSE2
+  __m128d aa = a.simd();
+  double t = -b.inf(); // -bi
+  double u = b.sup();  //  bs
+  if (t <= 0) {
+    __m128d res1 = _mm_mul_pd (_mm_set1_pd (-t), aa);
+    __m128d res2 = _mm_mul_pd (_mm_set1_pd ( u), aa);
+    return IA (_mm_max_pd (res1, res2));
+  }
+  __m128d     ap = _mm_shuffle_pd (aa, aa, 1); // {as,-ai}
+  __m128d      x = _mm_mul_pd (_mm_set1_pd ( t), ap); // {-as*bi,ai*bi}
+
+  __m128d y;
+  if (u < 0)   y = _mm_mul_pd (_mm_set1_pd (-u), ap);
+  else         y = _mm_mul_pd (_mm_set1_pd ( u), aa);
+  return IA (_mm_max_pd (x, y));
+#else
+
   if (a.inf() >= 0.0)					// a>=0
   {
     // b>=0     [a.inf()*b.inf(); a.sup()*b.sup()]
@@ -731,6 +801,7 @@ operator* (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
     double tmp4 = CGAL_IA_MUL( a.sup(),  b.sup());
     return IA(-(std::max)(tmp1,tmp2), (std::max)(tmp3,tmp4));
   }
+#endif
 }
 
 template <bool Protected>
@@ -742,7 +813,11 @@ operator* (double a, Interval_nt<Protected> b)
   typename IA::Internal_protector P;
   if (a < 0) { a = -a; b = -b; }
   // Now a >= 0
+#ifdef CGAL_USE_SSE2
+  return IA(_mm_mul_pd (_mm_set1_pd(a), b.simd()));
+#else
   return IA(-CGAL_IA_MUL(a, -b.inf()), CGAL_IA_MUL(a, b.sup()));
+#endif
 }
 
 template <bool Protected>
@@ -776,6 +851,7 @@ operator/ (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
 {
   typedef Interval_nt<Protected> IA;
   typename Interval_nt<Protected>::Internal_protector P;
+  // TODO: add an sse2 version similar to the multiplication.
   if (b.inf() > 0.0)				// b>0
   {
     // e>=0	[a.inf()/b.sup(); a.sup()/b.inf()]
@@ -828,7 +904,11 @@ operator/ (Interval_nt<Protected> a, double b)
   if (b < 0) { a = -a; b = -b; }
   else if (b == 0) return IA::largest();
   // Now b > 0
+#ifdef CGAL_USE_SSE2
+  return IA(_mm_div_pd (a.simd(), _mm_set1_pd(b)));
+#else
   return IA(-CGAL_IA_DIV(-a.inf(), b), CGAL_IA_DIV(a.sup(), b));
+#endif
 }
 
 template <bool Protected>
@@ -857,9 +937,15 @@ struct Min <Interval_nt<Protected> >
     Interval_nt<Protected> operator()( const Interval_nt<Protected>& d,
                                        const Interval_nt<Protected>& e) const
     {
+#ifdef CGAL_USE_SSE2
+        __m128d x = _mm_min_pd (d.simd(), e.simd());
+        __m128d y = _mm_max_pd (d.simd(), e.simd());
+        return Interval_nt<Protected> (_mm_move_sd (x, y));
+#else
         return Interval_nt<Protected>(
                 -(std::max)(-d.inf(), -e.inf()),
                  (std::min)( d.sup(),  e.sup()));
+#endif
     }
 };
 
@@ -872,9 +958,15 @@ struct Max <Interval_nt<Protected> >
     Interval_nt<Protected> operator()( const Interval_nt<Protected>& d,
                                        const Interval_nt<Protected>& e) const
     {
+#ifdef CGAL_USE_SSE2
+        __m128d x = _mm_min_pd (d.simd(), e.simd());
+        __m128d y = _mm_max_pd (d.simd(), e.simd());
+        return Interval_nt<Protected> (_mm_move_sd (y, x));
+#else
         return Interval_nt<Protected>(
                 -(std::min)(-d.inf(), -e.inf()),
                  (std::max)( d.sup(),  e.sup()));
+#endif
     }
 };
 
@@ -1014,6 +1106,7 @@ namespace INTERN_INTERVAL_NT {
   square (const Interval_nt<Protected> & d)
   {
     typename Interval_nt<Protected>::Internal_protector P;
+    // TODO: try an sse2 version of the first 2 cases at least.
     if (d.inf()>=0.0)
         return Interval_nt<Protected>(-CGAL_IA_MUL(d.inf(), -d.inf()),
                                  CGAL_IA_MUL(d.sup(), d.sup()));
