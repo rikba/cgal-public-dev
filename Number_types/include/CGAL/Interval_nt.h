@@ -76,14 +76,18 @@ public:
     {}
 
   Interval_nt(int i)
-    : _inf(-(double)i), _sup(i) {}
+  {
+    *this = Interval_nt(static_cast<double>(i));
+  }
 
   Interval_nt(unsigned i)
-    : _inf(-(double)i), _sup(i) {}
+  {
+    *this = Interval_nt(static_cast<double>(i));
+  }
 
   Interval_nt(long long i)
-    : _inf(-(double)i), _sup((double)i)
   {
+    *this = Interval_nt(static_cast<double>(i));
     // gcc ignores -frounding-math when converting integers to floats.
 #ifdef __GNUC__
     long long safe = 1LL << 52; // Use numeric_limits?
@@ -94,8 +98,8 @@ public:
   }
 
   Interval_nt(unsigned long long i)
-    : _inf(-(double)i), _sup((double)i)
   {
+    *this = Interval_nt(static_cast<double>(i));
 #ifdef __GNUC__
     unsigned long long safe = 1ULL << 52; // Use numeric_limits?
     bool exact = ((unsigned long long)_sup == i) || (i <= safe);
@@ -119,7 +123,8 @@ public:
   }
 
   Interval_nt(double d)
-    : _inf(-d), _sup(d) { CGAL_assertion(is_finite(d)); }
+    : _inf(-d), _sup(d)
+  { CGAL_assertion(is_finite(d)); }
 
 // The Intel compiler on Linux is aggressive with constant propagation and
 // it seems there is no flag to stop it, so disable this check for it.
@@ -141,9 +146,13 @@ public:
   }
 
   Interval_nt(const Pair & p)
-    : _inf(-p.first), _sup(p.second) {}
+  {
+    *this = Interval_nt(p.first, p.second);
+  }
 
-  IA operator-() const { return IA (-sup(), -inf()); }
+  IA operator-() const {
+    return IA (-sup(), -inf());
+  }
 
   IA & operator+= (const IA &d) { return *this = *this + d; }
   IA & operator-= (const IA &d) { return *this = *this - d; }
@@ -271,105 +280,6 @@ operator!=(const Interval_nt<Protected> &a, const Interval_nt<Protected> &b)
 { return ! (a == b); }
 
 
-// Mixed operators with int.
-
-template <bool Protected>
-inline
-Uncertain<bool>
-operator<(int a, const Interval_nt<Protected> &b)
-{
-  if (a < b.inf()) return true;
-  if (a >= b.sup()) return false;
-  return Uncertain<bool>::indeterminate();
-}
-
-template <bool Protected>
-inline
-Uncertain<bool>
-operator>(int a, const Interval_nt<Protected> &b)
-{ return b < a; }
-
-template <bool Protected>
-inline
-Uncertain<bool>
-operator<=(int a, const Interval_nt<Protected> &b)
-{
-  if (a <= b.inf()) return true;
-  if (a >  b.sup()) return false;
-  return Uncertain<bool>::indeterminate();
-}
-
-template <bool Protected>
-inline
-Uncertain<bool>
-operator>=(int a, const Interval_nt<Protected> &b)
-{ return b <= a; }
-
-template <bool Protected>
-inline
-Uncertain<bool>
-operator==(int a, const Interval_nt<Protected> &b)
-{
-  if (b.inf() >  a || b.sup() <  a) return false;
-  if (b.inf() == a && b.sup() == a) return true;
-  return Uncertain<bool>::indeterminate();
-}
-
-template <bool Protected>
-inline
-Uncertain<bool>
-operator!=(int a, const Interval_nt<Protected> &b)
-{ return ! (a == b); }
-
-template <bool Protected>
-inline
-Uncertain<bool>
-operator<(const Interval_nt<Protected> &a, int b)
-{
-  if (a.sup()  < b) return true;
-  if (a.inf() >= b) return false;
-  return Uncertain<bool>::indeterminate();
-}
-
-template <bool Protected>
-inline
-Uncertain<bool>
-operator>(const Interval_nt<Protected> &a, int b)
-{ return b < a; }
-
-template <bool Protected>
-inline
-Uncertain<bool>
-operator<=(const Interval_nt<Protected> &a, int b)
-{
-  if (a.sup() <= b) return true;
-  if (a.inf() >  b) return false;
-  return Uncertain<bool>::indeterminate();
-}
-
-template <bool Protected>
-inline
-Uncertain<bool>
-operator>=(const Interval_nt<Protected> &a, int b)
-{ return b <= a; }
-
-template <bool Protected>
-inline
-Uncertain<bool>
-operator==(const Interval_nt<Protected> &a, int b)
-{
-  if (b >  a.sup() || b <  a.inf()) return false;
-  if (b == a.sup() && b == a.inf()) return true;
-  return Uncertain<bool>::indeterminate();
-}
-
-template <bool Protected>
-inline
-Uncertain<bool>
-operator!=(const Interval_nt<Protected> &a, int b)
-{ return ! (a == b); }
-
-
 // Mixed operators with double.
 
 template <bool Protected>
@@ -466,6 +376,93 @@ template <bool Protected>
 inline
 Uncertain<bool>
 operator!=(const Interval_nt<Protected> &a, double b)
+{ return ! (a == b); }
+
+
+// Mixed operators with int.
+
+template <bool Protected>
+inline
+Uncertain<bool>
+operator<(int a, const Interval_nt<Protected> &b)
+{
+  return static_cast<double>(a) < b;
+}
+
+template <bool Protected>
+inline
+Uncertain<bool>
+operator>(int a, const Interval_nt<Protected> &b)
+{ return b < a; }
+
+template <bool Protected>
+inline
+Uncertain<bool>
+operator<=(int a, const Interval_nt<Protected> &b)
+{
+  return static_cast<double>(a) <= b;
+}
+
+template <bool Protected>
+inline
+Uncertain<bool>
+operator>=(int a, const Interval_nt<Protected> &b)
+{ return b <= a; }
+
+template <bool Protected>
+inline
+Uncertain<bool>
+operator==(int a, const Interval_nt<Protected> &b)
+{
+  return static_cast<double>(a) == b;
+}
+
+template <bool Protected>
+inline
+Uncertain<bool>
+operator!=(int a, const Interval_nt<Protected> &b)
+{ return ! (a == b); }
+
+template <bool Protected>
+inline
+Uncertain<bool>
+operator<(const Interval_nt<Protected> &a, int b)
+{
+  return a < static_cast<double>(b);
+}
+
+template <bool Protected>
+inline
+Uncertain<bool>
+operator>(const Interval_nt<Protected> &a, int b)
+{ return b < a; }
+
+template <bool Protected>
+inline
+Uncertain<bool>
+operator<=(const Interval_nt<Protected> &a, int b)
+{
+  return a <= static_cast<double>(b);
+}
+
+template <bool Protected>
+inline
+Uncertain<bool>
+operator>=(const Interval_nt<Protected> &a, int b)
+{ return b <= a; }
+
+template <bool Protected>
+inline
+Uncertain<bool>
+operator==(const Interval_nt<Protected> &a, int b)
+{
+  return a == static_cast<double>(b);
+}
+
+template <bool Protected>
+inline
+Uncertain<bool>
+operator!=(const Interval_nt<Protected> &a, int b)
 { return ! (a == b); }
 
 
@@ -606,14 +603,6 @@ operator+ (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
 template <bool Protected>
 inline
 Interval_nt<Protected>
-operator+ (double a, const Interval_nt<Protected> & b)
-{
-  return Interval_nt<Protected>(a)+b;
-}
-
-template <bool Protected>
-inline
-Interval_nt<Protected>
 operator+ (const Interval_nt<Protected> & a, double b)
 {
   return a+Interval_nt<Protected>(b);
@@ -622,9 +611,17 @@ operator+ (const Interval_nt<Protected> & a, double b)
 template <bool Protected>
 inline
 Interval_nt<Protected>
+operator+ (double a, const Interval_nt<Protected> & b)
+{
+  return b+a;
+}
+
+template <bool Protected>
+inline
+Interval_nt<Protected>
 operator+ (int a, const Interval_nt<Protected> & b)
 {
-  return Interval_nt<Protected>(a)+b;
+  return static_cast<double>(a)+b;
 }
 
 template <bool Protected>
@@ -632,7 +629,7 @@ inline
 Interval_nt<Protected>
 operator+ (const Interval_nt<Protected> & a, int b)
 {
-  return a+Interval_nt<Protected>(b);
+  return a+static_cast<double>(b);
 }
 
 template< bool Protected >
@@ -647,9 +644,7 @@ inline
 Interval_nt<Protected>
 operator- (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
 {
-  typename Interval_nt<Protected>::Internal_protector P;
-  return Interval_nt<Protected>(-CGAL_IA_ADD(b.sup(), -a.inf()),
-                                 CGAL_IA_ADD(a.sup(), -b.inf()));
+  return a+(-b);
 }
 
 template <bool Protected>
@@ -665,7 +660,7 @@ inline
 Interval_nt<Protected>
 operator- (const Interval_nt<Protected> & a, double b)
 {
-  return a-Interval_nt<Protected>(b);
+  return a+Interval_nt<Protected>(-b);
 }
 
 template <bool Protected>
@@ -673,7 +668,7 @@ inline
 Interval_nt<Protected>
 operator- (int a, const Interval_nt<Protected> & b)
 {
-  return Interval_nt<Protected>(a)-b;
+  return static_cast<double>(a)-b;
 }
 
 template <bool Protected>
@@ -681,7 +676,7 @@ inline
 Interval_nt<Protected>
 operator- (const Interval_nt<Protected> & a, int b)
 {
-  return a-Interval_nt<Protected>(b);
+  return a-static_cast<double>(b);
 }
 
 template <bool Protected>
@@ -749,7 +744,7 @@ inline
 Interval_nt<Protected>
 operator* (const Interval_nt<Protected> & a, double b)
 {
-  return a*Interval_nt<Protected>(b);
+  return b*a;
 }
 
 template <bool Protected>
@@ -757,7 +752,7 @@ inline
 Interval_nt<Protected>
 operator* (int a, const Interval_nt<Protected> & b)
 {
-  return Interval_nt<Protected>(a)*b;
+  return static_cast<double>(a)*b;
 }
 
 template <bool Protected>
@@ -765,7 +760,7 @@ inline
 Interval_nt<Protected>
 operator* (const Interval_nt<Protected> & a, int b)
 {
-  return a*Interval_nt<Protected>(b);
+  return a*static_cast<double>(b);
 }
 
 template <bool Protected>
@@ -830,7 +825,7 @@ inline
 Interval_nt<Protected>
 operator/ (int a, const Interval_nt<Protected> & b)
 {
-  return Interval_nt<Protected>(a)/b;
+  return static_cast<double>(a)/b;
 }
 
 template <bool Protected>
@@ -838,7 +833,7 @@ inline
 Interval_nt<Protected>
 operator/ (const Interval_nt<Protected> & a, int b)
 {
-  return a/Interval_nt<Protected>(b);
+  return a/static_cast<double>(b);
 }
 
 // TODO: What about these two guys? Where do they belong to?
