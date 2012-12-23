@@ -191,17 +191,30 @@ public:
 
   bool is_point() const
   {
+    // sup()-inf()==0 might help a compiler generate the SSE3 haddpd.
     return sup() == inf();
   }
 
   bool is_same (const IA & d) const
   {
+#ifdef CGAL_USE_SSE2
+    // Faster to answer yes, but slower to answer no.
+    return _mm_movemask_pd (_mm_cmpneq_pd (val, d.val)) == 0;
+#else
     return inf() == d.inf() && sup() == d.sup();
+#endif
   }
 
   bool do_overlap (const IA & d) const
   {
+#ifdef CGAL_USE_SSE2
+    __m128d m = _mm_set1_pd (-0.);
+    __m128d y = _mm_xor_pd ((-d).val, m); // {-ds,di}
+    __m128d c = _mm_cmplt_pd (val, y); // {i>ds,s<di}
+    return _mm_movemask_pd (c) == 0;
+#else
     return !(d.inf() > sup() || d.sup() < inf());
+#endif
   }
 
   double inf() const {
@@ -213,6 +226,7 @@ public:
   }
   double sup() const {
 #ifdef CGAL_USE_SSE2
+    // Should we use shufpd because it is already used by operator- ?
     return _mm_cvtsd_f64(_mm_unpackhi_pd(val, val));
 #else
     return _sup;
@@ -248,6 +262,10 @@ public:
 private:
   // Pair inf_sup;
   // The value stored in _inf is the negated lower bound.
+  // TODO: experiment with different orders of the values in the SSE2 register,
+  // for instance {sup, -inf}, or {inf, -sup}, and adapt users to query the low
+  // value in priority. {-inf, sup} has the drawback that neither inf nor sup
+  // is free to access.
 #ifdef CGAL_USE_SSE2
   __m128d val;
 #else
@@ -369,7 +387,7 @@ Uncertain<bool>
 operator==(double a, const Interval_nt<Protected> &b)
 {
   if (b.inf() >  a || b.sup() <  a) return false;
-  if (b.inf() == a && b.sup() == a) return true;
+  if (b.is_point()) return true;
   return Uncertain<bool>::indeterminate();
 }
 
@@ -384,8 +402,8 @@ inline
 Uncertain<bool>
 operator<(const Interval_nt<Protected> &a, double b)
 {
-  if (a.sup()  < b) return true;
   if (a.inf() >= b) return false;
+  if (a.sup()  < b) return true;
   return Uncertain<bool>::indeterminate();
 }
 
@@ -400,8 +418,8 @@ inline
 Uncertain<bool>
 operator<=(const Interval_nt<Protected> &a, double b)
 {
-  if (a.sup() <= b) return true;
   if (a.inf() >  b) return false;
+  if (a.sup() <= b) return true;
   return Uncertain<bool>::indeterminate();
 }
 
@@ -415,17 +433,13 @@ template <bool Protected>
 inline
 Uncertain<bool>
 operator==(const Interval_nt<Protected> &a, double b)
-{
-  if (b >  a.sup() || b <  a.inf()) return false;
-  if (b == a.sup() && b == a.inf()) return true;
-  return Uncertain<bool>::indeterminate();
-}
+{ return b == a; }
 
 template <bool Protected>
 inline
 Uncertain<bool>
 operator!=(const Interval_nt<Protected> &a, double b)
-{ return ! (a == b); }
+{ return ! (b == a); }
 
 
 // Mixed operators with int.
@@ -544,7 +558,14 @@ inline
 double
 magnitude (const Interval_nt<Protected> & d)
 {
+#ifdef CGAL_USE_SSE2
+  const __m128d m = _mm_castsi128_pd (_mm_set1_epi64x (0x7fffffffffffffff));
+  __m128d x = _mm_and_pd (d.simd(), m); // { abs(inf), abs(sup) }
+  __m128d y = _mm_unpackhi_pd (x, x);
+  return _mm_cvtsd_f64 (_mm_max_sd (x, y));
+#else
   return (std::max)(CGAL::abs(d.inf()), CGAL::abs(d.sup()));
+#endif
 }
 
 // Non-documented
@@ -744,17 +765,17 @@ operator* (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
   __m128d aa = a.simd();
   double t = -b.inf(); // -bi
   double u = b.sup();  //  bs
-  if (t <= 0) {
-    __m128d res1 = _mm_mul_pd (_mm_set1_pd (-t), aa);
-    __m128d res2 = _mm_mul_pd (_mm_set1_pd ( u), aa);
+  if (t <= 0) { // b >= 0
+    __m128d res1 = _mm_mul_pd (_mm_set1_pd (-t), aa); // {-ai*bi,as*bi}
+    __m128d res2 = _mm_mul_pd (_mm_set1_pd ( u), aa); // {-ai*bs,as*bs}
     return IA (_mm_max_pd (res1, res2));
   }
   __m128d     ap = _mm_shuffle_pd (aa, aa, 1); // {as,-ai}
   __m128d      x = _mm_mul_pd (_mm_set1_pd ( t), ap); // {-as*bi,ai*bi}
 
   __m128d y;
-  if (u < 0)   y = _mm_mul_pd (_mm_set1_pd (-u), ap);
-  else         y = _mm_mul_pd (_mm_set1_pd ( u), aa);
+  if (u < 0)   y = _mm_mul_pd (_mm_set1_pd (-u), ap); // {-as*bs,ai*bs}
+  else         y = _mm_mul_pd (_mm_set1_pd ( u), aa); // {-ai*bs,as*bs}
   return IA (_mm_max_pd (x, y));
 #else
 
@@ -852,6 +873,24 @@ operator/ (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
   typedef Interval_nt<Protected> IA;
   typename Interval_nt<Protected>::Internal_protector P;
   // TODO: add an sse2 version similar to the multiplication.
+
+#ifdef CGAL_USE_SSE2
+  __m128d aa = a.simd();
+  double t = -b.inf(); // -bi
+  double u = b.sup();  //  bs
+  if (t < 0) { // b > 0
+    __m128d res1 = _mm_div_pd (aa, _mm_set1_pd (-t)); // {-ai/bi,as/bi}
+    __m128d res2 = _mm_div_pd (aa, _mm_set1_pd ( u)); // {-ai/bs,as/bs}
+    return IA (_mm_max_pd (res1, res2));
+  }
+  else if (u < 0) { // b < 0
+    aa = _mm_shuffle_pd (aa, aa, 1); // {as,-ai}
+    __m128d res1 = _mm_div_pd (aa, _mm_set1_pd ( t)); // {-as/bi,ai/bi}
+    __m128d res2 = _mm_div_pd (aa, _mm_set1_pd (-u)); // {-as/bs,ai/bs}
+    return IA (_mm_max_pd (res1, res2));
+  }
+
+#else
   if (b.inf() > 0.0)				// b>0
   {
     // e>=0	[a.inf()/b.sup(); a.sup()/b.inf()]
@@ -880,6 +919,7 @@ operator/ (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
     }
     return IA(-CGAL_IA_DIV(a.sup(), -aa), CGAL_IA_DIV(a.inf(), bb));
   }
+#endif
   else					// b~0
     return IA::largest();
 	   // We could do slightly better -> [0;infinity] when b.sup()==0,
@@ -1103,16 +1143,32 @@ namespace INTERN_INTERVAL_NT {
   template <bool Protected>
   inline
   Interval_nt<Protected>
-  square (const Interval_nt<Protected> & d)
+  square (Interval_nt<Protected> d)
   {
     typename Interval_nt<Protected>::Internal_protector P;
     // TODO: try an sse2 version of the first 2 cases at least.
     if (d.inf()>=0.0)
+#ifdef CGAL_USE_SSE2
+      {
+	__m128d x = d.simd();
+	__m128d r = _mm_mul_pd (_mm_xor_pd (x, _mm_set_sd (-0.)), x);
+	return Interval_nt<Protected> (r);
+      }
+#else
         return Interval_nt<Protected>(-CGAL_IA_MUL(d.inf(), -d.inf()),
                                  CGAL_IA_MUL(d.sup(), d.sup()));
+#endif
     if (d.sup()<=0.0)
+#ifdef CGAL_USE_SSE2
+      {
+	__m128d x = (-d).simd();
+	__m128d r = _mm_mul_pd (_mm_xor_pd (x, _mm_set_sd (-0.)), x);
+	return Interval_nt<Protected> (r);
+      }
+#else
         return Interval_nt<Protected>(-CGAL_IA_MUL(d.sup(), -d.sup()),
                                CGAL_IA_MUL(-d.inf(), -d.inf()));
+#endif
     return Interval_nt<Protected>(0.0, CGAL_IA_SQUARE((std::max)(-d.inf(),
                      d.sup())));
   }
