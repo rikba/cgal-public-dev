@@ -99,7 +99,7 @@ public:
   Interval_nt(long long i)
   {
     // Is this safe against excess precision? -- Marc Glisse, Dec 2012
-    double d = i;
+    double d = static_cast<double>(i);
     *this = Interval_nt(d);
 #ifdef __GNUC__
     long long safe = 1LL << 52; // Use numeric_limits?
@@ -112,7 +112,7 @@ public:
 
   Interval_nt(unsigned long long i)
   {
-    double d = i;
+    double d = static_cast<double>(i);
     *this = Interval_nt(d);
 #ifdef __GNUC__
     unsigned long long safe = 1ULL << 52; // Use numeric_limits?
@@ -559,6 +559,7 @@ double
 magnitude (const Interval_nt<Protected> & d)
 {
 #ifdef CGAL_USE_SSE2
+  //FIXME: Intel's compiler seems to be missing _mm_set1_epi64x ???
   const __m128d m = _mm_castsi128_pd (_mm_set1_epi64x (0x7fffffffffffffff));
   __m128d x = _mm_and_pd (d.simd(), m); // { abs(inf), abs(sup) }
   __m128d y = _mm_unpackhi_pd (x, x);
