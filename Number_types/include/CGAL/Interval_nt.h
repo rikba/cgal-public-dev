@@ -559,8 +559,14 @@ double
 magnitude (const Interval_nt<Protected> & d)
 {
 #ifdef CGAL_USE_SSE2
+#if 0
   //FIXME: Intel's compiler seems to be missing _mm_set1_epi64x ???
   const __m128d m = _mm_castsi128_pd (_mm_set1_epi64x (0x7fffffffffffffff));
+#else
+  union { long long l; double d; } b;
+  b.l = 0x7fffffffffffffff;
+  const __m128d m = _mm_set1_pd(b.d);
+#endif
   __m128d x = _mm_and_pd (d.simd(), m); // { abs(inf), abs(sup) }
   __m128d y = _mm_unpackhi_pd (x, x);
   return _mm_cvtsd_f64 (_mm_max_sd (x, y));
