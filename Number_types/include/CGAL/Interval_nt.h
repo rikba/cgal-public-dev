@@ -148,6 +148,13 @@ public:
   explicit Interval_nt(__m128d v) : val(CGAL_OPACIFY_SSE2(v)) {}
 #endif
 
+  // WARNING: those 2 calls to CGAL_OPACIFY_SSE2 seem sufficient with the
+  // version of clang I tested, which not only propagates constants, but moves
+  // fesetenv across operations and optimizes a^x+a^y to a^(x+y). However, they
+  // could still come up with optimizations that break it, and for safety we
+  // may want to surround every non-exact instruction (add, mul, div) with an
+  // opaque protection. That would have a cost on any platform where opacify is
+  // expensive.
   Interval_nt(double i, double s)
 #ifdef CGAL_USE_SSE2
     : val(CGAL_OPACIFY_SSE2(_mm_setr_pd(-i, s)))

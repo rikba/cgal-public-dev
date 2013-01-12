@@ -163,7 +163,7 @@ inline __m128d IA_opacify_sse2(__m128d x)
 #endif
 }
 #ifdef __llvm__
-// Worst compiler on earth
+// Worst compiler on earth. It would be safer to do it for all compilers.
 #define CGAL_OPACIFY_SSE2(x) CGAL::IA_opacify_sse2(x)
 #else
 #define CGAL_OPACIFY_SSE2(x) (x)
