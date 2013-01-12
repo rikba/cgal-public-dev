@@ -979,6 +979,7 @@ struct Min <Interval_nt<Protected> >
     {
 #ifdef CGAL_USE_SSE2
         __m128d x = _mm_min_pd (d.simd(), e.simd());
+        // Use _mm_max_sd instead?
         __m128d y = _mm_max_pd (d.simd(), e.simd());
         return Interval_nt<Protected> (_mm_move_sd (x, y));
 #else
@@ -999,6 +1000,7 @@ struct Max <Interval_nt<Protected> >
                                        const Interval_nt<Protected>& e) const
     {
 #ifdef CGAL_USE_SSE2
+        // Use _mm_min_sd instead?
         __m128d x = _mm_min_pd (d.simd(), e.simd());
         __m128d y = _mm_max_pd (d.simd(), e.simd());
         return Interval_nt<Protected> (_mm_move_sd (y, x));
@@ -1146,7 +1148,6 @@ namespace INTERN_INTERVAL_NT {
   square (Interval_nt<Protected> d)
   {
     typename Interval_nt<Protected>::Internal_protector P;
-    // TODO: try an sse2 version of the first 2 cases at least.
     if (d.inf()>=0.0)
 #ifdef CGAL_USE_SSE2
       {
