@@ -104,6 +104,14 @@ extern "C" {
 #  define CGAL_FPU_HAS_EXCESS_PRECISION
 #endif
 
+// Presence of SSE2 (for explicit use)
+#if  defined(__SSE2__) \
+  || (defined(_M_IX86_FP) && _M_IX86_FP >= 2) \
+  || defined(_M_X64)
+#include <emmintrin.h>
+#define CGAL_USE_SSE2 1
+#endif
+
 namespace CGAL {
 
 namespace internal {
@@ -127,7 +135,7 @@ inline double IA_force_to_double(double x)
 #if defined __GNUG__ && !defined __INTEL_COMPILER
   // Intel does not emulate GCC perfectly...
   // Is that still true? -- Marc Glisse, 2012-12-17
-#ifdef CGAL_SAFE_SSE2
+#ifdef CGAL_USE_SSE2
   asm("" : "+mx"(x) );
 #else
   asm("" : "=m"(x) : "m"(x));
@@ -139,6 +147,27 @@ inline double IA_force_to_double(double x)
   return e;
 #endif
 }
+
+#if CGAL_USE_SSE2
+inline __m128d IA_opacify_sse2(__m128d x)
+{
+#if defined __GNUG__ && !defined __INTEL_COMPILER
+  // Intel does not emulate GCC perfectly...
+  // Is that still true? -- Marc Glisse, 2012-12-17
+  asm("" : "+mx"(x) );
+  return x;
+#else
+  volatile __m128d e = x;
+  return e;
+#endif
+}
+#ifdef __llvm__
+// Worst compiler on earth
+#define CGAL_OPACIFY_SSE2(x) CGAL::IA_opacify_sse2(x)
+#else
+#define CGAL_OPACIFY_SSE2(x) (x)
+#endif
+#endif
 
 // Interval arithmetic needs to protect against double-rounding effects
 // caused by excess FPU precision, even if it forces the 53bit mantissa

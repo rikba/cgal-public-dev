@@ -52,13 +52,6 @@
 #include <CGAL/IO/io.h>
 #include <iostream>
 
-#if  defined(__SSE2__) \
-  || (defined(_M_IX86_FP) && _M_IX86_FP >= 2) \
-  || defined(_M_X64)
-#include <emmintrin.h>
-#define CGAL_USE_SSE2 1
-#endif
-
 namespace CGAL {
 
 template <bool Protected = true>
@@ -152,12 +145,12 @@ public:
 #ifdef CGAL_USE_SSE2
   // This constructor should really be private, like the simd() function, but
   // that would mean a lot of new friends, so they are only undocumented.
-  explicit Interval_nt(__m128d v) : val(v) {}
+  explicit Interval_nt(__m128d v) : val(CGAL_OPACIFY_SSE2(v)) {}
 #endif
 
   Interval_nt(double i, double s)
 #ifdef CGAL_USE_SSE2
-    : val(_mm_setr_pd(-i, s))
+    : val(CGAL_OPACIFY_SSE2(_mm_setr_pd(-i, s)))
 #else
     : _inf(-i), _sup(s)
 #endif
