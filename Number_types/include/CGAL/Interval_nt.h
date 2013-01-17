@@ -71,7 +71,7 @@ public:
   Interval_nt()
 #ifndef CGAL_NO_ASSERTIONS
 #ifdef CGAL_USE_SSE2
-      : val(_mm_setr_pd(-1, 0))
+      : val(CGAL_OPACIFY_SSE2_CST(_mm_setr_pd(-1, 0)))
 #else
       : _inf(-1), _sup(0)
 #endif
@@ -145,19 +145,15 @@ public:
 #ifdef CGAL_USE_SSE2
   // This constructor should really be private, like the simd() function, but
   // that would mean a lot of new friends, so they are only undocumented.
-  explicit Interval_nt(__m128d v) : val(CGAL_OPACIFY_SSE2(v)) {}
+  explicit Interval_nt(__m128d v) : val(CGAL_OPACIFY_SSE2_CST2(v)) {}
+  // Opacifying here instead of in the operations experimentally works.
 #endif
 
-  // WARNING: those 2 calls to CGAL_OPACIFY_SSE2 seem sufficient with the
-  // version of clang I tested, which not only propagates constants, but moves
-  // fesetenv across operations and optimizes a^x+a^y to a^(x+y). However, they
-  // could still come up with optimizations that break it, and for safety we
-  // may want to surround every non-exact instruction (add, mul, div) with an
-  // opaque protection. That would have a cost on any platform where opacify is
-  // expensive.
+  // WARNING: the version of clang I tested not only propagates constants, but
+  // moves fesetenv across operations and optimizes a^x+a^y to a^(x+y).
   Interval_nt(double i, double s)
 #ifdef CGAL_USE_SSE2
-    : val(CGAL_OPACIFY_SSE2(_mm_setr_pd(-i, s)))
+    : val(CGAL_OPACIFY_SSE2_CST(_mm_setr_pd(-i, s)))
 #else
     : _inf(-i), _sup(s)
 #endif
@@ -674,7 +670,7 @@ operator+ (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
 {
   typename Interval_nt<Protected>::Internal_protector P;
 #ifdef CGAL_USE_SSE2
-  return Interval_nt<Protected>(_mm_add_pd(a.simd(), b.simd()));
+  return Interval_nt<Protected>(CGAL_IA_SSE2_ADD(a.simd(), b.simd()));
 #else
   return Interval_nt<Protected> (-CGAL_IA_ADD(-a.inf(), -b.inf()),
                                   CGAL_IA_ADD(a.sup(), b.sup()));
@@ -773,16 +769,16 @@ operator* (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
   double t = -b.inf(); // -bi
   double u = b.sup();  //  bs
   if (t <= 0) { // b >= 0
-    __m128d res1 = _mm_mul_pd (_mm_set1_pd (-t), aa); // {-ai*bi,as*bi}
-    __m128d res2 = _mm_mul_pd (_mm_set1_pd ( u), aa); // {-ai*bs,as*bs}
+    __m128d res1 = CGAL_IA_SSE2_MUL (_mm_set1_pd (-t), aa); // {-ai*bi,as*bi}
+    __m128d res2 = CGAL_IA_SSE2_MUL (_mm_set1_pd ( u), aa); // {-ai*bs,as*bs}
     return IA (_mm_max_pd (res1, res2));
   }
   __m128d     ap = _mm_shuffle_pd (aa, aa, 1); // {as,-ai}
-  __m128d      x = _mm_mul_pd (_mm_set1_pd ( t), ap); // {-as*bi,ai*bi}
+  __m128d      x = CGAL_IA_SSE2_MUL (_mm_set1_pd ( t), ap); // {-as*bi,ai*bi}
 
   __m128d y;
-  if (u < 0)   y = _mm_mul_pd (_mm_set1_pd (-u), ap); // {-as*bs,ai*bs}
-  else         y = _mm_mul_pd (_mm_set1_pd ( u), aa); // {-ai*bs,as*bs}
+  if (u < 0)   y = CGAL_IA_SSE2_MUL (_mm_set1_pd (-u), ap); // {-as*bs,ai*bs}
+  else         y = CGAL_IA_SSE2_MUL (_mm_set1_pd ( u), aa); // {-ai*bs,as*bs}
   return IA (_mm_max_pd (x, y));
 #else
 
@@ -842,7 +838,7 @@ operator* (double a, Interval_nt<Protected> b)
   if (a < 0) { a = -a; b = -b; }
   // Now a >= 0
 #ifdef CGAL_USE_SSE2
-  return IA(_mm_mul_pd (_mm_set1_pd(a), b.simd()));
+  return IA(CGAL_IA_SSE2_MUL (_mm_set1_pd(a), b.simd()));
 #else
   return IA(-CGAL_IA_MUL(a, -b.inf()), CGAL_IA_MUL(a, b.sup()));
 #endif
@@ -886,14 +882,14 @@ operator/ (const Interval_nt<Protected> &a, const Interval_nt<Protected> & b)
   double t = -b.inf(); // -bi
   double u = b.sup();  //  bs
   if (t < 0) { // b > 0
-    __m128d res1 = _mm_div_pd (aa, _mm_set1_pd (-t)); // {-ai/bi,as/bi}
-    __m128d res2 = _mm_div_pd (aa, _mm_set1_pd ( u)); // {-ai/bs,as/bs}
+    __m128d res1 = CGAL_IA_SSE2_DIV (aa, _mm_set1_pd (-t)); // {-ai/bi,as/bi}
+    __m128d res2 = CGAL_IA_SSE2_DIV (aa, _mm_set1_pd ( u)); // {-ai/bs,as/bs}
     return IA (_mm_max_pd (res1, res2));
   }
   else if (u < 0) { // b < 0
     aa = _mm_shuffle_pd (aa, aa, 1); // {as,-ai}
-    __m128d res1 = _mm_div_pd (aa, _mm_set1_pd ( t)); // {-as/bi,ai/bi}
-    __m128d res2 = _mm_div_pd (aa, _mm_set1_pd (-u)); // {-as/bs,ai/bs}
+    __m128d res1 = CGAL_IA_SSE2_DIV (aa, _mm_set1_pd ( t)); // {-as/bi,ai/bi}
+    __m128d res2 = CGAL_IA_SSE2_DIV (aa, _mm_set1_pd (-u)); // {-as/bs,ai/bs}
     return IA (_mm_max_pd (res1, res2));
   }
 
@@ -952,7 +948,7 @@ operator/ (Interval_nt<Protected> a, double b)
   else if (b == 0) return IA::largest();
   // Now b > 0
 #ifdef CGAL_USE_SSE2
-  return IA(_mm_div_pd (a.simd(), _mm_set1_pd(b)));
+  return IA(CGAL_IA_SSE2_DIV (a.simd(), _mm_set1_pd(b)));
 #else
   return IA(-CGAL_IA_DIV(-a.inf(), b), CGAL_IA_DIV(a.sup(), b));
 #endif
@@ -1159,7 +1155,7 @@ namespace INTERN_INTERVAL_NT {
 #ifdef CGAL_USE_SSE2
       {
 	__m128d x = d.simd();
-	__m128d r = _mm_mul_pd (_mm_xor_pd (x, _mm_set_sd (-0.)), x);
+	__m128d r = CGAL_IA_SSE2_MUL (_mm_xor_pd (x, _mm_set_sd (-0.)), x);
 	return Interval_nt<Protected> (r);
       }
 #else
@@ -1170,7 +1166,7 @@ namespace INTERN_INTERVAL_NT {
 #ifdef CGAL_USE_SSE2
       {
 	__m128d x = (-d).simd();
-	__m128d r = _mm_mul_pd (_mm_xor_pd (x, _mm_set_sd (-0.)), x);
+	__m128d r = CGAL_IA_SSE2_MUL (_mm_xor_pd (x, _mm_set_sd (-0.)), x);
 	return Interval_nt<Protected> (r);
       }
 #else

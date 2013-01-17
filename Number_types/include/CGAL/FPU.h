@@ -162,12 +162,32 @@ inline __m128d IA_opacify_sse2(__m128d x)
   return e;
 #endif
 }
-#ifdef __llvm__
-// Worst compiler on earth. It would be safer to do it for all compilers.
-#define CGAL_OPACIFY_SSE2(x) CGAL::IA_opacify_sse2(x)
+
+// For compilers that can handle FENV, define all to (x).
+#if defined __GNUG__ && !defined __INTEL_COMPILER
+// The safe version.
+#define CGAL_OPACIFY_SSE2_OP(x) CGAL::IA_opacify_sse2(x)
+#define CGAL_OPACIFY_SSE2_CST(x) (x)
+#define CGAL_OPACIFY_SSE2_CST2(x) (x)
+#elif 1
+// Cheaper, but use only for compilers that don't optimize too much
+// and have a slow opacify.
+#define CGAL_OPACIFY_SSE2_OP(x) (x)
+#define CGAL_OPACIFY_SSE2_CST(x) CGAL::IA_opacify_sse2(x)
+#define CGAL_OPACIFY_SSE2_CST2(x) (x)
 #else
-#define CGAL_OPACIFY_SSE2(x) (x)
+// An intermediate level of safety, seems sufficient currently.
+#define CGAL_OPACIFY_SSE2_OP(x) (x)
+#define CGAL_OPACIFY_SSE2_CST(x) CGAL::IA_opacify_sse2(x)
+#define CGAL_OPACIFY_SSE2_CST2(x) CGAL::IA_opacify_sse2(x)
 #endif
+
+// Need a protection before and after the operation or clang will move both
+// fesetenv to the same side of the instruction.
+#define CGAL_IA_SSE2_ADD(a,b) CGAL_OPACIFY_SSE2_OP(_mm_add_pd((a),CGAL_OPACIFY_SSE2_OP(b)))
+#define CGAL_IA_SSE2_SUB(a,b) CGAL_OPACIFY_SSE2_OP(_mm_sub_pd((a),CGAL_OPACIFY_SSE2_OP(b)))
+#define CGAL_IA_SSE2_MUL(a,b) CGAL_OPACIFY_SSE2_OP(_mm_mul_pd((a),CGAL_OPACIFY_SSE2_OP(b)))
+#define CGAL_IA_SSE2_DIV(a,b) CGAL_OPACIFY_SSE2_OP(_mm_div_pd((a),CGAL_OPACIFY_SSE2_OP(b)))
 #endif
 
 // Interval arithmetic needs to protect against double-rounding effects
