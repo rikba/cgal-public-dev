@@ -139,7 +139,7 @@ inline double IA_force_to_double(double x)
 #ifdef CGAL_USE_SSE2
   asm volatile ("" : "+mx"(x) );
 #else
-  asm("" : "=m"(x) : "m"(x));
+  asm volatile ("" : "=m"(x) : "m"(x));
   // asm("" : "+m"(x) );
 #endif
   return x;
