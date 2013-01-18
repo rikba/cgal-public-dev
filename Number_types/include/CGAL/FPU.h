@@ -171,7 +171,7 @@ inline __m128d IA_opacify_sse2(__m128d x)
 }
 
 // For compilers that can handle FENV, define all to (x).
-#if defined __GNUG__ && !defined __INTEL_COMPILER
+#if 1
 // The safe version.
 #define CGAL_OPACIFY_SSE2_OP(x) CGAL::IA_opacify_sse2(x)
 #define CGAL_OPACIFY_SSE2_CST(x) (x)
@@ -204,8 +204,10 @@ inline __m128d IA_opacify_sse2(__m128d x)
 // In case one does not care about such "extreme" situations, one can
 // set CGAL_IA_NO_X86_OVER_UNDER_FLOW_PROTECT.
 // LLVM doesn't have -frounding-math so needs extra protection.
+// Actually, it is safer to use it for all compilers, to make sure that
+// rounding mode changes are not swapped with arithmetic operations.
 #if (defined CGAL_FPU_HAS_EXCESS_PRECISION && \
-   !defined CGAL_IA_NO_X86_OVER_UNDER_FLOW_PROTECT) || defined __llvm__
+   !defined CGAL_IA_NO_X86_OVER_UNDER_FLOW_PROTECT) || 1
 #  define CGAL_IA_FORCE_TO_DOUBLE(x) CGAL::IA_force_to_double(x)
 #else
 #  define CGAL_IA_FORCE_TO_DOUBLE(x) (x)
