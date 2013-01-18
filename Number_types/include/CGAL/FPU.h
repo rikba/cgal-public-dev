@@ -137,7 +137,7 @@ inline double IA_force_to_double(double x)
   // Intel does not emulate GCC perfectly...
   // Is that still true? -- Marc Glisse, 2012-12-17
 #ifdef CGAL_USE_SSE2
-  asm("" : "+mx"(x) );
+  asm volatile ("" : "+mx"(x) );
 #else
   asm("" : "=m"(x) : "m"(x));
   // asm("" : "+m"(x) );
@@ -155,7 +155,7 @@ inline __m128d IA_opacify_sse2(__m128d x)
 #if defined __GNUG__ && !defined __INTEL_COMPILER
   // Intel does not emulate GCC perfectly...
   // Is that still true? -- Marc Glisse, 2012-12-17
-  asm("" : "+mx"(x) );
+  asm volatile ("" : "+mx"(x) );
   return x;
 #else
   volatile __m128d e = x;
