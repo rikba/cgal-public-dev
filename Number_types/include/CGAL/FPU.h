@@ -136,12 +136,18 @@ inline double IA_force_to_double(double x)
 #if defined __GNUG__ && !defined __INTEL_COMPILER
   // Intel does not emulate GCC perfectly...
   // Is that still true? -- Marc Glisse, 2012-12-17
-#ifdef CGAL_USE_SSE2
+#  if !defined CGAL_FPU_HAS_EXCESS_PRECISION
+  // We only need an optimization barrier.
+  asm volatile ("" : "+g"(x) );
+#  elif defined CGAL_USE_SSE2
+  // Store in a place without excess precision.
   asm volatile ("" : "+mx"(x) );
-#else
+#  else
+  // Similar to writing to a volatile and reading back, except that calling
+  // it k times in a row only goes through memory once.
   asm volatile ("" : "=m"(x) : "m"(x));
   // asm("" : "+m"(x) );
-#endif
+#  endif
   return x;
 #else
   volatile double e = x;
@@ -156,6 +162,7 @@ inline __m128d IA_opacify_sse2(__m128d x)
   // Intel does not emulate GCC perfectly...
   // Is that still true? -- Marc Glisse, 2012-12-17
   asm volatile ("" : "+mx"(x) );
+  // gcc < 4.8 fails if we use "+g" here.
   return x;
 #else
   volatile __m128d e = x;
