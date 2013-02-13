@@ -109,8 +109,14 @@ extern "C" {
 #if  defined(__SSE2__) \
   || (defined(_M_IX86_FP) && _M_IX86_FP >= 2) \
   || defined(_M_X64)
-#include <emmintrin.h>
-#define CGAL_USE_SSE2 1
+#  include <emmintrin.h>
+#  define CGAL_HAS_SSE2 1
+#endif
+
+// Only define CGAL_USE_SSE2 for 64 bits where malloc has a suitable
+// alignment, 32 bits is too dangerous.
+#if defined(CGAL_HAS_SSE2) && (defined(__x86_64__) || defined(_M_X64))
+#  define CGAL_USE_SSE2 1
 #endif
 
 namespace CGAL {
@@ -137,9 +143,10 @@ inline double IA_force_to_double(double x)
   // Intel does not emulate GCC perfectly...
   // Is that still true? -- Marc Glisse, 2012-12-17
 #  if !defined CGAL_FPU_HAS_EXCESS_PRECISION
-  // We only need an optimization barrier.
+  // We only need an optimization barrier. If for any reason this fails
+  // to compile, try the further versions.
   asm volatile ("" : "+g"(x) );
-#  elif defined CGAL_USE_SSE2
+#  elif defined CGAL_HAS_SSE2
   // Store in a place without excess precision.
   asm volatile ("" : "+mx"(x) );
 #  else
@@ -155,8 +162,8 @@ inline double IA_force_to_double(double x)
 #endif
 }
 
-#if CGAL_USE_SSE2
-inline __m128d IA_opacify_sse2(__m128d x)
+#if CGAL_HAS_SSE2
+inline __m128d IA_opacify_m128d(__m128d x)
 {
 #if defined __GNUG__ && !defined __INTEL_COMPILER
   // Intel does not emulate GCC perfectly...
@@ -173,28 +180,28 @@ inline __m128d IA_opacify_sse2(__m128d x)
 // For compilers that can handle FENV, define all to (x).
 #if 1
 // The safe version.
-#define CGAL_OPACIFY_SSE2_OP(x) CGAL::IA_opacify_sse2(x)
-#define CGAL_OPACIFY_SSE2_CST(x) (x)
-#define CGAL_OPACIFY_SSE2_CST2(x) (x)
+#define CGAL_OPACIFY_M128D_OP(x) CGAL::IA_opacify_m128d(x)
+#define CGAL_OPACIFY_M128D_CST(x) (x)
+#define CGAL_OPACIFY_M128D_CST2(x) (x)
 #elif 1
 // Cheaper, but use only for compilers that don't optimize too much
 // and have a slow opacify.
-#define CGAL_OPACIFY_SSE2_OP(x) (x)
-#define CGAL_OPACIFY_SSE2_CST(x) CGAL::IA_opacify_sse2(x)
-#define CGAL_OPACIFY_SSE2_CST2(x) (x)
+#define CGAL_OPACIFY_M128D_OP(x) (x)
+#define CGAL_OPACIFY_M128D_CST(x) CGAL::IA_opacify_m128d(x)
+#define CGAL_OPACIFY_M128D_CST2(x) (x)
 #else
 // An intermediate level of safety, seems sufficient currently.
-#define CGAL_OPACIFY_SSE2_OP(x) (x)
-#define CGAL_OPACIFY_SSE2_CST(x) CGAL::IA_opacify_sse2(x)
-#define CGAL_OPACIFY_SSE2_CST2(x) CGAL::IA_opacify_sse2(x)
+#define CGAL_OPACIFY_M128D_OP(x) (x)
+#define CGAL_OPACIFY_M128D_CST(x) CGAL::IA_opacify_m128d(x)
+#define CGAL_OPACIFY_M128D_CST2(x) CGAL::IA_opacify_m128d(x)
 #endif
 
 // Need a protection before and after the operation or clang will move both
 // fesetenv to the same side of the instruction.
-#define CGAL_IA_SSE2_ADD(a,b) CGAL_OPACIFY_SSE2_OP(_mm_add_pd((a),CGAL_OPACIFY_SSE2_OP(b)))
-#define CGAL_IA_SSE2_SUB(a,b) CGAL_OPACIFY_SSE2_OP(_mm_sub_pd((a),CGAL_OPACIFY_SSE2_OP(b)))
-#define CGAL_IA_SSE2_MUL(a,b) CGAL_OPACIFY_SSE2_OP(_mm_mul_pd((a),CGAL_OPACIFY_SSE2_OP(b)))
-#define CGAL_IA_SSE2_DIV(a,b) CGAL_OPACIFY_SSE2_OP(_mm_div_pd((a),CGAL_OPACIFY_SSE2_OP(b)))
+#define CGAL_IA_M128D_ADD(a,b) CGAL_OPACIFY_M128D_OP(_mm_add_pd((a),CGAL_OPACIFY_M128D_OP(b)))
+#define CGAL_IA_M128D_SUB(a,b) CGAL_OPACIFY_M128D_OP(_mm_sub_pd((a),CGAL_OPACIFY_M128D_OP(b)))
+#define CGAL_IA_M128D_MUL(a,b) CGAL_OPACIFY_M128D_OP(_mm_mul_pd((a),CGAL_OPACIFY_M128D_OP(b)))
+#define CGAL_IA_M128D_DIV(a,b) CGAL_OPACIFY_M128D_OP(_mm_div_pd((a),CGAL_OPACIFY_M128D_OP(b)))
 #endif
 
 // Interval arithmetic needs to protect against double-rounding effects
