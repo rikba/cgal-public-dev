@@ -45,6 +45,8 @@
 #include <CGAL/Periodic_2_triangulation_iterators_2.h>
 #include <CGAL/spatial_sort.h>
 
+#include <CGAL/internal/Lazy_alpha_nt_2.h>
+
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/uniform_smallint.hpp>
 #include <boost/random/variate_generator.hpp>
@@ -175,7 +177,12 @@ public:
     FACE,
     /// The query point lies outside the affine hull of the triangulation,
     /// which is the case when the triangulation is empty.
-    EMPTY
+    EMPTY, // 3
+
+    // Not in use, for alpha shapes
+    OUTSIDE_CONVEX_HULL = 3, //3
+    // Not in use, for alpha shapes
+    OUTSIDE_AFFINE_HULL = 4 //4
   };
   //\}
 
@@ -919,6 +926,35 @@ public:
   {
     return geom_traits().construct_circumcenter_2_object()(p1, p2, p3, o1, o2, o3);
   }
+
+  template <class ExactAlphaComparisonTag>
+  typename internal::Alpha_nt_selector_2<Gt, ExactAlphaComparisonTag>::Type_of_alpha 
+  squared_radius(const Face_handle& f, ExactAlphaComparisonTag) const {
+      if (f->has_zero_offsets())
+          return geom_traits().compute_squared_radius_2_object()(f->vertex(0)->point(),
+                                                                 f->vertex(1)->point(),
+                                                                 f->vertex(2)->point());
+      else 
+          return geom_traits().compute_squared_radius_2_object()(f->vertex(0)->point(),
+                                                                 f->vertex(1)->point(),
+                                                                 f->vertex(2)->point(),
+                                                                 int_to_off(f->offset(0)),
+                                                                 int_to_off(f->offset(1)),
+                                                                 int_to_off(f->offset(2)));
+  }
+    
+  template <class ExactAlphaComparisonTag>
+  typename internal::Alpha_nt_selector_2<Gt, ExactAlphaComparisonTag>::Type_of_alpha 
+  squared_radius(const Face_handle& f, int i, ExactAlphaComparisonTag) const {
+      if (f->has_zero_offsets())
+          return geom_traits().compute_squared_radius_2_object()(f->vertex(ccw(i))->point(),
+                                                                 f->vertex(cw(i))->point());
+      else 
+          return geom_traits().compute_squared_radius_2_object()(f->vertex(ccw(i))->point(),
+                                                                 f->vertex(cw(i))->point(),
+                                                                 int_to_off(f->offset(ccw(i))),
+                                                                 int_to_off(f->offset(cw(i))));
+  }
   //\}
 
 
@@ -1392,6 +1428,10 @@ protected:
   /// Returns false, no infinite simplices in the periodic triangulation
   template <class T>
   inline bool is_infinite(T) const
+  {
+    return false;
+  }
+  inline bool is_infinite(Face_handle, int) const
   {
     return false;
   }

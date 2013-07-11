@@ -41,6 +41,8 @@
 #include <CGAL/Triangulation_line_face_circulator_2.h>
 #include <CGAL/spatial_sort.h>
 
+#include <CGAL/internal/Lazy_alpha_nt_2.h>
+
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/uniform_smallint.hpp>
 #include <boost/random/variate_generator.hpp>
@@ -96,6 +98,7 @@ public:
   typedef typename Geom_traits::Orientation_2 Orientation_2;
   typedef typename Geom_traits::Compare_x_2   Compare_x;
   typedef typename Geom_traits::Compare_y_2   Compare_y;
+  typedef typename Geom_traits::Compute_squared_radius_2 Compute_squared_radius_2;
 
   typedef typename Tds::size_type              size_type;
   typedef typename Tds::difference_type        difference_type;
@@ -281,6 +284,14 @@ public:
   Point circumcenter(const Point& p0, 
 		     const Point& p1, 
 		     const Point& p2) const;
+    
+  template <class ExactAlphaComparisonTag>
+  typename internal::Alpha_nt_selector_2<Gt, ExactAlphaComparisonTag>::Type_of_alpha 
+  squared_radius(const Face_handle& f, ExactAlphaComparisonTag) const;
+    
+  template <class ExactAlphaComparisonTag>
+  typename internal::Alpha_nt_selector_2<Gt, ExactAlphaComparisonTag>::Type_of_alpha 
+  squared_radius(const Face_handle& f, int i, ExactAlphaComparisonTag) const;
   
 
   //MOVE - INSERTION - DELETION - Flip
@@ -3477,6 +3488,26 @@ circumcenter(Face_handle  f) const
 		      (f->vertex(2))->point());
 }
 
+
+template <class Gt, class Tds >
+template <class ExactAlphaComparisonTag>
+typename internal::Alpha_nt_selector_2<Gt, ExactAlphaComparisonTag>::Type_of_alpha 
+Triangulation_2<Gt, Tds>::squared_radius(const Face_handle& f, ExactAlphaComparisonTag) const 
+{
+    return Compute_squared_radius_2()(f->vertex(0)->point(),
+                                      f->vertex(1)->point(),
+                                      f->vertex(2)->point());
+}
+
+template <class Gt, class Tds >
+template <class ExactAlphaComparisonTag>
+typename internal::Alpha_nt_selector_2<Gt, ExactAlphaComparisonTag>::Type_of_alpha 
+Triangulation_2<Gt, Tds>::
+squared_radius(const Face_handle& f, int i, ExactAlphaComparisonTag) const 
+{
+    return Compute_squared_radius_2()(f->vertex(ccw(i))->point(),
+                                      f->vertex(cw(i))->point());
+}
  
 template <class Gt, class Tds >
 void

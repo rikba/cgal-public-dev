@@ -246,6 +246,10 @@ public:
   {
     return Construct_triangle_2(&_domain);
   }
+  Compute_squared_radius_2 compute_squared_radius_2_object() const
+  {
+    return Compute_squared_radius_2(&_domain);
+  }
 
 protected:
   Iso_rectangle_2 _domain;

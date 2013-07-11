@@ -988,6 +988,8 @@ namespace CartesianKernelFunctors {
     typedef typename K::Point_2     Point_2;
     typedef typename K::Circle_2    Circle_2;
   public:
+    typedef typename K::FT          result_type;
+
     template<class>
     struct result {
       typedef FT type;
