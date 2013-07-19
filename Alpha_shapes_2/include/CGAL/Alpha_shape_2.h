@@ -720,10 +720,10 @@ private:
     }
 
   Type_of_alpha squared_radius(const Face_handle& f) const {
-      return Dt::squared_radius(f, ExactAlphaComparisonTag());
+      return Dt::squared_radius(f);
   }
   Type_of_alpha squared_radius(const Face_handle& f, int i) const {
-      return Dt::squared_radius(f, i, ExactAlphaComparisonTag());
+      return Dt::squared_radius(f, i);
   }
   
   //---------------------------------------------------------------------

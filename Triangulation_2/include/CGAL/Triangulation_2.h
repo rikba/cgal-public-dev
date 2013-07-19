@@ -285,13 +285,11 @@ public:
 		     const Point& p1, 
 		     const Point& p2) const;
     
-  template <class ExactAlphaComparisonTag>
-  typename internal::Alpha_nt_selector_2<Gt, ExactAlphaComparisonTag>::Type_of_alpha 
-  squared_radius(const Face_handle& f, ExactAlphaComparisonTag) const;
+  typename internal::Alpha_nt_selector_2<Gt, Tag_false>::Type_of_alpha 
+  squared_radius(const Face_handle& f) const;
     
-  template <class ExactAlphaComparisonTag>
-  typename internal::Alpha_nt_selector_2<Gt, ExactAlphaComparisonTag>::Type_of_alpha 
-  squared_radius(const Face_handle& f, int i, ExactAlphaComparisonTag) const;
+  typename internal::Alpha_nt_selector_2<Gt, Tag_false>::Type_of_alpha 
+  squared_radius(const Face_handle& f, int i) const;
   
 
   //MOVE - INSERTION - DELETION - Flip
@@ -3490,9 +3488,8 @@ circumcenter(Face_handle  f) const
 
 
 template <class Gt, class Tds >
-template <class ExactAlphaComparisonTag>
-typename internal::Alpha_nt_selector_2<Gt, ExactAlphaComparisonTag>::Type_of_alpha 
-Triangulation_2<Gt, Tds>::squared_radius(const Face_handle& f, ExactAlphaComparisonTag) const 
+typename internal::Alpha_nt_selector_2<Gt, Tag_false>::Type_of_alpha 
+Triangulation_2<Gt, Tds>::squared_radius(const Face_handle& f) const 
 {
     return Compute_squared_radius_2()(f->vertex(0)->point(),
                                       f->vertex(1)->point(),
@@ -3500,10 +3497,9 @@ Triangulation_2<Gt, Tds>::squared_radius(const Face_handle& f, ExactAlphaCompari
 }
 
 template <class Gt, class Tds >
-template <class ExactAlphaComparisonTag>
-typename internal::Alpha_nt_selector_2<Gt, ExactAlphaComparisonTag>::Type_of_alpha 
+typename internal::Alpha_nt_selector_2<Gt, Tag_false>::Type_of_alpha 
 Triangulation_2<Gt, Tds>::
-squared_radius(const Face_handle& f, int i, ExactAlphaComparisonTag) const 
+squared_radius(const Face_handle& f, int i) const 
 {
     return Compute_squared_radius_2()(f->vertex(ccw(i))->point(),
                                       f->vertex(cw(i))->point());
