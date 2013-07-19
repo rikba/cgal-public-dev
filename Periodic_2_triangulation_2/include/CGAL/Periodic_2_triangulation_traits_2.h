@@ -153,8 +153,9 @@ public:
   typedef Traits_with_offsets_2_adaptor<Self, typename K::Less_y_2>                   Less_y_2;
   typedef Traits_with_offsets_2_adaptor<Self, typename K::Compare_x_2>                Compare_x_2;
   typedef Traits_with_offsets_2_adaptor<Self, typename K::Compare_y_2>                Compare_y_2;
-  typedef Traits_with_offsets_2_adaptor<Self, typename K::Compare_xy_2>                Compare_xy_2;
+  typedef Traits_with_offsets_2_adaptor<Self, typename K::Compare_xy_2>               Compare_xy_2;
   typedef Traits_with_offsets_2_adaptor<Self, typename K::Orientation_2>              Orientation_2;
+  typedef Traits_with_offsets_2_adaptor<Self, typename K::Side_of_bounded_circle_2>   Side_of_bounded_circle_2;
   typedef Traits_with_offsets_2_adaptor<Self, typename K::Side_of_oriented_circle_2>  Side_of_oriented_circle_2;
   typedef Traits_with_offsets_2_adaptor<Self, typename K::Compute_squared_radius_2>   Compute_squared_radius_2;
   typedef Traits_with_offsets_2_adaptor<Self, typename K::Construct_center_2>         Construct_center_2;
@@ -212,6 +213,12 @@ public:
   orientation_2_object() const
   {
     return Orientation_2(&_domain);
+  }
+
+  Side_of_bounded_circle_2
+  side_of_bounded_circle_2_object() const
+  {
+    return Side_of_bounded_circle_2(&_domain);
   }
 
   Side_of_oriented_circle_2
