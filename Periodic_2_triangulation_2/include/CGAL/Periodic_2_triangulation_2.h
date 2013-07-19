@@ -927,6 +927,15 @@ public:
     return geom_traits().construct_circumcenter_2_object()(p1, p2, p3, o1, o2, o3);
   }
 
+  typename internal::Alpha_nt_selector_2<Gt, Tag_false>::Type_of_alpha
+  squared_radius(const Face_handle& f) const {
+      return squared_radius(f, Tag_false());
+  }
+  typename internal::Alpha_nt_selector_2<Gt, Tag_false>::Type_of_alpha
+  squared_radius(const Face_handle& f, int i) const {
+      return squared_radius(f, i, Tag_false());
+  }
+
   template <class ExactAlphaComparisonTag>
   typename internal::Alpha_nt_selector_2<Gt, ExactAlphaComparisonTag>::Type_of_alpha 
   squared_radius(const Face_handle& f, ExactAlphaComparisonTag) const {
