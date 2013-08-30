@@ -432,6 +432,9 @@ public:
         pit = propagate_conflicts(p, fh, 1, pit);
         pit = propagate_conflicts(p, fh, 2, pit);
         return pit;
+      case Triangulation::OUTSIDE_AFFINE_HULL:
+          CGAL_triangulation_assertion(false);
+          break;
       }
     CGAL_triangulation_assertion(false);
     return std::make_pair(fit, eit);
