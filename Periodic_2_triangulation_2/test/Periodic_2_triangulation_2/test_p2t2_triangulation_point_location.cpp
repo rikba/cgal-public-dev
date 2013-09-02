@@ -51,6 +51,12 @@ Face_handle test_point_location(const Triangulation &t,
       CGAL_assertion(false);
       break;
     }
+    case Triangulation::OUTSIDE_AFFINE_HULL:
+    {
+        // Point location should never return OUTSIDE_AFFINE_HULL, this would mean that the triangulation is empty
+        CGAL_assertion(false);
+        break;
+    }
     }
 
   return fh;
