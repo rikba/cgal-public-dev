@@ -98,7 +98,6 @@ public:
   typedef typename Geom_traits::Orientation_2 Orientation_2;
   typedef typename Geom_traits::Compare_x_2   Compare_x;
   typedef typename Geom_traits::Compare_y_2   Compare_y;
-  typedef typename Geom_traits::Compute_squared_radius_2 Compute_squared_radius_2;
 
   typedef typename Tds::size_type              size_type;
   typedef typename Tds::difference_type        difference_type;
@@ -3491,6 +3490,7 @@ template <class Gt, class Tds >
 typename internal::Alpha_nt_selector_2<Gt, Tag_false>::Type_of_alpha 
 Triangulation_2<Gt, Tds>::squared_radius(const Face_handle& f) const 
 {
+	typedef typename Geom_traits::Compute_squared_radius_2 Compute_squared_radius_2;
     return Compute_squared_radius_2()(f->vertex(0)->point(),
                                       f->vertex(1)->point(),
                                       f->vertex(2)->point());
@@ -3501,6 +3501,7 @@ typename internal::Alpha_nt_selector_2<Gt, Tag_false>::Type_of_alpha
 Triangulation_2<Gt, Tds>::
 squared_radius(const Face_handle& f, int i) const 
 {
+	typedef typename Geom_traits::Compute_squared_radius_2 Compute_squared_radius_2;
     return Compute_squared_radius_2()(f->vertex(ccw(i))->point(),
                                       f->vertex(cw(i))->point());
 }
