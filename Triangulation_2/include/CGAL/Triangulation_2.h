@@ -95,9 +95,12 @@ public:
   typedef typename Geom_traits::Point_2       Point;
   typedef typename Geom_traits::Segment_2     Segment;
   typedef typename Geom_traits::Triangle_2    Triangle;
+  // TODO: Doesn't work with exact alpha tag
+  // typedef typename internal::Alpha_nt_selector_2<Gt, Tag_false>::Type_of_alpha Type_of_alpha;
+  typedef typename Geom_traits::FT            Type_of_alpha;
+
   typedef typename Geom_traits::Orientation_2 Orientation_2;
   typedef typename Geom_traits::Compare_x_2   Compare_x;
-  typedef typename Geom_traits::Compare_y_2   Compare_y;
 
   typedef typename Tds::size_type              size_type;
   typedef typename Tds::difference_type        difference_type;
@@ -125,7 +128,8 @@ public:
 	  : t(tr) {}
 
       bool operator()(const Point *p, const Point *q) const {
-	  return t->compare_xy(*p, *q) == SMALLER;
+
+		  return t->compare_xy(*p, *q) == SMALLER;
       }
   };
 
@@ -283,12 +287,9 @@ public:
   Point circumcenter(const Point& p0, 
 		     const Point& p1, 
 		     const Point& p2) const;
-    
-  typename internal::Alpha_nt_selector_2<Gt, Tag_false>::Type_of_alpha 
-  squared_radius(const Face_handle& f) const;
-    
-  typename internal::Alpha_nt_selector_2<Gt, Tag_false>::Type_of_alpha 
-  squared_radius(const Face_handle& f, int i) const;
+
+  Type_of_alpha squared_radius(const Face_handle& f) const;
+  Type_of_alpha squared_radius(const Face_handle& f, int i) const;
   
 
   //MOVE - INSERTION - DELETION - Flip
@@ -3487,7 +3488,7 @@ circumcenter(Face_handle  f) const
 
 
 template <class Gt, class Tds >
-typename internal::Alpha_nt_selector_2<Gt, Tag_false>::Type_of_alpha 
+typename Triangulation_2<Gt, Tds>::Type_of_alpha 
 Triangulation_2<Gt, Tds>::squared_radius(const Face_handle& f) const 
 {
 	typedef typename Geom_traits::Compute_squared_radius_2 Compute_squared_radius_2;
@@ -3497,7 +3498,7 @@ Triangulation_2<Gt, Tds>::squared_radius(const Face_handle& f) const
 }
 
 template <class Gt, class Tds >
-typename internal::Alpha_nt_selector_2<Gt, Tag_false>::Type_of_alpha 
+typename Triangulation_2<Gt, Tds>::Type_of_alpha 
 Triangulation_2<Gt, Tds>::
 squared_radius(const Face_handle& f, int i) const 
 {
