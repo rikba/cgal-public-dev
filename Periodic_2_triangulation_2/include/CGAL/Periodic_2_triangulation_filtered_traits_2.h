@@ -148,11 +148,6 @@ public:
            Offset_converter_2<C2E>,
            Offset_converter_2<C2F> >  Orientation_2;
   typedef Filtered_periodic_predicate_2 <
-  typename Exact_traits::Side_of_bounded_circle_2,
-           typename Filtering_traits::Side_of_bounded_circle_2,
-           Offset_converter_2<C2E>,
-           Offset_converter_2<C2F> >  Side_of_bounded_circle_2;
-  typedef Filtered_periodic_predicate_2 <
   typename Exact_traits::Side_of_oriented_circle_2,
            typename Filtering_traits::Side_of_oriented_circle_2,
            Offset_converter_2<C2E>,
@@ -174,10 +169,6 @@ public:
   Orientation_2 orientation_2_object() const
   {
     return Orientation_2(&_domain_e, &_domain_f);
-  }
-  Side_of_bounded_circle_2 side_of_bounded_circle_2_object() const
-  {
-    return Side_of_bounded_circle_2(&_domain_e, &_domain_f);
   }
   Side_of_oriented_circle_2 side_of_oriented_circle_2_object() const
   {

@@ -63,6 +63,7 @@ class Alpha_shape_2 : public Dt
 public:
   typedef Dt Triangulation;
   typedef typename Dt::Geom_traits Gt;
+  typedef typename Gt::Compute_squared_radius_2 Compute_squared_radius_2;
   typedef typename Dt::Triangulation_data_structure Tds;
 
   typedef typename internal::Alpha_nt_selector_2<Gt,ExactAlphaComparisonTag>::Type_of_alpha Type_of_alpha;
@@ -718,14 +719,19 @@ private:
  
       return (b == ON_BOUNDED_SIDE) ? true : false;
     }
-
-  Type_of_alpha squared_radius(const Face_handle& f) const {
-      return Dt::squared_radius(f);
-  }
-  Type_of_alpha squared_radius(const Face_handle& f, int i) const {
-      return Dt::squared_radius(f, i);
-  }
   
+  //-------------------- GEOMETRIC PRIMITIVES ----------------------------
+
+  Type_of_alpha squared_radius(const Face_handle& f) const 
+    {
+      return _gt.compute_squared_radius_2_object()(this->point(f,0), this->point(f,1), this->point(f,2));
+    }
+
+  Type_of_alpha squared_radius(const Face_handle& f, int i) const 
+    {
+      return _gt.compute_squared_radius_2_object()(this->point(f,ccw(i)), this->point(f,cw(i)));
+    }
+
   //---------------------------------------------------------------------
 
 private:

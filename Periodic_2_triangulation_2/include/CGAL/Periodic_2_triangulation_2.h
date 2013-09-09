@@ -45,8 +45,6 @@
 #include <CGAL/Periodic_2_triangulation_iterators_2.h>
 #include <CGAL/spatial_sort.h>
 
-#include <CGAL/internal/Lazy_alpha_nt_2.h>
-
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/uniform_smallint.hpp>
 #include <boost/random/variate_generator.hpp>
@@ -925,33 +923,6 @@ public:
                                const Offset &o1, const Offset &o2, const Offset &o3) const
   {
     return geom_traits().construct_circumcenter_2_object()(p1, p2, p3, o1, o2, o3);
-  }
-
-  typename internal::Alpha_nt_selector_2<Gt, Tag_false>::Type_of_alpha 
-  squared_radius(const Face_handle& f) const {
-      if (f->has_zero_offsets())
-          return geom_traits().compute_squared_radius_2_object()(f->vertex(0)->point(),
-                                                                 f->vertex(1)->point(),
-                                                                 f->vertex(2)->point());
-      else 
-          return geom_traits().compute_squared_radius_2_object()(f->vertex(0)->point(),
-                                                                 f->vertex(1)->point(),
-                                                                 f->vertex(2)->point(),
-                                                                 int_to_off(f->offset(0)),
-                                                                 int_to_off(f->offset(1)),
-                                                                 int_to_off(f->offset(2)));
-  }
-    
-  typename internal::Alpha_nt_selector_2<Gt, Tag_false>::Type_of_alpha 
-  squared_radius(const Face_handle& f, int i) const {
-      if (f->has_zero_offsets())
-          return geom_traits().compute_squared_radius_2_object()(f->vertex(ccw(i))->point(),
-                                                                 f->vertex(cw(i))->point());
-      else 
-          return geom_traits().compute_squared_radius_2_object()(f->vertex(ccw(i))->point(),
-                                                                 f->vertex(cw(i))->point(),
-                                                                 int_to_off(f->offset(ccw(i))),
-                                                                 int_to_off(f->offset(cw(i))));
   }
   //\}
 
