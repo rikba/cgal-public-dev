@@ -283,7 +283,8 @@ public:
   Point circumcenter(const Point& p0, 
 		     const Point& p1, 
 		     const Point& p2) const;
-  
+  Point point(Vertex_handle vh) { return vh->point(); }
+  Point point(Face_handle fh, int i) { return fh->vertex(i)->point(); }
 
   //MOVE - INSERTION - DELETION - Flip
 public:
