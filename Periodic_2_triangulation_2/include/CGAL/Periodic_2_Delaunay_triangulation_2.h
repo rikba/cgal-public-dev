@@ -426,13 +426,15 @@ public:
       case Triangulation::FACE:
       case Triangulation::EDGE:
       case Triangulation::EMPTY:
-        *fit++ = fh; //put fh in OutputItFaces
-        std::pair<OutputItFaces, OutputItBoundaryEdges> pit = std::make_pair(fit, eit);
-        pit = propagate_conflicts(p, fh, 0, pit);
-        pit = propagate_conflicts(p, fh, 1, pit);
-        pit = propagate_conflicts(p, fh, 2, pit);
-        return pit;
-      case Triangulation::OUTSIDE_AFFINE_HULL:
+		  {
+			  *fit++ = fh; //put fh in OutputItFaces
+			  std::pair<OutputItFaces, OutputItBoundaryEdges> pit = std::make_pair(fit, eit);
+			  pit = propagate_conflicts(p, fh, 0, pit);
+			  pit = propagate_conflicts(p, fh, 1, pit);
+			  pit = propagate_conflicts(p, fh, 2, pit);
+			  return pit;
+		  }
+	  case Triangulation::OUTSIDE_AFFINE_HULL:
           CGAL_triangulation_assertion(false);
           break;
       }
