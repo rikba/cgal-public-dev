@@ -8,7 +8,7 @@
 #include <CGAL/Delaunay_mesher_2.h>
 #include <CGAL/Delaunay_mesh_face_base_2.h>
 //My two headers
-#include <include/Delaunay_mesh_hyperbolic_criteria_2.h>
+#include <Delaunay_mesh_hyperbolic_criteria_2.h>
 #include <Mathieu_traits.h>
 //other
 #include <CGAL/Aff_transformation_2.h>
