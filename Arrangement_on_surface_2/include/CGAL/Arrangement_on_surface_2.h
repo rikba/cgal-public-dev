@@ -884,7 +884,10 @@ protected:
   typedef CGAL_ALLOCATOR(Point_2)                 Points_alloc;
   typedef CGAL_ALLOCATOR(X_monotone_curve_2)      Curves_alloc;
 
+public:
   typedef Arr_observer<Self>                      Observer;
+
+protected:
   typedef std::list<Observer*>                    Observers_container;
   typedef typename Observers_container::iterator  Observers_iterator;
 

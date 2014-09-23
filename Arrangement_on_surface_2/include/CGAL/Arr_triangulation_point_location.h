@@ -24,7 +24,6 @@
  * Definition of the Arr_triangulation_point_location<Arrangement> template.
  */
 
-#include <CGAL/Arr_observer.h>
 #include <CGAL/Arrangement_2/Arr_traits_adaptor_2.h>
 #include <CGAL/Arr_point_location_result.h>
 
@@ -42,10 +41,12 @@ namespace CGAL {
  * triangulation algorithm.
  */
 template <typename Arrangement_>
-class Arr_triangulation_point_location : public Arr_observer<Arrangement_>
+class Arr_triangulation_point_location : public Arrangement_::Observer
 {
 public:
   typedef Arrangement_                                  Arrangement_2;
+
+  typedef typename Arrangement_2::Observer              Base;
 
   typedef typename Arrangement_2::Geometry_traits_2     Geometry_traits_2;
   typedef typename Geometry_traits_2::Kernel            Kernel;
@@ -132,7 +133,7 @@ public:
    * \param arr (in) The arrangement.
    */
   Arr_triangulation_point_location(const Arrangement_2& arr) :
-    Arr_observer<Arrangement_2>(const_cast<Arrangement_2&>(arr)),
+    Base(const_cast<Arrangement_2&>(arr)),
     m_traits(static_cast<const Traits_adaptor_2*>(arr.geometry_traits())),
     m_ignore_notifications(false),
     m_ignore_remove_edge(false)

@@ -48,7 +48,6 @@
 #include <CGAL/point_generators_2.h>
 #include <CGAL/Bbox_2.h>
 
-#include <CGAL/Arr_observer.h>
 #include <CGAL/Polygon_2.h>
 
 // Coordinate related typedef - using inexact number type
@@ -303,15 +302,16 @@ typedef CGAL::Arrangement_with_history_2< Alg_seg_traits, Alg_seg_dcel >
                                                           Alg_seg_arr;
 
 template <class Arrangement_>
-class My_observer : public CGAL::Arr_observer<Arrangement_>
+class My_observer : public Arrangement_::Observer
 {
 public:
 
   typedef Arrangement_                                  Arrangement;
-  typedef CGAL::Arr_observer<Arrangement>               Arr_observer;
+  typedef Arrangement::Observer                         Observer;
   typedef typename Arrangement::Face_handle             Face_handle;
 
-  My_observer (Arrangement& arr) : Arr_observer (arr) {}
+  My_observer (Arrangement& arr) :
+    Observer (arr) {}
 
    virtual void after_split_face (Face_handle  f ,
                                   Face_handle  new_f ,

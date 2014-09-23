@@ -57,8 +57,6 @@
 
 #include <vector>
 
-#include <CGAL/Arr_observer.h>
-
 
 enum TraitsType { SEGMENT_TRAITS, POLYLINE_TRAITS , CONIC_TRAITS};
 enum SnapMode   { SNAP_NONE, SNAP_GRID, SNAP_POINT};
@@ -265,17 +263,17 @@ typedef CGAL::Arr_landmarks_point_location<Conic_arr>
 #endif
 
 
-
 template <class Arrangement_>
-class My_observer : public CGAL::Arr_observer<Arrangement_>
+class My_observer : public Arrangement_::Observer
 {
 public:
 
   typedef Arrangement_                        Arrangement;
-  typedef CGAL::Arr_observer<Arrangement>     Arr_observer;
+  typedef typename Arrangement::Observer      Observer;
   typedef typename Arrangement::Face_handle   Face_handle;
 
-  My_observer (Arrangement& arr) : Arr_observer (arr)
+  My_observer (Arrangement& arr) :
+    Observer (arr)
   {}
 
    virtual void after_split_face (Face_handle  f ,

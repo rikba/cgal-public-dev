@@ -6,7 +6,6 @@
 #include <CGAL/MP_Float.h>
 #include <CGAL/Arr_segment_traits_2.h>
 #include <CGAL/Arrangement_2.h>
-#include <CGAL/Arr_observer.h>
 
 typedef CGAL::Quotient<CGAL::MP_Float>                Number_type;
 typedef CGAL::Cartesian<Number_type>                  Kernel;
@@ -17,12 +16,12 @@ typedef CGAL::Arrangement_2<Traits_2>                 Arrangement_2;
 
 // An arrangement observer, used to receive notifications of face splits and
 // face mergers.
-class My_observer : public CGAL::Arr_observer<Arrangement_2>
+class My_observer : public Arrangement_2::Observer
 {
 public:
 
   My_observer (Arrangement_2& arr) :
-    CGAL::Arr_observer<Arrangement_2> (arr)
+    Arrangement_2::Observer (arr)
   {}
 
   virtual void before_split_face (Face_handle,
@@ -70,15 +69,15 @@ int main ()
 
   std::cout << "The initial arrangement size:" << std::endl
             << "   V = " << arr.number_of_vertices()
-            << ",  E = " << arr.number_of_edges() 
+            << ",  E = " << arr.number_of_edges()
             << ",  F = " << arr.number_of_faces() << std::endl;
 
   // Now remove a portion of the vertical segment.
   remove_edge (arr, e_vert);
- 
+
   std::cout << "The final arrangement size:" << std::endl
             << "   V = " << arr.number_of_vertices()
-            << ",  E = " << arr.number_of_edges() 
+            << ",  E = " << arr.number_of_edges()
             << ",  F = " << arr.number_of_faces() << std::endl;
 
   return 0;

@@ -25,7 +25,6 @@
 * Definition of the Arr_landmarks_generator_base<Arrangement> template.
 */
 #include <CGAL/Arr_point_location_result.h>
-#include <CGAL/Arr_observer.h>
 #include <CGAL/Arrangement_2/Arr_traits_adaptor_2.h>
 #include <CGAL/Arr_point_location/Arr_lm_nearest_neighbor.h>
 #include <CGAL/Arr_batched_point_location.h>
@@ -48,10 +47,12 @@ namespace CGAL {
 template <typename Arrangement_,
           typename Nearest_neighbor_ =
             Arr_landmarks_nearest_neighbor <Arrangement_> >
-class Arr_landmarks_generator_base : public Arr_observer <Arrangement_> {
+class Arr_landmarks_generator_base : public Arrangement_::Observer {
 public:
   typedef Arrangement_                                Arrangement_2;
   typedef Nearest_neighbor_                           Nearest_neighbor;
+
+  typedef typename Arrangement_2::Observer            Base;
 
   typedef typename Arrangement_2::Geometry_traits_2     Geometry_traits_2;
   typedef typename Arrangement_2::Vertex_const_handle   Vertex_const_handle;
@@ -114,7 +115,7 @@ public:
    * \param arr (in) The arrangement.
    */
   Arr_landmarks_generator_base(const Arrangement_2& arr) :
-    Arr_observer<Arrangement_2> (const_cast<Arrangement_2 &>(arr)),
+    Base((const_cast<Arrangement_2 &>(arr))),
     m_traits(static_cast<const Traits_adaptor_2*>(arr.geometry_traits())),
     m_ignore_notifications(false),
     m_ignore_remove_edge(false),

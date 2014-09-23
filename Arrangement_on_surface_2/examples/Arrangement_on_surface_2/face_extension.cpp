@@ -6,7 +6,6 @@
 #include <CGAL/Arr_segment_traits_2.h>
 #include <CGAL/Arrangement_2.h>
 #include <CGAL/Arr_extended_dcel.h>
-#include <CGAL/Arr_observer.h>
 
 typedef CGAL::Cartesian<Number_type>                   Kernel;
 typedef CGAL::Arr_segment_traits_2<Kernel>             Traits_2;
@@ -17,7 +16,7 @@ typedef CGAL::Arrangement_2<Traits_2, Dcel>            Arrangement_2;
 
 // An arrangement observer, used to receive notifications of face splits and
 // to update the indices of the newly created faces.
-class Face_index_observer : public CGAL::Arr_observer<Arrangement_2>
+class Face_index_observer : public Arrangement_2::Observer
 {
 private:
   int     n_faces;          // The current number of faces.
@@ -25,12 +24,12 @@ private:
 public:
 
   Face_index_observer (Arrangement_2& arr) :
-    CGAL::Arr_observer<Arrangement_2> (arr),
+    Arrangement_2::Observer (arr),
     n_faces (0)
   {
     CGAL_precondition (arr.is_empty());
-    
-    arr.unbounded_face()->set_data (0);
+
+    arr.reference_face()->set_data (0);
     n_faces++;
   }
 
