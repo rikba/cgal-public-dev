@@ -669,13 +669,17 @@ foreach(config_test_cpp ${all_config_tests})
     # Compile and run ${config_test_cpp}. Exit code is stored in ${config_test_name}.
     if( RUNNING_CGAL_AUTO_TEST OR "${config_test_name}" MATCHES "^${config_test_name}$" OR NOT ${CONFIG_CXX_FLAGS} STREQUAL  ${CMAKE_CXX_FLAGS})
 
-      CHECK_CXX_FILE_RUNS(${config_test_cpp} ${config_test_name} ${config_test_name})
-
-      if ( ${config_test_name} )
-        cache_set ( ${config_test_name} 0 )
+      if(CMAKE_CROSSCOMPILING)
+        set(${config_test_name} 0)
       else()
-        cache_set ( ${config_test_name} 1 )
-      endif()  
+        CHECK_CXX_FILE_RUNS(${config_test_cpp} ${config_test_name} ${config_test_name})
+
+        if ( ${config_test_name} )
+          cache_set ( ${config_test_name} 0 )
+        else()
+          cache_set ( ${config_test_name} 1 )
+        endif()
+      endif()
       
     endif()
     
