@@ -48,7 +48,7 @@ void Image_3::gl_draw(const float point_size,
 {
   if(image_ptr.get() == NULL)
     return;
-
+#ifndef __ANDROID__
   glPointSize(point_size);
   glColor3ub(r,g,b);
   glBegin(GL_POINTS);
@@ -68,6 +68,9 @@ void Image_3::gl_draw(const float point_size,
         }
       }
   glEnd();
+#else
+  CGAL_error_msg("not yet implemented on Android");
+#endif
 } // end Image_3::gl_draw
 
 
@@ -78,7 +81,7 @@ void Image_3::gl_draw_bbox(const float line_width,
 {
   if(!image_ptr)
     return;
-
+#ifndef __ANDROID__
   glLineWidth(line_width);
   glColor3ub(red,green,blue);
   glBegin(GL_LINES);
@@ -144,6 +147,9 @@ void Image_3::gl_draw_bbox(const float line_width,
   glVertex3d(f.x(),f.y(),f.z());
 
   glEnd();
+#else
+  CGAL_error_msg("not yet implemented on Android");
+#endif
 } // end Image_3::gl_draw_bbox
 
 } // end namespace CGAL

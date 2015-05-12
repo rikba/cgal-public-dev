@@ -514,7 +514,7 @@ message("== Set up flags (DONE) ==\n")
 message("== Detect external libraries ==")
 
 macro( add_config_flag flag )
-
+    #message( "In add_config_flag: ${flag} value is ${${flag}}")
     if ( ${flag} )
       file( APPEND ${CMAKE_BINARY_DIR}/include/CGAL/compiler_config.h "#define ${flag} 1\n\n")
     else()
@@ -670,10 +670,12 @@ foreach(config_test_cpp ${all_config_tests})
     if( RUNNING_CGAL_AUTO_TEST OR "${config_test_name}" MATCHES "^${config_test_name}$" OR NOT ${CONFIG_CXX_FLAGS} STREQUAL  ${CMAKE_CXX_FLAGS})
 
       if(CMAKE_CROSSCOMPILING)
-        set(${config_test_name} 0)
+        message("Cross compiling: set ${config_test_name} to 0")
+        cache_set( ${config_test_name} 0 )
       else()
         CHECK_CXX_FILE_RUNS(${config_test_cpp} ${config_test_name} ${config_test_name})
 
+        #message("Not Cross compiling: ${config_test_name} value is set to ${${config_test_name}}")
         if ( ${config_test_name} )
           cache_set ( ${config_test_name} 0 )
         else()
@@ -683,7 +685,7 @@ foreach(config_test_cpp ${all_config_tests})
       
     endif()
     
-    add_config_flag( ${config_test_name} ${config_test_name} )
+    add_config_flag( ${config_test_name} )
     
 endforeach()
 

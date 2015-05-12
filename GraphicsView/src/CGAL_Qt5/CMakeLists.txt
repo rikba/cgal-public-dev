@@ -9,8 +9,9 @@ if( Qt5_FOUND )
   if( OPENGL_FOUND )
     
     include_directories (BEFORE ../../include)
-    
-    get_dependency_version(OPENGL)
+    if(!ANDROID)
+      get_dependency_version(OPENGL)
+    endif()
     
     get_dependency_version(QT5 QT)
 
