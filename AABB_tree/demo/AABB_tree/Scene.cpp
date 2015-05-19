@@ -8,6 +8,7 @@
 #include <QTextStream>
 #include <QFileInfo>
 #include <QInputDialog>
+#include <QDebug>
 
 #include "Refiner.h"
 //#include "render_edges.h"
@@ -16,10 +17,11 @@
 #include <CGAL/IO/Polyhedron_iostream.h>
 #include <CGAL/Subdivision_method_3.h>
 
-#include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLShader>
+#include <QMessageBox>
+#include <QDebug>
 
-
+QOpenGLContext* test_context;
 // constants
 const int slow_distance_grid_size = 100;
 const int fast_distance_grid_size = 20;
@@ -30,7 +32,8 @@ Scene::Scene()
     : m_frame (new ManipulatedFrame())
     , m_view_plane(false)
     , m_grid_size(slow_distance_grid_size)
-    , m_cut_plane(NONE)
+    , m_cut_plane(NONE),
+      isInit(false)
 {
     m_pPolyhedron = NULL;
 
@@ -52,37 +55,26 @@ Scene::~Scene()
 {
     delete m_pPolyhedron;
     delete m_frame;
-    buffers[0].destroy();
-    buffers[1].destroy();
-    buffers[2].destroy();
-    buffers[3].destroy();
-    buffers[4].destroy();
-    buffers[5].destroy();
-    buffers[6].destroy();
-    buffers[7].destroy();
-    vao[0].destroy();
-    vao[1].destroy();
-    vao[2].destroy();
-    vao[3].destroy();
-    vao[4].destroy();
-    vao[5].destroy();
-    vao[6].destroy();
-
-
+    for(int i=0; i< buffer_size; i++)
+        buffers[i].destroy();
+    for(int i=0; i<vao_size; i++)
+        vao[i].destroy();
 }
 
 void Scene::compile_shaders()
 {
-    initializeOpenGLFunctions();
-    if(! buffers[0].create() || !buffers[1].create() || !buffers[2].create() || !buffers[3].create() || !buffers[4].create() || !buffers[5].create() || !buffers[6].create() || !buffers[7].create())
-    {
-        std::cerr<<"VBO Creation FAILED"<<std::endl;
-    }
+    test_context = QOpenGLContext::currentContext();
+    for(int i=0; i< buffer_size; i++)
+      if(! buffers[i].create())
+        {
+            std::cerr<<"VBO Creation FAILED"<<std::endl;
 
-    if(!vao[0].create() || !vao[1].create() || !vao[2].create() || !vao[3].create() || !vao[4].create() || !vao[5].create() || !vao[6].create())
-    {
-        std::cerr<<"VAO Creation FAILED"<<std::endl;
-    }
+        }
+    for(int i=0; i<vao_size; i++)
+        if(!vao[i].create())
+        {
+            std::cerr<<"VAO Creation FAILED"<<std::endl;
+        }
 
 
     //Vertex source code
@@ -95,6 +87,7 @@ void Scene::compile_shaders()
         "uniform highp mat4 f_matrix;\n"
         "void main(void)\n"
         "{\n"
+        "   gl_PointSize = 2.0; \n"
         "   gl_Position = mvp_matrix * f_matrix * vertex;\n"
         "}"
     };
@@ -130,10 +123,11 @@ void Scene::compile_shaders()
     }
     if(!rendering_program.link())
     {
-        std::cerr<<"linking Program FAILED"<<std::endl;
+        //std::cerr<<"linking Program FAILED"<<std::endl;
+         qDebug() << rendering_program.log();
     }
-    rendering_program.bind();
 
+    rendering_program.bind();
     //Vertex source code
     const char tex_vertex_source[] =
     {
@@ -183,9 +177,9 @@ void Scene::compile_shaders()
     if(!tex_rendering_program.link())
     {
         std::cerr<<"linking Program FAILED"<<std::endl;
+
     }
     tex_rendering_program.bind();
-
 }
 
 void Scene::initialize_buffers()
@@ -213,7 +207,6 @@ void Scene::initialize_buffers()
     rendering_program.enableAttributeArray(lines_vertexLocation);
     rendering_program.release();
     vao[1].release();
-
     //Polyhedron's edges
     vao[2].bind();
     buffers[2].bind();
@@ -225,7 +218,6 @@ void Scene::initialize_buffers()
     buffers[2].release();
     rendering_program.release();
     vao[2].release();
-
     //cutting segments
     vao[3].bind();
     buffers[3].bind();
@@ -237,7 +229,6 @@ void Scene::initialize_buffers()
     buffers[3].release();
     rendering_program.release();
     vao[3].release();
-
     //cutting plane
     vao[4].bind();
     buffers[4].bind();
@@ -250,7 +241,6 @@ void Scene::initialize_buffers()
     rendering_program.release();
 
     vao[4].release();
-
     //grid
     vao[5].bind();
     buffers[5].bind();
@@ -262,7 +252,6 @@ void Scene::initialize_buffers()
     buffers[5].release();
     rendering_program.release();
     vao[5].release();
-
     //cutting plane
     vao[6].bind();
     buffers[6].bind();
@@ -283,8 +272,8 @@ void Scene::initialize_buffers()
     buffers[7].release();
     tex_rendering_program.release();
 
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    glTexImage2D(GL_TEXTURE_2D,
+    gl->glBindTexture(GL_TEXTURE_2D, textureId);
+    gl->glTexImage2D(GL_TEXTURE_2D,
                  0,
                  GL_RGB,
                  texture->getWidth(),
@@ -293,18 +282,18 @@ void Scene::initialize_buffers()
                  GL_RGB,
                  GL_UNSIGNED_BYTE,
                  texture->getData());
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE );
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE );
+    gl->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    gl->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    gl->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE );
+    gl->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE );
     vao[6].release();
 
-
-
+    isInit = true;
 }
 
 void Scene::compute_elements(int mode)
 {
+
     pos_points.resize(0);
     pos_lines.resize(0);
     pos_poly.resize(0);
@@ -484,7 +473,7 @@ void Scene::compute_texture(int i, int j,Color_ramp pos_ramp ,Color_ramp neg_ram
 void Scene::attrib_buffers(QGLViewer* viewer)
 {
     QMatrix4x4 mvpMatrix;
-    double mat[16];
+    float mat[16];
     viewer->camera()->getModelViewProjectionMatrix(mat);
     for(int i=0; i < 16; i++)
     {
@@ -504,17 +493,23 @@ void Scene::attrib_buffers(QGLViewer* viewer)
     tex_rendering_program.release();
 }
 
+void Scene::setGL(QOpenGLFunctions *qogl)
+{
+    gl = qogl;
+}
 void Scene::changed()
 {
     if(m_cut_plane == UNSIGNED_FACETS || m_cut_plane == UNSIGNED_EDGES)
         compute_elements(_UNSIGNED);
     else
         compute_elements(_SIGNED);
-    initialize_buffers();
+
+    isInit = false;
 }
 
 int Scene::open(QString filename)
 {
+
     QTextStream cerr(stderr);
     cerr << QString("Opening file \"%1\"\n").arg(filename);
     QApplication::setOverrideCursor(QCursor(::Qt::WaitCursor));
@@ -530,7 +525,9 @@ int Scene::open(QString filename)
     }
 
     if(m_pPolyhedron != NULL)
+    {
         delete m_pPolyhedron;
+    }
 
     // allocate new polyhedron
     m_pPolyhedron = new Polyhedron;
@@ -538,6 +535,7 @@ int Scene::open(QString filename)
     if(!in)
     {
         std::cerr << "invalid OFF file" << std::endl;
+                qDebug() << "invalid OFF file polyhedron";
         QApplication::restoreOverrideCursor();
 
         delete m_pPolyhedron;
@@ -581,6 +579,12 @@ void Scene::update_bbox()
 
 void Scene::draw(QGLViewer* viewer)
 {
+  //  glClearColor(1.0,1.0,1.0,1.0);
+  //  glClear(GL_COLOR_BUFFER_BIT);
+    if(!isInit)
+    {
+        initialize_buffers();
+    }
     QColor color;
     QMatrix4x4 fMatrix;
     fMatrix.setToIdentity();
@@ -592,20 +596,20 @@ void Scene::draw(QGLViewer* viewer)
         color.setRgbF(0.0,0.0,0.0);
         rendering_program.setUniformValue(colorLocation, color);
         rendering_program.setUniformValue(fLocation, fMatrix);
-        glDrawArrays(GL_LINES, 0, pos_poly.size()/3);
+        gl->glDrawArrays(GL_LINES, 0, pos_poly.size()/3);
         rendering_program.release();
         vao[2].release();
     }
     if(m_view_points)
     {
-        ::glPointSize(2.0f);
+        //::glPointSize(2.0f);
         vao[0].bind();
         attrib_buffers(viewer);
         rendering_program.bind();
         color.setRgbF(0.7,0.0,0.0);
         rendering_program.setUniformValue(colorLocation, color);
         rendering_program.setUniformValue(fLocation, fMatrix);
-        glDrawArrays(GL_POINTS, 0, pos_points.size()/3);
+        gl->glDrawArrays(GL_POINTS, 0, pos_points.size()/3);
         rendering_program.release();
         vao[0].release();
     }
@@ -618,7 +622,7 @@ void Scene::draw(QGLViewer* viewer)
         color.setRgbF(0.0,0.7,0.0);
         rendering_program.setUniformValue(colorLocation, color);
         rendering_program.setUniformValue(fLocation, fMatrix);
-        glDrawArrays(GL_LINES, 0, pos_lines.size()/3);
+        gl->glDrawArrays(GL_LINES, 0, pos_lines.size()/3);
         rendering_program.release();
         vao[1].release();
     }
@@ -630,8 +634,8 @@ void Scene::draw(QGLViewer* viewer)
         case UNSIGNED_FACETS:
         case SIGNED_FACETS:
 
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, textureId);
+            gl->glActiveTexture(GL_TEXTURE0);
+            gl->glBindTexture(GL_TEXTURE_2D, textureId);
 
             for(int i=0; i< 16 ; i++)
                 fMatrix.data()[i] =  m_frame->matrix()[i];
@@ -640,7 +644,7 @@ void Scene::draw(QGLViewer* viewer)
             tex_rendering_program.bind();
             tex_rendering_program.setUniformValue(tex_fLocation, fMatrix);
 
-            glDrawArrays(GL_TRIANGLES, 0, pos_plane.size()/3);
+            gl->glDrawArrays(GL_TRIANGLES, 0, pos_plane.size()/3);
             tex_rendering_program.release();
             vao[6].release();
             break;
@@ -649,15 +653,15 @@ void Scene::draw(QGLViewer* viewer)
 
             //cutting_segments
             fMatrix.setToIdentity();
-            ::glLineWidth(2.0f);
+            gl->glLineWidth(2.0f);
             vao[3].bind();
             attrib_buffers(viewer);
             rendering_program.bind();
             color.setRgbF(1.0,0.0,0.0);
             rendering_program.setUniformValue(colorLocation, color);
             rendering_program.setUniformValue(fLocation, fMatrix);
-            glDrawArrays(GL_LINES, 0, pos_cut_segments.size()/3);
-            ::glLineWidth(1.0f);
+            gl->glDrawArrays(GL_LINES, 0, pos_cut_segments.size()/3);
+            gl->glLineWidth(1.0f);
             rendering_program.release();
             vao[3].release();
             //grid
@@ -669,23 +673,23 @@ void Scene::draw(QGLViewer* viewer)
             color.setRgbF(.6f, .6f, .6f);
             rendering_program.setUniformValue(colorLocation, color);
             rendering_program.setUniformValue(fLocation, fMatrix);
-            glDrawArrays(GL_LINES, 0, pos_grid.size()/3);
+            gl->glDrawArrays(GL_LINES, 0, pos_grid.size()/3);
             rendering_program.release();
             vao[5].release();
 
             //cutting_plane
             // for(int i=0; i< 16 ; i++)
             //     fMatrix.data()[i] =  m_frame->matrix()[i];
-            ::glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-            ::glEnable(GL_BLEND);
+            gl->glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+            gl->glEnable(GL_BLEND);
             vao[4].bind();
             attrib_buffers(viewer);
             rendering_program.bind();
             color.setRgbF(.6f, .85f, 1.f, .65f);
             rendering_program.setUniformValue(colorLocation, color);
             rendering_program.setUniformValue(fLocation, fMatrix);
-            glDrawArrays(GL_TRIANGLES, 0, pos_plane.size()/3);
-            ::glDisable(GL_BLEND);
+            gl->glDrawArrays(GL_TRIANGLES, 0, pos_plane.size()/3);
+            gl->glDisable(GL_BLEND);
             rendering_program.release();
             vao[4].release();
 
@@ -694,8 +698,6 @@ void Scene::draw(QGLViewer* viewer)
             break;
         }
     }
-
-
 }
 
 FT Scene::random_in(const double a,

@@ -25,13 +25,44 @@ find_package(Qt5 COMPONENTS Xml Script OpenGL Gui)
 # Find OpenGL
 find_package(OpenGL)
 
+macro(ADD_QT_PROJECT target_name source_files qt_resources resource_files lib_files include_directories out_file_path)
+    #ADDING CONFIG AND TARGET NAME
+    file(WRITE ${out_file_path} "CONFIG += qt c++11 resources\n" )
+    file(APPEND ${out_file_path} "TARGET = ${target_name}\n")
+    file(APPEND ${out_file_path} "QT += ${qt_resources}\n")
+
+
+    #SETTING UP TARGET TYPE
+    get_target_property(TARGET_CMAKE_TYPE ${target_name} TYPE)
+    if(${TARGET_CMAKE_TYPE} STREQUAL "EXECUTABLE")
+    file(APPEND ${out_file_path} "TEMPLATE = app\n")
+    else()
+    file(APPEND ${out_file_path} "TEMPLATE = lib\n")
+    endif()
+
+    #ADDING SOURCES
+    file(APPEND ${out_file_path} "SOURCES += ${source_files}\n")
+
+    #ADDING RESOURCES
+    file(APPEND ${out_file_path} "RESOURCES += ${resource_files}\n")
+
+    #ADDING LIBRARIES
+    file(APPEND ${out_file_path} "LIBS += " "${lib_files}" "\n")
+    #ADDING INCLUDE DIRECTORIES
+    file(APPEND ${out_file_path} "INCLUDEPATH =  ${include_directories} \n")
+
+endmacro(ADD_QT_PROJECT)
+
 # Find QGLViewer
 if(Qt5_FOUND)
   find_package(QGLViewer )
 endif(Qt5_FOUND)
 
 if(CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
-
+  set (QT_RESOURCE "qml quick widgets gui opengl xml script")
+  set (SOURCES "AABB_demo.cpp ")
+  set(RESOURCE_FILES2 "AABB_demo.qrc" )
+  set( OUT_PATH "AABB_demo.pro")
   include_directories ( ${QGLVIEWER_INCLUDE_DIR} )
 
   qt5_wrap_ui( UI_FILES MainWindow.ui )
@@ -54,6 +85,9 @@ if(CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FO
                                        "${CMAKE_CURRENT_BINARY_DIR}/Scene_moc.cpp" )
 
   add_executable  ( AABB_demo AABB_demo.cpp ${UI_FILES} ${RESOURCE_FILES} )
+  get_property(LIB_FILES TARGET AABB_demo PROPERTY LINK_LIBRARIES)
+  get_property(INCLUDE_DIRECTORY TARGET AABB_demo PROPERTY INCLUDE_DIRECTORIES )
+  ADD_QT_PROJECT( AABB_demo ${SOURCES} ${QT_RESOURCE} ${RESOURCE_FILES2} "${LIB_FILES}" "${INCLUDE_DIRECTORY}" ${OUT_PATH})
   qt5_use_modules(AABB_demo Gui OpenGL Xml Script )
   # Link with Qt libraries
   target_link_libraries( AABB_demo ${QT_LIBRARIES} )

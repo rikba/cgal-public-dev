@@ -2,6 +2,7 @@
 #define VIEWER_H
 
 #include <QGLViewer/qglviewer.h>
+#include <QOpenGLFunctions>
 
 // forward declarations
 class QWidget;
@@ -16,8 +17,10 @@ public:
 
   // overload several QGLViewer virtual functions
   void draw();
-  void initializeGL();
+  virtual void initializeGL();
   void setScene(Scene* pScene);
+  bool areOpenGLBuffersInitialized;
+  bool translation_mode;
 
 protected:
   virtual void mousePressEvent(QMouseEvent* e);

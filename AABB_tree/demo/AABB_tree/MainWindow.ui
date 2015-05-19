@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
@@ -21,10 +22,17 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="1">
+    <item row="2" column="0">
      <widget class="Viewer" name="viewer" native="true">
       <property name="locale">
        <locale language="English" country="UnitedStates"/>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0" alignment="Qt::AlignLeft">
+     <widget class="QRadioButton" name="trans_radioButton">
+      <property name="text">
+       <string>Translation</string>
       </property>
      </widget>
     </item>
@@ -36,7 +44,7 @@
      <x>0</x>
      <y>0</y>
      <width>638</width>
-     <height>22</height>
+     <height>29</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

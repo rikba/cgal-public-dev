@@ -25,6 +25,7 @@ public:
 		void updateViewerBBox();
 		void open(QString filename);
 		void setAddKeyFrameKeyboardModifiers(Qt::KeyboardModifiers);
+                void toggle_translation(bool b);
 
 		protected slots:
 
@@ -77,6 +78,7 @@ public:
 			void on_actionView_segments_triggered();
 			void on_actionView_polyhedron_triggered();
       void on_actionView_cutting_plane_triggered();
+
 
 private:
 	Scene* m_pScene;

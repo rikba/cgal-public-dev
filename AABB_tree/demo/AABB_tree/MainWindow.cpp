@@ -38,9 +38,11 @@ MainWindow::MainWindow(QWidget* parent)
 
 	this->addRecentFiles(ui->menuFile, ui->actionQuit);
 	connect(this, SIGNAL(openRecentFile(QString)),
-		this, SLOT(open(QString)));
+                this, SLOT(open(QString)));
+        readSettings();
 
-	readSettings();
+        connect(ui->trans_radioButton, SIGNAL(toggled(bool)),
+                                     this, SLOT(toggle_translation(bool)));
 }
 
 MainWindow::~MainWindow()
@@ -51,7 +53,7 @@ MainWindow::~MainWindow()
 void MainWindow::dragEnterEvent(QDragEnterEvent *event)
 {
 	if (event->mimeData()->hasFormat("text/uri-list"))
-		event->acceptProposedAction();
+                event->acceptProposedAction();
 }
 
 void MainWindow::dropEvent(QDropEvent *event)
@@ -118,6 +120,12 @@ void MainWindow::quit()
 {
 	writeSettings();
 	close();
+}
+
+void MainWindow::toggle_translation(bool b)
+{
+    qDebug() << "toggle translation";
+    m_pViewer->translation_mode = b;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -459,7 +467,7 @@ void MainWindow::on_actionCopy_snapshot_triggered()
   QClipboard *qb = QApplication::clipboard();
   m_pViewer->makeCurrent();
   m_pViewer->raise();
-  QImage snapshot = m_pViewer->grabFrameBuffer(true);
+  QImage snapshot = m_pViewer->grabFramebuffer();
   qb->setImage(snapshot);
 	QApplication::restoreOverrideCursor();
 }

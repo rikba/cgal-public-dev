@@ -1,6 +1,6 @@
 #ifndef SCENE_H
 #define SCENE_H
-
+#include <Viewer.h>
 #include <QtOpenGL/qgl.h>
 #include <iostream>
 #include <cmath>
@@ -18,7 +18,7 @@
 #include <QtCore/qglobal.h>
 #include <QGLViewer/manipulatedFrame.h>
 #include <QGLViewer/qglviewer.h>
-#include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLFunctions>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QGLShaderProgram>
@@ -51,7 +51,7 @@ public:
     GLubyte* getData(){return data; }
 
 };
-class Scene : public QObject, protected QOpenGLFunctions_3_3_Core
+class Scene : public QObject
 {
     Q_OBJECT
 public:
@@ -77,7 +77,6 @@ private:
     };
   
 public:
-    QGLContext* context;
     void draw(QGLViewer*);
     void update_bbox();
     Bbox bbox() { return m_bbox; }
@@ -90,7 +89,7 @@ private:
     std::list<Point> m_points;
     std::list<Segment> m_segments;
     std::vector<Segment> m_cut_segments;
-
+    bool isInit;
     // distance functions (simple 2D arrays)
     Color_ramp m_red_ramp;
     Color_ramp m_blue_ramp;
@@ -135,7 +134,7 @@ private:
     void sign_distance_function(const Tree& tree);
 
     //Shaders elements
-
+    QOpenGLFunctions *gl;
     int poly_vertexLocation;
     int tex_Location;
     int points_vertexLocation;
@@ -159,8 +158,10 @@ private:
 
     Texture *texture;
     GLint sampler_location;
-    QOpenGLBuffer buffers[10];
-    QOpenGLVertexArrayObject vao[10];
+    const static int buffer_size =8;
+    const static int vao_size = 7;
+    QOpenGLBuffer buffers[buffer_size];
+    QOpenGLVertexArrayObject vao[vao_size];
     QOpenGLShaderProgram tex_rendering_program;
     QOpenGLShaderProgram rendering_program;
     void initialize_buffers();
@@ -244,7 +245,7 @@ public:
     // cutting plane activation/deactivation
     void activate_cutting_plane();
     void deactivate_cutting_plane();
-  
+    void setGL(QOpenGLFunctions *);
 public slots:
     // cutting plane
     void cutting_plane();
