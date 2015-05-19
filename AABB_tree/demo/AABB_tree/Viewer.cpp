@@ -24,11 +24,11 @@ void Viewer::setScene(Scene* pScene)
 
 void Viewer::draw()
 {
+    QGLViewer::draw();
  QOpenGLFunctions *gl = QOpenGLContext::currentContext()->functions();
  gl->glClear(GL_COLOR_BUFFER_BIT);
 
-  if(m_pScene != NULL && areOpenGLBuffersInitialized
-          )
+  if(m_pScene != NULL )
   {
       m_pScene->draw(this);
   }
@@ -44,14 +44,13 @@ void Viewer::draw()
 
 void Viewer::initializeGL()
 {
-    QOpenGLWidget::initializeGL();
+    QGLViewer::initializeGL();
     // Set up the rendering context, load shaders and other resources, etc.:
     QOpenGLFunctions *gl = QOpenGLContext::currentContext()->functions();
     gl->initializeOpenGLFunctions();
     setBackgroundColor(::Qt::white);
     m_pScene->setGL(gl);
     m_pScene->compile_shaders();
-    areOpenGLBuffersInitialized=true;
 }
 
 void Viewer::mousePressEvent(QMouseEvent* e)
