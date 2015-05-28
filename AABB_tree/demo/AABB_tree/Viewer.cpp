@@ -15,6 +15,7 @@ Viewer::Viewer(QWidget* parent)
     areOpenGLBuffersInitialized(false)
 
 {
+
 }
 
 void Viewer::setScene(Scene* pScene)
@@ -26,10 +27,10 @@ void Viewer::draw()
 {
     QGLViewer::draw();
  QOpenGLFunctions *gl = QOpenGLContext::currentContext()->functions();
- gl->glClear(GL_COLOR_BUFFER_BIT);
 
   if(m_pScene != NULL )
   {
+      gl->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       m_pScene->draw(this);
   }
   else
@@ -46,7 +47,7 @@ void Viewer::initializeGL()
 {
     QGLViewer::initializeGL();
     // Set up the rendering context, load shaders and other resources, etc.:
-    QOpenGLFunctions *gl = QOpenGLContext::currentContext()->functions();
+    gl = QOpenGLContext::currentContext()->functions();
     gl->initializeOpenGLFunctions();
     setBackgroundColor(::Qt::white);
     m_pScene->setGL(gl);
@@ -65,7 +66,8 @@ void Viewer::mousePressEvent(QMouseEvent* e)
   else if(translation_mode)
   {
       qDebug()<< "translate ON";
-       setMouseBinding(Qt::Key(0),Qt::NoModifier, Qt::LeftButton, CAMERA, TRANSLATE);
+       //setMouseBinding(Qt::Key(0),Qt::NoModifier, Qt::LeftButton, CAMERA, TRANSLATE);
+      setMouseBinding(Qt::NoModifier, Qt::LeftButton, RAP_FROM_PIXEL);
   }
   else if(!translation_mode)
   {
@@ -93,3 +95,9 @@ void Viewer::mouseReleaseEvent(QMouseEvent* e)
   QGLViewer::mouseReleaseEvent(e);
 }
 
+/*void Viewer::paintGL()
+{
+  QGLViewer::preDraw();
+ QGLViewer::paintGL();
+}
+*/

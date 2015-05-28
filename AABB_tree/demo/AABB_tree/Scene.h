@@ -89,7 +89,7 @@ private:
     std::list<Point> m_points;
     std::list<Segment> m_segments;
     std::vector<Segment> m_cut_segments;
-    bool isInit;
+    bool are_buffers_initialized;
     // distance functions (simple 2D arrays)
     Color_ramp m_red_ramp;
     Color_ramp m_blue_ramp;

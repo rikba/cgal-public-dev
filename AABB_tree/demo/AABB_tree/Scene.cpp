@@ -33,7 +33,7 @@ Scene::Scene()
     , m_view_plane(false)
     , m_grid_size(slow_distance_grid_size)
     , m_cut_plane(NONE),
-      isInit(false)
+      are_buffers_initialized(false)
 {
     m_pPolyhedron = NULL;
 
@@ -288,7 +288,7 @@ void Scene::initialize_buffers()
     gl->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE );
     vao[6].release();
 
-    isInit = true;
+    are_buffers_initialized = true;
 }
 
 void Scene::compute_elements(int mode)
@@ -504,7 +504,7 @@ void Scene::changed()
     else
         compute_elements(_SIGNED);
 
-    isInit = false;
+    are_buffers_initialized = false;
 }
 
 int Scene::open(QString filename)
@@ -579,15 +579,16 @@ void Scene::update_bbox()
 
 void Scene::draw(QGLViewer* viewer)
 {
-  //  glClearColor(1.0,1.0,1.0,1.0);
-  //  glClear(GL_COLOR_BUFFER_BIT);
-    if(!isInit)
+    if(!are_buffers_initialized)
     {
+        qDebug()<<"init";
+
         initialize_buffers();
     }
     QColor color;
     QMatrix4x4 fMatrix;
     fMatrix.setToIdentity();
+    //gl->glClear(GL_COLOR_BUFFER_BIT);
     if(m_view_polyhedron)
     {
         vao[2].bind();

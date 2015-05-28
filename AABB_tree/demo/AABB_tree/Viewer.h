@@ -17,6 +17,7 @@ public:
 
   // overload several QGLViewer virtual functions
   void draw();
+  //void paintGL();
   virtual void initializeGL();
   void setScene(Scene* pScene);
   bool areOpenGLBuffersInitialized;
@@ -29,6 +30,7 @@ protected:
 private:
   Scene* m_pScene;
   bool m_custom_mouse;
+  QOpenGLFunctions *gl;
 }; // end class Viewer
 
 #endif // VIEWER_H
