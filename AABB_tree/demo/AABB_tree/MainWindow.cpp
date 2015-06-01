@@ -41,8 +41,11 @@ MainWindow::MainWindow(QWidget* parent)
                 this, SLOT(open(QString)));
         readSettings();
 
-        connect(ui->trans_radioButton, SIGNAL(toggled(bool)),
-                                     this, SLOT(toggle_translation(bool)));
+        connect(ui->pp_radioButton, SIGNAL(toggled(bool)),
+                                     this, SLOT(toggle_setPivotPoint(bool)));
+
+        connect(ui->mf_radioButton, SIGNAL(toggled(bool)),
+                                     this, SLOT(toggle_frameManipulation(bool)));
 }
 
 MainWindow::~MainWindow()
@@ -122,10 +125,13 @@ void MainWindow::quit()
 	close();
 }
 
-void MainWindow::toggle_translation(bool b)
+void MainWindow::toggle_setPivotPoint(bool b)
 {
-    qDebug() << "toggle translation";
-    m_pViewer->translation_mode = b;
+    m_pViewer->settingPivotPoint = b;
+}
+void MainWindow::toggle_frameManipulation(bool b)
+{
+    m_pViewer->frame_manipulation = b;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

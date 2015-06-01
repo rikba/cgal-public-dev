@@ -25,7 +25,8 @@ public:
 		void updateViewerBBox();
 		void open(QString filename);
 		void setAddKeyFrameKeyboardModifiers(Qt::KeyboardModifiers);
-                void toggle_translation(bool b);
+                void toggle_setPivotPoint(bool b);
+                void toggle_frameManipulation(bool b);
 
 		protected slots:
 

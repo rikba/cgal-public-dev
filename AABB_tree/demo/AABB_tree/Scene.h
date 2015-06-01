@@ -60,6 +60,7 @@ public:
 public:
     // types
     typedef CGAL::Bbox_3 Bbox;
+    std::vector<QOpenGLShaderProgram*> programs;
     
 private:
     typedef CGAL::AABB_face_graph_triangle_primitive<Polyhedron>         Facet_Primitive;
@@ -90,6 +91,7 @@ private:
     std::list<Segment> m_segments;
     std::vector<Segment> m_cut_segments;
     bool are_buffers_initialized;
+    bool boule;
     // distance functions (simple 2D arrays)
     Color_ramp m_red_ramp;
     Color_ramp m_blue_ramp;
@@ -168,6 +170,7 @@ private:
     void compute_elements(int mode);
     void attrib_buffers(QGLViewer*);
     void compute_texture(int, int, Color_ramp, Color_ramp);
+    void initialize_textures(int mode);
 
 public:
     // file menu
@@ -246,11 +249,13 @@ public:
     void activate_cutting_plane();
     void deactivate_cutting_plane();
     void setGL(QOpenGLFunctions *);
+    void compile_shaders();
 public slots:
     // cutting plane
     void cutting_plane();
     void changed();
-    void compile_shaders();
+    void frame_changed();
+
 }; // end class Scene
 
 #endif // SCENE_H

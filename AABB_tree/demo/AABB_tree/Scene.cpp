@@ -19,9 +19,7 @@
 
 #include <QOpenGLShader>
 #include <QMessageBox>
-#include <QDebug>
 
-QOpenGLContext* test_context;
 // constants
 const int slow_distance_grid_size = 100;
 const int fast_distance_grid_size = 20;
@@ -35,6 +33,7 @@ Scene::Scene()
     , m_cut_plane(NONE),
       are_buffers_initialized(false)
 {
+    boule = false;
     m_pPolyhedron = NULL;
 
     // view options
@@ -48,7 +47,7 @@ Scene::Scene()
     m_max_distance_function = (FT)0.0;
     texture = new Texture(m_grid_size,m_grid_size);
 
-
+    pos_points.resize(0);
 }
 
 Scene::~Scene()
@@ -63,7 +62,7 @@ Scene::~Scene()
 
 void Scene::compile_shaders()
 {
-    test_context = QOpenGLContext::currentContext();
+
     for(int i=0; i< buffer_size; i++)
       if(! buffers[i].create())
         {
@@ -91,7 +90,7 @@ void Scene::compile_shaders()
         "   gl_Position = mvp_matrix * f_matrix * vertex;\n"
         "}"
     };
-    //Vertex source code
+    //Fragment source code
     const char fragment_source[] =
     {
         //"#version 330 \n"
@@ -180,6 +179,11 @@ void Scene::compile_shaders()
 
     }
     tex_rendering_program.bind();
+
+    programs.resize(2);
+    programs[0] = &rendering_program;
+    programs[1] = &tex_rendering_program;
+
 }
 
 void Scene::initialize_buffers()
@@ -301,6 +305,7 @@ void Scene::compute_elements(int mode)
     tex_map.resize(0);
     pos_grid.resize(66);
     pos_plane.resize(18);
+    update_bbox();
     float diag = .6f * float(bbox_diag());
     //The Points
     {
@@ -368,7 +373,6 @@ void Scene::compute_elements(int mode)
     }
     //The cutting plane
     {
-
         pos_plane[0]= -diag; pos_plane[1]=-diag; pos_plane[2]=0.0;
         pos_plane[3]= -diag; pos_plane[4]= diag; pos_plane[5]=0.;
         pos_plane[6]=  diag; pos_plane[7]= diag; pos_plane[8]=0.;
@@ -394,10 +398,6 @@ void Scene::compute_elements(int mode)
 
         tex_map.push_back(1.11);
         tex_map.push_back(-0.11);
-
-
-
-
 
     }
     //The grid
@@ -493,6 +493,32 @@ void Scene::attrib_buffers(QGLViewer* viewer)
     tex_rendering_program.release();
 }
 
+void Scene::initialize_textures(int mode)
+{
+    //The texture
+    switch(mode)
+    {
+    case _SIGNED:
+        for( int i=0 ; i < texture->getWidth(); i++ )
+        {
+            for( int j=0 ; j < texture->getHeight() ; j++)
+            {
+                compute_texture(i,j,m_red_ramp,m_blue_ramp);
+            }
+        }
+        break;
+    case _UNSIGNED:
+        for( int i=0 ; i < texture->getWidth(); i++ )
+        {
+            for( int j=0 ; j < texture->getHeight() ; j++)
+            {
+                compute_texture(i,j,m_thermal_ramp,m_thermal_ramp);
+            }
+        }
+        break;}
+    sampler_location = tex_rendering_program.attributeLocation("texture");
+}
+
 void Scene::setGL(QOpenGLFunctions *qogl)
 {
     gl = qogl;
@@ -506,7 +532,17 @@ void Scene::changed()
 
     are_buffers_initialized = false;
 }
+void Scene::frame_changed()
+{
 
+    if(m_cut_plane == UNSIGNED_FACETS || m_cut_plane == UNSIGNED_EDGES)
+        initialize_textures(_UNSIGNED);
+    else
+        initialize_textures(_SIGNED);
+    boule = false;
+
+
+}
 int Scene::open(QString filename)
 {
 
@@ -579,16 +615,14 @@ void Scene::update_bbox()
 
 void Scene::draw(QGLViewer* viewer)
 {
+    /////////////////////
     if(!are_buffers_initialized)
     {
-        qDebug()<<"init";
-
         initialize_buffers();
     }
     QColor color;
     QMatrix4x4 fMatrix;
     fMatrix.setToIdentity();
-    //gl->glClear(GL_COLOR_BUFFER_BIT);
     if(m_view_polyhedron)
     {
         vao[2].bind();
@@ -629,6 +663,27 @@ void Scene::draw(QGLViewer* viewer)
     }
     if (m_view_plane)
     {
+        if(!boule)
+        {
+        //cutting plane
+        vao[6].bind();
+        gl->glBindTexture(GL_TEXTURE_2D, textureId);
+        gl->glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     GL_RGB,
+                     texture->getWidth(),
+                     texture->getHeight(),
+                     0,
+                     GL_RGB,
+                     GL_UNSIGNED_BYTE,
+                     texture->getData());
+        gl->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        gl->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        gl->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE );
+        gl->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE );
+        vao[6].release();
+        boule = true;
+    }
         switch( m_cut_plane )
         {
         case UNSIGNED_EDGES:
@@ -644,7 +699,6 @@ void Scene::draw(QGLViewer* viewer)
             attrib_buffers(viewer);
             tex_rendering_program.bind();
             tex_rendering_program.setUniformValue(tex_fLocation, fMatrix);
-
             gl->glDrawArrays(GL_TRIANGLES, 0, pos_plane.size()/3);
             tex_rendering_program.release();
             vao[6].release();
@@ -1146,7 +1200,7 @@ void Scene::sign_distance_function(const Tree& tree)
             m_distance_function[i][j].second = sign * unsigned_distance;
         }
     }
-    changed();
+    frame_changed();
 }
 
 
@@ -1186,7 +1240,6 @@ void Scene::signed_distance_function()
     sign_distance_function(m_facet_tree);
 
     m_cut_plane = SIGNED_FACETS;
-    changed();
 }
 
 
