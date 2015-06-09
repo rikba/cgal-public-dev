@@ -81,6 +81,11 @@ public:
       void on_actionView_cutting_plane_triggered();
 
 
+private slots:
+      void on_grid_radioButton_toggled(bool checked);
+
+      void on_axis_radioButton_toggled(bool checked);
+
 private:
 	Scene* m_pScene;
 	Viewer* m_pViewer;

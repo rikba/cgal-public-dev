@@ -42,6 +42,26 @@
         <enum>QLayout::SetDefaultConstraint</enum>
        </property>
        <item>
+        <widget class="QRadioButton" name="axis_radioButton">
+         <property name="text">
+          <string>Show Axis</string>
+         </property>
+         <property name="autoExclusive">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="grid_radioButton">
+         <property name="text">
+          <string>Show Grid</string>
+         </property>
+         <property name="autoExclusive">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QRadioButton" name="pp_radioButton">
          <property name="text">
           <string>Set Pivot Point</string>
@@ -72,7 +92,7 @@
      <x>0</x>
      <y>0</y>
      <width>638</width>
-     <height>29</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

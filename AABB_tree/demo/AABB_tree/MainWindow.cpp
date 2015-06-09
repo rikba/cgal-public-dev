@@ -46,6 +46,10 @@ MainWindow::MainWindow(QWidget* parent)
 
         connect(ui->mf_radioButton, SIGNAL(toggled(bool)),
                                      this, SLOT(toggle_frameManipulation(bool)));
+        connect(ui->grid_radioButton, SIGNAL(toggled(bool)),
+                                     this, SLOT(on_grid_radioButton_toggled(bool)));
+        connect(ui->axis_radioButton, SIGNAL(toggled(bool)),
+                                     this, SLOT(on_axis_radioButton_toggled(bool)));
 }
 
 MainWindow::~MainWindow()
@@ -481,3 +485,13 @@ void MainWindow::on_actionCopy_snapshot_triggered()
 
 
 
+
+void MainWindow::on_grid_radioButton_toggled(bool checked)
+{
+     m_pViewer->setGridIsDrawn(checked);
+}
+
+void MainWindow::on_axis_radioButton_toggled(bool checked)
+{
+m_pViewer->setAxisIsDrawn(checked);
+}
