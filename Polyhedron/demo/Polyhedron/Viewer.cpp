@@ -4,7 +4,7 @@
 #include "Scene_draw_interface.h"
 #include <QMouseEvent>
 #include <QKeyEvent>
-#include <QGLViewer/manipulatedCameraFrame.h>
+#include <manipulatedCameraFrame.h>
 class Viewer_impl {
 public:
   Scene_draw_interface* scene;
@@ -67,13 +67,14 @@ bool Viewer::antiAliasing() const
 void Viewer::setAntiAliasing(bool b)
 {
   d->antialiasing = b;
-  updateGL();
+  ////updateGL();
+
 }
 
 void Viewer::setTwoSides(bool b)
 {
   d->twosides = b;
-  updateGL();
+ // //updateGL();
 }
 
 bool Viewer::inFastDrawing() const {
@@ -103,7 +104,7 @@ void Viewer::fastDraw()
 void Viewer::initializeGL()
 {
   QGLViewer::initializeGL();
-  initializeOpenGLFunctions();
+  gl.initializeOpenGLFunctions();
   setBackgroundColor(::Qt::white);
   d->scene->initializeGL();
 
@@ -172,11 +173,11 @@ void Viewer::turnCameraBy180Degres() {
 
 void Viewer_impl::draw_aux(bool with_names, Viewer* viewer)
 {
-  if(scene == 0)
+/*  if(scene == 0)
     return;
 
   ::glLineWidth(1.0f);
-  ::glPointSize(2.f);
+  //::glPointSize(2.f);
   ::glEnable(GL_POLYGON_OFFSET_FILL);
   ::glPolygonOffset(1.0f,1.0f);
   ::glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
@@ -206,7 +207,7 @@ void Viewer_impl::draw_aux(bool with_names, Viewer* viewer)
     scene->drawWithNames(viewer);
   else
     scene->draw(viewer);
-  CGAL::check_gl_error(__FILE__, __LINE__);
+  CGAL::check_gl_error(__FILE__, __LINE__);*/
 }
 
 void Viewer::drawWithNames()

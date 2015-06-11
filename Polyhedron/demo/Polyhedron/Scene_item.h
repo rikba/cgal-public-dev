@@ -5,7 +5,7 @@
 #include <QString>
 #include <QPixmap>
 #include <QFont>
-#include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLFunctions>
 namespace qglviewer {
   class ManipulatedFrame;
 }
@@ -155,7 +155,7 @@ protected:
   int prev_shading;
   int cur_shading;
 
-  mutable QOpenGLFunctions_3_3_Core qFunc;
+  mutable QOpenGLFunctions qFunc;
 
 }; // end class Scene_item
 

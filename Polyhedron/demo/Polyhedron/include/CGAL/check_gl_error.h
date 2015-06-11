@@ -21,23 +21,25 @@
 #define CGAL_GL_CHECK_ERROR_H
 
 #include <iostream>
-#include <CGAL/glu.h>
+//#include <CGAL/glu.h>
+//#include <QOpenGLFunctions>
 
 namespace CGAL {
 
 inline bool check_gl_error(const char* filename, long line)
 {
-  GLenum error = glGetError();
-  if(error != GL_NO_ERROR) {
-    std::cerr << "GL errors! file " << filename << ", line:" << line << "\n";
-    do {
-      std::cerr << gluErrorString(error) << std::endl;
-      error = glGetError();
-    }
-    while(error != GL_NO_ERROR);
-    std::cerr << "end of errors\n";
-    return true;
-  }
+ //   QOpenGLFunctions gl;
+ // GLenum error = gl.glGetError();
+ // if(error != GL_NO_ERROR) {
+ //   std::cerr << "GL errors! file " << filename << ", line:" << line << "\n";
+ //   do {
+ //     std::cerr << error << std::endl;
+ //     error = gl.glGetError();
+ //   }
+ //   while(error != GL_NO_ERROR);
+ //   std::cerr << "end of errors\n";
+  // return true;
+  //}
   return false;
 }
 

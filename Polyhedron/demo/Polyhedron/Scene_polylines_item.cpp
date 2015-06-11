@@ -19,7 +19,7 @@ void CGALglcolor(QColor c, int dv = 0)
         c = c.darker(dv);
 #undef darker
     }
-    ::glColor4d(c.red()/255.0, c.green()/255.0, c.blue()/255.0, c.alpha()/255.0);
+    //::glColor4d(c.red()/255.0, c.green()/255.0, c.blue()/255.0, c.alpha()/255.0);
 }
 }
 struct light_info
@@ -233,16 +233,16 @@ public:
     Scene_polylines_item_private() :
         draw_extremities(false),
         spheres_drawn_radius(0),
-        sphere_display_list(0),
-        quadric(0)
+        sphere_display_list(0)/*,
+        quadric(0)*/
     {}
 
     ~Scene_polylines_item_private()
     {
-        if(quadric != 0)
-            gluDeleteQuadric(quadric);
-        if(sphere_display_list  != 0)
-            glDeleteLists(sphere_display_list, 1);
+      //  if(quadric != 0)
+      //      gluDeleteQuadric(quadric);
+      //  if(sphere_display_list  != 0)
+      //      glDeleteLists(sphere_display_list, 1);
     }
 
     void draw_sphere(const K::Point_3&, double) const;
@@ -252,7 +252,7 @@ public:
     double spheres_drawn_radius;
 private:
     mutable GLuint sphere_display_list;
-    mutable GLUquadric* quadric;
+   // mutable GLUquadric* quadric;
 };
 
 void

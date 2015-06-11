@@ -5,7 +5,6 @@
 
 #include "Scene_interface.h"
 #include "Scene_draw_interface.h"
-
 #include <QtOpenGL/qgl.h>
 #include <QAbstractListModel>
 #include <QString>

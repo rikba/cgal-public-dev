@@ -1,6 +1,6 @@
-
+#ifdef CGAL_GLEW_ENABLED
 #include "GlSplat/GlSplat.h"
-
+#endif
 
 
 #include <CGAL/check_gl_error.h>
@@ -25,7 +25,7 @@
 namespace {
 void CGALglcolor(QColor c)
 {
-    ::glColor4d(c.red()/255.0, c.green()/255.0, c.blue()/255.0, c.alpha()/255.0);
+    //::glColor4d(c.red()/255.0, c.green()/255.0, c.blue()/255.0, c.alpha()/255.0);
 }
 }
 
@@ -246,10 +246,10 @@ void Scene::initializeGL()
     GLfloat position[] = { 0.0f, 0.0f, 1.0f, 1.0f };
 
     // Assign created components to GL_LIGHT0
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
-    glLightfv(GL_LIGHT0, GL_POSITION, position);
+  //  glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
+  //  glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
+  //  glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
+  //  glLightfv(GL_LIGHT0, GL_POSITION, position);
 
 }
 
@@ -298,16 +298,16 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
     for(int index = 0; index < m_entries.size(); ++index)
     {
         if(with_names) {
-            ::glPushName(index);
+      //      ::glPushName(index);
         }
         Scene_item& item = *m_entries[index];
         if(item.visible())
         {
             if(item.renderingMode() == Flat || item.renderingMode() == FlatPlusEdges || item.renderingMode() == Gouraud)
             {
-                ::glEnable(GL_LIGHTING);
-                ::glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-                ::glPointSize(2.f);
+          //      ::glEnable(GL_LIGHTING);
+          //      ::glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+          //      ::glPointSize(2.f);
                 ::glLineWidth(1.0f);
                 if(index == selected_item)
                 {
@@ -321,10 +321,10 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
                     CGALglcolor(item.color());
                 }
 
-                if(item.renderingMode() == Gouraud)
-                    ::glShadeModel(GL_SMOOTH);
-                else
-                    ::glShadeModel(GL_FLAT);
+              //  if(item.renderingMode() == Gouraud)
+           //         ::glShadeModel(GL_SMOOTH);
+                //else
+             //       ::glShadeModel(GL_FLAT);
 
                 item.contextual_changed();
                 if(CGAL::check_gl_error(__FILE__, __LINE__)) {
@@ -346,7 +346,7 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
             }
         }
         if(with_names) {
-            ::glPopName();
+          //  ::glPopName();
         }
     }
 
@@ -354,16 +354,16 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
     for(int index = 0; index < m_entries.size(); ++index)
     {
         if(with_names) {
-            ::glPushName(index);
-        }
+            //::glPushName(index);
+        }//
         Scene_item& item = *m_entries[index];
         if(item.visible())
         {
             if(item.renderingMode() == FlatPlusEdges || item.renderingMode() == Wireframe)
             {
-                ::glDisable(GL_LIGHTING);
-                ::glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-                ::glPointSize(2.f);
+              //  ::glDisable(GL_LIGHTING);
+              //  ::glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+              //  ::glPointSize(2.f);
                 ::glLineWidth(1.0f);
                 if(index == selected_item)
                     CGALglcolor(Qt::black);
@@ -379,9 +379,9 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
             }
             else{
                 if( item.renderingMode() == PointsPlusNormals ){
-                    ::glDisable(GL_LIGHTING);
-                    ::glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-                    ::glPointSize(2.f);
+                //    ::glDisable(GL_LIGHTING);
+                //    ::glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+                //    ::glPointSize(2.f);
                     ::glLineWidth(1.0f);
                     if(index == selected_item)
                     {
@@ -404,7 +404,7 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
         }
          item.contextual_changed();
         if(with_names) {
-            ::glPopName();
+           // ::glPopName();
         }
     }
 
@@ -412,16 +412,16 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
     for(int index = 0; index < m_entries.size(); ++index)
     {
         if(with_names) {
-            ::glPushName(index);
+          //  ::glPushName(index);
         }
         Scene_item& item = *m_entries[index];
         if(item.visible())
         {
             if(item.renderingMode() == Points  || item.renderingMode() == PointsPlusNormals)
             {
-                ::glDisable(GL_LIGHTING);
-                ::glPolygonMode(GL_FRONT_AND_BACK,GL_POINT);
-                ::glPointSize(2.f);
+             //   ::glDisable(GL_LIGHTING);
+             //   ::glPolygonMode(GL_FRONT_AND_BACK,GL_POINT);
+             //   ::glPointSize(2.f);
                 ::glLineWidth(1.0f);
                 CGALglcolor(item.color());
 
@@ -433,7 +433,7 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
         }
          item.contextual_changed();
         if(with_names) {
-            ::glPopName();
+        //    ::glPopName();
         }
     }
     // Splatting

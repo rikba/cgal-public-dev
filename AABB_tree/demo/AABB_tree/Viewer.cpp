@@ -110,30 +110,4 @@ void Viewer::mouseReleaseEvent(QMouseEvent* e)
 
     QGLViewer::mouseReleaseEvent(e);
 }
-/*
-void Viewer::drawAxis(qreal length)
-{
 
-qglviewer::AxisData data;
-    pos_arrows.resize(0);
-    normals_arrows.resize(0);
-    color_arrows.resize(0);
-
-    data.vertices=&pos_arrows;
-    data.normals=&normals_arrows;
-    data.colors=&color_arrows;
-    //float color[4];
-    //color[0] = 0.7f;  color[1] = 0.7f;  color[2] = 1.0f;  color[3] = 1.0f;
-
-    drawArrowGLES(0.5*length, 10, qglviewer::Vec(0,0,0),qglviewer::Vec(length,0,0),qglviewer::Vec(1,0,0),data);
-
-    //color[0] = 1.0f;  color[1] = 0.7f;  color[2] = 0.7f;  color[3] = 1.0f;
-    //QGLViewer::drawArrow(length, 0.01*length);
-    drawArrowGLES(0.5*length, 10, qglviewer::Vec(0,0,0),qglviewer::Vec(0,length,0),qglviewer::Vec(0,1,0),data);
-
-    //color[0] = 0.7f;  color[1] = 1.0f;  color[2] = 0.7f;  color[3] = 1.0f;
-    //QGLViewer::drawArrow(length, 0.01*length);
-    drawArrowGLES(0.5*length, 10, qglviewer::Vec(0,0,0),qglviewer::Vec(0,0,length),qglviewer::Vec(0,0,1),data);
-
-}
-*/

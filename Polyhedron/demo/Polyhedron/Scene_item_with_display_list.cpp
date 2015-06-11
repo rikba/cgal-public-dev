@@ -30,11 +30,11 @@ Scene_item_with_display_list::Scene_item_with_display_list(GLuint id, GLuint edg
 
 Scene_item_with_display_list::~Scene_item_with_display_list()
 {
-  for(int i = 0; i < NB_OF_DISPLAY_LISTS; ++i) {
+ /* for(int i = 0; i < NB_OF_DISPLAY_LISTS; ++i) {
     if(display_list_built[i] && display_list[i] != 0) {
       ::glDeleteLists(display_list[i],1);
     }
-  }
+  }*/
 }
 
 // Points/Wireframe/Flat/Gouraud OpenGL drawing in a display list
@@ -49,7 +49,7 @@ void Scene_item_with_display_list::draw_edges() const {
 
 void Scene_item_with_display_list::draw(int i) const
 {
-  if(!display_list_built[i])
+ /* if(!display_list_built[i])
   {
     if(display_list[i] == 0) {
       display_list[i] = ::glGenLists(1);
@@ -74,7 +74,7 @@ void Scene_item_with_display_list::draw(int i) const
   else {
     // draw using the display list
     ::glCallList(display_list[i]);
-  }
+  }*/
 }
 
 void Scene_item_with_display_list::changed()

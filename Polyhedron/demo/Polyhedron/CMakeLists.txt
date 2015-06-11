@@ -62,11 +62,13 @@ include( ${CGAL_USE_FILE} )
 find_package(Qt5 COMPONENTS OpenGL Script Xml ScriptTools)
 
 # Find Glew (required)
-find_package(GLEW)
-set(GLEW_FOUND FALSE)#TEMP to be removed once GlSplat has been redone
-# Find OpenGL
-find_package(OpenGL)
-
+if(NOT ANDROID)
+  find_package(GLEW)
+else()
+  set(GLEW_FOUND FALSE)
+endif()
+  # Find OpenGL
+  find_package(OpenGL)
 # Find QGLViewer
 if(Qt5_FOUND)
   include_directories( ${QT_INCLUDE_DIR}/QtScriptTools )
@@ -163,7 +165,7 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
     ${QGLVIEWER_LIBRARIES}
     ${QT_LIBRARIES}
     ${OPENGL_gl_LIBRARY}
-    ${OPENGL_glu_LIBRARY}
+   # ${OPENGL_glu_LIBRARY}
     )
 
   add_library(scene_basic_objects SHARED
@@ -176,7 +178,7 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
     ${QGLVIEWER_LIBRARIES}
     ${QT_LIBRARIES}
     ${OPENGL_gl_LIBRARY}
-    ${OPENGL_glu_LIBRARY}
+   # ${OPENGL_glu_LIBRARY}
     )
   qt5_use_modules(scene_basic_objects OpenGL Gui Xml Script Widgets)
   add_library(point_dialog SHARED Show_point_dialog.cpp Show_point_dialog.ui ${Show_point_dialogUI_FILES})
@@ -249,6 +251,17 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
 #  if(POLYHEDRON_DEMO_ENABLE_FORWARD_DECL)
     set(CGAL_POLYHEDRON_DEMO_DEFINITIONS "-DUSE_FORWARD_DECL")
     add_definitions(${CGAL_POLYHEDRON_DEMO_DEFINITIONS})
+if(ANDROID)
+    add_library  ( Polyhedron_3
+      MainWindow.cpp
+      Polyhedron_3.cpp
+      Viewer.cpp
+      Scene.cpp
+    #MainWindow_moc.cpp
+      File_loader_dialog_moc.cpp
+    # Viewer_moc.cpp
+      ${FileLoaderDialogUI_files} ${MainWindowUI_files} ${PreferencesUI_FILES} ${RESOURCE_FILES} )
+else()
     add_executable  ( Polyhedron_3
       MainWindow.cpp
       Polyhedron_3.cpp
@@ -258,6 +271,7 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
       File_loader_dialog_moc.cpp
     # Viewer_moc.cpp
       ${FileLoaderDialogUI_files} ${MainWindowUI_files} ${PreferencesUI_FILES} ${RESOURCE_FILES} )
+endif()
     add_to_cached_list( CGAL_EXECUTABLE_TARGETS Polyhedron_3 )
     qt5_use_modules(Polyhedron_3 Gui OpenGL Xml Widgets Script )
     if(EIGEN3_FOUND)
@@ -289,7 +303,9 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
   target_link_libraries( Polyhedron_3 ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} )
 
   # Link with libQGLViewer, OpenGL
-  target_link_libraries( Polyhedron_3 ${QGLVIEWER_LIBRARIES} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} )
+  target_link_libraries( Polyhedron_3 ${QGLVIEWER_LIBRARIES} ${OPENGL_gl_LIBRARY}
+#${OPENGL_glu_LIBRARY}
+)
 
   add_to_cached_list( CGAL_EXECUTABLE_TARGETS Polyhedron_3 )
 
@@ -316,7 +332,9 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
     polyhedron_demo_plugin(mesh_3_plugin Polyhedron_demo_mesh_3_plugin 
       Polyhedron_demo_mesh_3_plugin_cgal_code.cpp #Scene_c3t3_item.moc
       ${meshingUI_FILES})
-    target_link_libraries(mesh_3_plugin scene_polyhedron_item scene_polygon_soup_item ${QGLVIEWER_LIBRARIES} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
+    target_link_libraries(mesh_3_plugin scene_polyhedron_item scene_polygon_soup_item ${QGLVIEWER_LIBRARIES} ${OPENGL_gl_LIBRARY}
+#${OPENGL_glu_LIBRARY}
+)
   else( Boost_VERSION GREATER 103400 )
     message(STATUS "warning: the plugin mesh_3_plugin requires Boost>=1.34.1 and will not be compiled.")
   endif( Boost_VERSION GREATER 103400 )
@@ -497,6 +515,18 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
   endif(GLEW_FOUND)
 
   configure_file(CGAL_polyhedron_demoConfig.cmake.in  CGAL_polyhedron_demoConfig.cmake)
+
+  if(ANDROID)
+    include(/home/mgimeno/Android/qt-android-cmake/AddQtAndroidApk.cmake)
+    add_qt_android_apk(
+                        Polyhedron_3_apk Polyhedron_3
+                        NAME "Polyhedron_3"
+                        DEPENDS
+                        /home/mgimeno/Android/Android-build/lib/libgmp.so
+                        /home/mgimeno/Téléchargements/android-ndk-r10d/platforms/android-16/arch-arm/usr/lib/libGLESv2.so
+                        /home/mgimeno/Android/libQGLViewer_Clone/libQGLViewer/build-for-android/libQGLViewer.so
+                        INSTALL)
+endif()
 
 else (CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
 

@@ -1,7 +1,7 @@
 #ifndef VIEWER_INTERFACE_H
 #define VIEWER_INTERFACE_H
 
-#include <QGLViewer/qglviewer.h>
+#include <qglviewer.h>
 #include <QWidget>
 #include <QPoint>
 
@@ -18,8 +18,8 @@ class VIEWER_EXPORT Viewer_interface : public QGLViewer {
   Q_OBJECT
 
 public:
-  Viewer_interface(QWidget* parent) : QGLViewer(parent) {};
-  virtual ~Viewer_interface() {};
+  Viewer_interface(QWidget* parent) : QGLViewer(parent) {}
+  virtual ~Viewer_interface() {}
 
   virtual void setScene(Scene_draw_interface* scene) = 0;
   virtual bool antiAliasing() const = 0;

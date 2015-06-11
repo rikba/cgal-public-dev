@@ -16,8 +16,8 @@
 #include <CGAL/AABB_face_graph_triangle_primitive.h>
 
 #include <QtCore/qglobal.h>
-#include <QGLViewer/manipulatedFrame.h>
-#include <QGLViewer/qglviewer.h>
+#include <manipulatedFrame.h>
+#include <qglviewer.h>
 #include <QOpenGLFunctions>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>

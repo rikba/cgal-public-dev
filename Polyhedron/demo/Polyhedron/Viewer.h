@@ -4,9 +4,9 @@
 #include "Viewer_config.h"
 #include <CGAL_demo/Viewer_interface.h>
 
-#include <QGLViewer/qglviewer.h>
+#include <qglviewer.h>
 #include <QPoint>
-#include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLFunctions>
 
 // forward declarations
 class QWidget;
@@ -16,7 +16,7 @@ class QKeyEvent;
 
 class Viewer_impl;
 
-class VIEWER_EXPORT Viewer : public Viewer_interface, public QOpenGLFunctions_3_3_Core {
+class VIEWER_EXPORT Viewer : public Viewer_interface{
 
   Q_OBJECT
 

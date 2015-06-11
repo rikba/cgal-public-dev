@@ -48,8 +48,8 @@
 #include "Show_point_dialog.h"
 #include "File_loader_dialog.h"
 
-#include <QGLViewer/manipulatedCameraFrame.h>
-#include <QGLViewer/manipulatedFrame.h>
+#include <manipulatedCameraFrame.h>
+#include <manipulatedFrame.h>
 
 #ifdef QT_SCRIPT_LIB
 #  include <QScriptEngine>
@@ -995,7 +995,7 @@ void MainWindow::selectionChanged()
     connect(viewer->manipulatedFrame(), SIGNAL(modified()),
             this, SLOT(updateInfo()));
   }
-  viewer->updateGL();
+ // viewer->updateGL();
 }
 
 void MainWindow::contextMenuRequested(const QPoint& global_pos) {

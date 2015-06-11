@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Lesser General Public
 // License along with GlSplat. If not, see <http://www.gnu.org/licenses/>.
 
-#include <GL/glew.h>
+//#include <GL/glew.h>
 #ifndef _GLSPLAT_Shader_h_
 #define _GLSPLAT_Shader_h_
 
-#define QT_NO_OPENGL_ES_2
+//#define QT_NO_OPENGL_ES_2
 
-#include <CGAL/glu.h>
+//#include <CGAL/glu.h>
 
 #ifndef NDEBUG
     #define GL_TEST_ERR\
@@ -113,36 +113,36 @@ public:
     int getAttribLocation(const char* name) const;
 
     inline void setUniform(const char* name, float a) const
-    { glUniform1f(glGetUniformLocation(mProgramID, name), a); }
+    {/* glUniform1f(glGetUniformLocation(mProgramID, name), a); */}
 
     inline void setUniform(const char* name, int a) const
-    { glUniform1i(glGetUniformLocation(mProgramID, name), a); }
+    { /*glUniform1i(glGetUniformLocation(mProgramID, name), a);*/ }
 
     inline void setUniform2(const char* name, float* a) const
-    { glUniform2fv(glGetUniformLocation(mProgramID, name), 1, a); }
+    {/* glUniform2fv(glGetUniformLocation(mProgramID, name), 1, a); */}
 
     inline void setUniform3(const char* name, float* a) const
-    { glUniform3fv(glGetUniformLocation(mProgramID, name), 1, a); }
+    {/* glUniform3fv(glGetUniformLocation(mProgramID, name), 1, a); */}
 
     inline void setUniform4(const char* name, float* a) const
-    { glUniform4fv(glGetUniformLocation(mProgramID, name), 1, a); }
+    {/* glUniform4fv(glGetUniformLocation(mProgramID, name), 1, a); */}
 
     inline void setUniform(const char* name, float a, float b) const
-    { glUniform2f(glGetUniformLocation(mProgramID, name), a, b); }
+    {/* glUniform2f(glGetUniformLocation(mProgramID, name), a, b); */}
 
     inline void setUniform(const char* name, float a, float b, float c) const
-    { glUniform3f(glGetUniformLocation(mProgramID, name), a, b, c); }
+    {/* glUniform3f(glGetUniformLocation(mProgramID, name), a, b, c); */}
 
     inline void setUniform(const char* name, float a, float b, float c, float d) const
-    { glUniform4f(glGetUniformLocation(mProgramID, name), a, b, c, d); }
+    {/* glUniform4f(glGetUniformLocation(mProgramID, name), a, b, c, d); */}
 
 protected:
 
     bool mIsValid;
     typedef std::map<std::string,std::string> DefineMap;
     DefineMap mDefines;
-    static void printInfoLog(GLuint objectID);
-    GLuint mProgramID;
+   // static void printInfoLog(GLuint objectID);
+   // GLuint mProgramID;
 };
 
 } // namepsace GlSplat
