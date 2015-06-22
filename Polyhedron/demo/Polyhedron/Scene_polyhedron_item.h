@@ -1,13 +1,16 @@
 #ifndef SCENE_POLYHEDRON_ITEM_H
 #define SCENE_POLYHEDRON_ITEM_H
 
-//#include <GL/glew.h>
 #include "Scene_polyhedron_item_config.h"
 #include "Scene_item.h" //<- modif ?
 #include "Polyhedron_type_fwd.h"
 #include "Polyhedron_type.h"
 #include "Viewer.h"
 #include <iostream>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLBuffer>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLTexture>
 
 #include <set>
 #include <vector>
@@ -111,20 +114,13 @@ private:
     std::vector<float> normals;
     std::vector<float> color_lines;
     std::vector<float> color_facets;
-
     std::vector<float> color_lines_selected;
     std::vector<float> color_facets_selected;
 
-    GLuint rendering_program_facets;
-    GLuint rendering_program_lines;
-    GLint location[9];
+    mutable QOpenGLShaderProgram *program;
 
-    GLuint vao[2];
-    GLuint buffer[10];
-    void initialize_buffers();
-    void compile_shaders(void);
+    void initialize_buffers(Viewer_interface *viewer = 0) const;
     void compute_normals_and_vertices(void);
-    void uniform_attrib(Viewer_interface*, int) const;
     void compute_colors();
     void triangulate_facet(Facet_iterator );
     void triangulate_facet_color(Facet_iterator );

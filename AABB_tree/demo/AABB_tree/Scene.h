@@ -21,7 +21,6 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
-#include <QGLShaderProgram>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 

@@ -21,7 +21,6 @@
 #include <algorithm>
 #include <boost/array.hpp>
 
-#include <QOpenGLFunctions_3_1>
 
 struct light_info
 {
@@ -39,7 +38,7 @@ struct light_info
 };
 
 Scene_points_with_normal_item::Scene_points_with_normal_item()
-    : Scene_item_with_display_list(),
+    : Scene_item(6,2),
       m_points(new Point_set),
       positions_lines(0),
       color_lines(0),
@@ -55,17 +54,13 @@ Scene_points_with_normal_item::Scene_points_with_normal_item()
     setRenderingMode(Points);
     is_selected = true;
     qFunc.initializeOpenGLFunctions();
-    qFunc.glGenVertexArrays(2, vao);
-    //Generates an integer which will be used as ID for each buffer
-    qFunc.glGenBuffers(9, buffer);
     qFunc.glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     qFunc.glGenTextures(1, &textureId);
-    compile_shaders();
 }
 
 // Copy constructor
 Scene_points_with_normal_item::Scene_points_with_normal_item(const Scene_points_with_normal_item& toCopy)
-    : Scene_item_with_display_list(), // do not call superclass' copy constructor
+    : Scene_item(6,2), // do not call superclass' copy constructor
       m_points(new Point_set(*toCopy.m_points)),
       positions_lines(0),
       color_lines(0),
@@ -83,30 +78,22 @@ Scene_points_with_normal_item::Scene_points_with_normal_item(const Scene_points_
         setRenderingMode(PointsPlusNormals);
         is_selected = true;
         qFunc.initializeOpenGLFunctions();
-        qFunc.glGenVertexArrays(2, vao);
-        //Generates an integer which will be used as ID for each buffer
-        qFunc.glGenBuffers(9, buffer);
         qFunc.glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         qFunc.glGenTextures(1, &textureId);
-        compile_shaders();
     }
     else
     {
         setRenderingMode(Points);
         is_selected = true;
         qFunc.initializeOpenGLFunctions();
-        qFunc.glGenVertexArrays(2, vao);
-        //Generates an integer which will be used as ID for each buffer
-        qFunc.glGenBuffers(9, buffer);
         qFunc.glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         qFunc.glGenTextures(1, &textureId);
-        compile_shaders();
     }
 }
 
 // Converts polyhedron to point set
 Scene_points_with_normal_item::Scene_points_with_normal_item(const Polyhedron& input_mesh)
-    : Scene_item_with_display_list(),
+    : Scene_item(6,2),
       m_points(new Point_set),
       positions_lines(0),
       color_lines(0),
@@ -132,84 +119,92 @@ Scene_points_with_normal_item::Scene_points_with_normal_item(const Polyhedron& i
     setRenderingMode(PointsPlusNormals);
     is_selected = true;
     qFunc.initializeOpenGLFunctions();
-    qFunc.glGenVertexArrays(2, vao);
     //Generates an integer which will be used as ID for each buffer
-    qFunc.glGenBuffers(9, buffer);
     qFunc.glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     qFunc.glGenTextures(1, &textureId);
-    compile_shaders();
 }
 
 Scene_points_with_normal_item::~Scene_points_with_normal_item()
 {
     Q_ASSERT(m_points != NULL);
-    qFunc.glDeleteBuffers(9, buffer);
-    qFunc.glDeleteVertexArrays(2, vao);
-    qFunc.glDeleteProgram(rendering_program_lines);
-    qFunc.glDeleteProgram(rendering_program_points);
-    qFunc.glDeleteProgram(rendering_program_splats);
     delete m_points; m_points = NULL;
 }
 
 
 
-void Scene_points_with_normal_item::initialize_buffers()
+void Scene_points_with_normal_item::initialize_buffers(Viewer_interface *viewer) const
 {
-    qFunc.glBindVertexArray(vao[0]);
+    //vao for the edges
+    {
+        program = getShaderProgram(PROGRAM_WITHOUT_LIGHT, viewer);
+        program->bind();
 
-    qFunc.glBindBuffer(GL_ARRAY_BUFFER, buffer[0]);
-    qFunc.glBufferData(GL_ARRAY_BUFFER,
-                 (positions_lines.size())*sizeof(double),
-                 positions_lines.data(),
-                 GL_STATIC_DRAW);
-    qFunc.glVertexAttribPointer(0, //number of the buffer
-                          3, //number of floats to be taken
-                          GL_DOUBLE, // type of data
-                          GL_FALSE, //not normalized
-                          0, //compact data (not in a struct)
-                          NULL //no offset (seperated in several buffers)
-                          );
-    qFunc.glEnableVertexAttribArray(0);
+        vaos[0]->bind();
+        buffers[0].bind();
+        buffers[0].allocate(positions_lines.data(), positions_lines.size()*sizeof(double));
+        program->enableAttributeArray("vertex");
+        program->setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        buffers[0].release();
 
 
-    qFunc.glBindBuffer(GL_ARRAY_BUFFER, buffer[1]);
-    qFunc.glBufferData(GL_ARRAY_BUFFER,
-                 (color_lines.size())*sizeof(double),
-                 color_lines.data(), GL_STATIC_DRAW);
-    qFunc.glVertexAttribPointer(1,
-                          3,
-                          GL_DOUBLE,
-                          GL_FALSE,
-                          0,
-                          NULL
-                          );
-    qFunc.glEnableVertexAttribArray(1);
 
-    qFunc.glBindBuffer(GL_ARRAY_BUFFER, buffer[2]);
-    qFunc.glBufferData(GL_ARRAY_BUFFER,
-                 (positions_points.size())*sizeof(double),
-                 positions_points.data(), GL_STATIC_DRAW);
-    qFunc.glVertexAttribPointer(2,
-                          3,
-                          GL_DOUBLE,
-                          GL_FALSE,
-                          0,
-                          NULL
-                          );
-    qFunc.glEnableVertexAttribArray(2);
+        buffers[1].bind();
+        buffers[1].allocate(color_lines.data(), color_lines.size()*sizeof(double));
+        program->enableAttributeArray("colors");
+        program->setAttributeBuffer("colors",GL_DOUBLE,0,3);
+        buffers[1].release();
 
-    qFunc.glBindBuffer(GL_ARRAY_BUFFER, buffer[3]);
-    qFunc.glBufferData(GL_ARRAY_BUFFER,
-                 (color_points.size())*sizeof(double),
-                 color_points.data(), GL_STATIC_DRAW);
-    qFunc.glVertexAttribPointer(3,
-                          3,
-                          GL_DOUBLE,
-                          GL_FALSE,
-                          0,
-                          NULL
-                          );
-    qFunc.glEnableVertexAttribArray(3);
+        vaos[0]->release();
+        program->release();
+    }
+    //vao for the points
+    {
+        program = getShaderProgram(PROGRAM_WITHOUT_LIGHT, viewer);
+        program->bind();
+
+        vaos[1]->bind();
+        buffers[2].bind();
+        buffers[2].allocate(positions_points.data(), positions_points.size()*sizeof(double));
+        program->enableAttributeArray("vertex");
+        program->setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        buffers[2].release();
+
+
+
+        buffers[3].bind();
+        buffers[3].allocate(color_points.data(), color_points.size()*sizeof(double));
+        program->enableAttributeArray("colors");
+        program->setAttributeBuffer("colors",GL_DOUBLE,0,3);
+        buffers[3].release();
+
+        vaos[1]->release();
+        program->release();
+    }
+    //vao for the selected points
+    {
+        program = getShaderProgram(PROGRAM_WITHOUT_LIGHT, viewer);
+        program->bind();
+
+        vaos[2]->bind();
+        buffers[4].bind();
+        buffers[4].allocate(positions_selected_points.data(), positions_selected_points.size()*sizeof(double));
+        program->enableAttributeArray("vertex");
+        program->setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        buffers[4].release();
+
+
+
+        buffers[5].bind();
+        buffers[5].allocate(color_selected_points.data(), color_selected_points.size()*sizeof(double));
+        program->enableAttributeArray("colors");
+        program->setAttributeBuffer("colors",GL_DOUBLE,0,3);
+        buffers[5].release();
+
+        vaos[2]->release();
+        program->release();
+    }
+    are_buffers_filled = true;
+  /*
 
     qFunc.glBindBuffer(GL_ARRAY_BUFFER, buffer[6]);
     qFunc.glBufferData(GL_ARRAY_BUFFER,
@@ -266,178 +261,7 @@ void Scene_points_with_normal_item::initialize_buffers()
     qFunc.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     qFunc.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-    qFunc.glBindVertexArray(vao[1]);
-
-    qFunc.glBindBuffer(GL_ARRAY_BUFFER, buffer[4]);
-    qFunc.glBufferData(GL_ARRAY_BUFFER,
-                 (positions_selected_points.size())*sizeof(double),
-                 positions_selected_points.data(),
-                 GL_STATIC_DRAW);
-    qFunc.glVertexAttribPointer(2, //number of the buffer
-                          3, //number of floats to be taken
-                          GL_DOUBLE, // type of data
-                          GL_FALSE, //not normalized
-                          0, //compact data (not in a struct)
-                          NULL //no offset (seperated in several buffers)
-                          );
-    qFunc.glEnableVertexAttribArray(2);
-
-
-    qFunc.glBindBuffer(GL_ARRAY_BUFFER, buffer[5]);
-    qFunc.glBufferData(GL_ARRAY_BUFFER,
-                 (color_selected_points.size())*sizeof(double),
-                 color_selected_points.data(), GL_STATIC_DRAW);
-    qFunc.glVertexAttribPointer(3,
-                          3,
-                          GL_DOUBLE,
-                          GL_FALSE,
-                          0,
-                          NULL
-                          );
-    qFunc.glEnableVertexAttribArray(3);
-
-    // Clean-up
-    qFunc.glBindVertexArray(0);
-}
-void Scene_points_with_normal_item::compile_shaders(void)
-{
-    //fill the vertex shader
-    //For the edges
-    static const GLchar* vertex_shader_source_lines[] =
-    {
-        "#version 300 es \n"
-        " \n"
-        "layout (location = 0) in vec3 positions; \n"
-        "layout (location = 1) in vec3 color_lines; \n"
-
-        "uniform mat4 mvp_matrix; \n"
-
-        "out highp vec3 fColors; \n"
-        "vec4 positions_lines = vec4(positions, 1.0); \n"
-        " \n"
-
-        "void main(void) \n"
-        "{ \n"
-        "   fColors = color_lines; \n"
-        "   gl_Position = mvp_matrix * positions_lines; \n"
-        "} \n"
-    };
-    //fill the fragment shader
-    static const GLchar* fragment_shader_source[]=
-    {
-        "#version 300 es \n"
-        " \n"
-        "precision mediump float; \n"
-        "in vec3 fColors; \n"
-
-        "out vec4 color; \n"
-        " \n"
-        "void main(void) \n"
-        "{ \n"
-        " color = vec4(fColors, 1.0); \n"
-        "} \n"
-    };
-    GLuint vertex_shader = qFunc.glCreateShader(GL_VERTEX_SHADER);
-    qFunc.glShaderSource(vertex_shader, 1, vertex_shader_source_lines, NULL);
-    qFunc.glCompileShader(vertex_shader);
-    GLuint fragment_shader =	qFunc.glCreateShader(GL_FRAGMENT_SHADER);
-    qFunc.glShaderSource(fragment_shader, 1, fragment_shader_source, NULL);
-    qFunc.glCompileShader(fragment_shader);
-    //creates the program, attaches and links the shaders
-    GLuint program= qFunc.glCreateProgram();
-    qFunc.glAttachShader(program, vertex_shader);
-    qFunc.glAttachShader(program, fragment_shader);
-    qFunc.glLinkProgram(program);
-    //Clean-up
-    qFunc.glDeleteShader(vertex_shader);
-    rendering_program_lines = program;
-    //For the points
-    static const GLchar* vertex_shader_source_points[] =
-    {
-        "#version 300 es \n"
-        " \n"
-        "layout (location = 2) in vec3 positions; \n"
-        "layout (location = 3) in vec3 color; \n"
-        "uniform mat4 mvp_matrix; \n"
-
-        "out highp vec3 fColors; \n"
-        " \n"
-
-        "void main(void) \n"
-        "{ \n"
-        "   fColors = color; \n"
-        "   gl_Position = mvp_matrix * vec4(positions, 1.0); \n"
-        "} \n"
-    };
-
-    vertex_shader = qFunc.glCreateShader(GL_VERTEX_SHADER);
-    qFunc.glShaderSource(vertex_shader, 1, vertex_shader_source_points, NULL);
-    qFunc.glCompileShader(vertex_shader);
-    qFunc.glShaderSource(fragment_shader, 1, fragment_shader_source, NULL);
-    qFunc.glCompileShader(fragment_shader);
-    program = qFunc.glCreateProgram();
-    qFunc.glAttachShader(program, vertex_shader);
-    qFunc.glAttachShader(program, fragment_shader);
-    qFunc.glLinkProgram(program);
-    //Clean-up
-    qFunc.glDeleteShader(vertex_shader);
-    rendering_program_points = program;
-
-    //For the splats
-    static const GLchar* vertex_shader_source_splats[] =
-    {
-        "#version 300 es \n"
-        " \n"
-        "layout (location = 4) in vec3 positions; \n"
-        "layout (location = 6) in vec3 normals; \n"
-        "layout (location = 5) in vec2 v_texCoord; \n"
-
-        "uniform mat4 mvp_matrix; \n"
-        "uniform mat4 mv_matrix; \n"
-        "uniform int is_two_side; \n"
-        "uniform vec3 light_pos;  \n"
-        "uniform vec3 light_diff; \n"
-        "uniform vec3 light_spec; \n"
-        "uniform vec3 light_amb;  \n"
-        "uniform sampler2D s_texture; \n"
-
-        "vec4 positions_splats = vec4(positions, 1.0); \n"
-        "float spec_power = 128.0; \n"
-
-        "out highp vec3 fColors; \n"
-        " \n"
-        "void main(void) \n"
-        "{ \n"
-        "   vec4 P = mv_matrix * positions_splats; \n"
-        "   vec3 N = mat3(mv_matrix)* normals; \n"
-        "   vec3 L = light_pos - P.xyz; \n"
-        "   N = normalize(N); \n"
-        "   L = normalize(L); \n"
-        "   vec3 diffuse; \n"
-        "   if(is_two_side == 1) \n"
-        "       diffuse = abs(dot(N,L)) * light_diff; \n"
-        "   else \n"
-        "       diffuse = max(dot(N,L), 0.0) * light_diff; \n"
-        "   fColors = vec3(1.0,0.0,0.0); \n" /*vec3(texture(s_texture, v_texCoord)) * (light_amb + diffuse);*/
-        "   gl_Position = mvp_matrix * positions_splats; \n"
-        "} \n"
-    };
-    vertex_shader = qFunc.glCreateShader(GL_VERTEX_SHADER);
-    qFunc.glShaderSource(vertex_shader, 1, vertex_shader_source_splats, NULL);
-    qFunc.glCompileShader(vertex_shader);
-    qFunc.glShaderSource(fragment_shader, 1, fragment_shader_source, NULL);
-    qFunc.glCompileShader(fragment_shader);
-    program = qFunc.glCreateProgram();
-    qFunc.glAttachShader(program, vertex_shader);
-    qFunc.glAttachShader(program, fragment_shader);
-    qFunc.glLinkProgram(program);
-
-    //Clean-up
-    qFunc.glDeleteShader(vertex_shader);
-    qFunc.glDeleteShader(fragment_shader);
-    rendering_program_splats = program;
-
+*/
 
 }
 void Scene_points_with_normal_item::compute_normals_and_vertices(void)
@@ -608,26 +432,15 @@ void Scene_points_with_normal_item::compute_normals_and_vertices(void)
                 normals.push_back(p.normal().z());
                 tex_coords.push_back(p.radius());
                 tex_coords.push_back(0);
-                //::glMultiTexCoord1d(GL_TEXTURE2, p.radius());
+
                 positions_splats.push_back(p.x());
                 positions_splats.push_back(p.y());
                 positions_splats.push_back(p.z());
             }
         }
     }
-    location[0] = qFunc.glGetUniformLocation(rendering_program_lines, "mvp_matrix");
-    location[1] = qFunc.glGetUniformLocation(rendering_program_points, "mvp_matrix");
-
-    location[2] = qFunc.glGetUniformLocation(rendering_program_splats, "mvp_matrix");
-    location[3] = qFunc.glGetUniformLocation(rendering_program_splats, "mv_matrix");
-    location[4] = qFunc.glGetUniformLocation(rendering_program_splats, "light_pos");
-    location[5] = qFunc.glGetUniformLocation(rendering_program_splats, "light_diff");
-    location[6] = qFunc.glGetUniformLocation(rendering_program_splats, "light_spec");
-    location[7] = qFunc.glGetUniformLocation(rendering_program_splats, "light_amb");
-    location[8] = qFunc.glGetUniformLocation(rendering_program_splats, "is_two_side");
-    sampler_location = qFunc.glGetUniformLocation(rendering_program_splats, "s_texture");
-
 }
+/*
 void Scene_points_with_normal_item::uniform_attrib(Viewer_interface* viewer, int mode) const
 {
     GLfloat mvp_mat[16];
@@ -688,7 +501,7 @@ void Scene_points_with_normal_item::uniform_attrib(Viewer_interface* viewer, int
 
 }
 
-
+*/
 // Duplicates scene item
 Scene_points_with_normal_item*
 Scene_points_with_normal_item::clone() const
@@ -820,48 +633,12 @@ bool Scene_points_with_normal_item::supportsRenderingMode(RenderingMode m) const
               ( m==PointsPlusNormals || m==Splatting ) );
 }
 
-// Points OpenGL drawing in a display list
-void Scene_points_with_normal_item::direct_draw() const
-{
-    Q_ASSERT(m_points != NULL);
-
-    // Draw points
-    m_points->gl_draw_vertices();
-}
-
-// Normals OpenGL drawing
-void Scene_points_with_normal_item::draw_normals() const
-{
-    Q_ASSERT(m_points != NULL);
-
-    // Draw normals
-    Kernel::Sphere_3 region_of_interest = m_points->region_of_interest();
-    float normal_length = (float)std::sqrt(region_of_interest.squared_radius() / 1000.);
-
-    m_points->gl_draw_normals(normal_length);
-}
-
-void Scene_points_with_normal_item::draw_splats() const
-{
-    Q_ASSERT(m_points != NULL);
-
-    // Draw splats
-    bool points_have_normals = (m_points->begin() != m_points->end() &&
-            m_points->begin()->normal() != CGAL::NULL_VECTOR);
-    bool points_have_radii =   (m_points->begin() != m_points->end() &&
-            m_points->begin()->radius() != 0);
-    if(points_have_normals && points_have_radii)
-    {
-        m_points->gl_draw_splats();
-    }
-}
-
 void Scene_points_with_normal_item::draw_splats(Viewer_interface* viewer) const
 {
     //Needs to be re-thinked because the GlSplat Renderer is deprecated and is a big part of the scene class.
 
    // TODO add support for selection
-   ::glBegin(GL_POINTS);
+/*   ::glBegin(GL_POINTS);
    for ( Point_set_3<Kernel>::const_iterator it = m_points->begin(); it != m_points->end(); it++)
    {
      const UI_point& p = *it;
@@ -873,37 +650,46 @@ void Scene_points_with_normal_item::draw_splats(Viewer_interface* viewer) const
    ::glEnd();
 
 
-
+*/
 
 }
 
 void Scene_points_with_normal_item::draw_edges(Viewer_interface* viewer) const
 {
-    qFunc.glBindVertexArray(vao[0]);
-    qFunc.glUseProgram(rendering_program_lines);
-    uniform_attrib(viewer,0);
+    if(!are_buffers_filled)
+        initialize_buffers(viewer);
+    vaos[0]->bind();
+    program=getShaderProgram(PROGRAM_WITHOUT_LIGHT);
+    attrib_buffers(viewer,PROGRAM_WITHOUT_LIGHT);
+    program->bind();
     qFunc.glDrawArrays(GL_LINES, 0, positions_lines.size()/3);
-    qFunc.glUseProgram(0);
-    qFunc.glBindVertexArray(0);
+    vaos[0]->release();
+    program->release();
 }
 void Scene_points_with_normal_item::draw_points(Viewer_interface* viewer) const
 {
-    qFunc.glBindVertexArray(vao[0]);
-    qFunc.glUseProgram(rendering_program_points);
-    uniform_attrib(viewer,1);
+    if(!are_buffers_filled)
+        initialize_buffers(viewer);
+
+    vaos[1]->bind();
+    program=getShaderProgram(PROGRAM_WITHOUT_LIGHT);
+    attrib_buffers(viewer,PROGRAM_WITHOUT_LIGHT);
+    program->bind();
     qFunc.glDrawArrays(GL_POINTS, 0, positions_points.size()/3);
-    qFunc.glUseProgram(0);
-    qFunc.glBindVertexArray(0);
+    vaos[1]->release();
+    program->release();
 
     GLfloat point_size;
     qFunc.glGetFloatv(GL_POINT_SIZE, &point_size);
     qFunc.glPointSize(4.f);
-    qFunc.glBindVertexArray(vao[1]);
-    qFunc.glUseProgram(rendering_program_points);
-    uniform_attrib(viewer,1);
+
+    vaos[2]->bind();
+    program=getShaderProgram(PROGRAM_WITHOUT_LIGHT);
+    attrib_buffers(viewer,PROGRAM_WITHOUT_LIGHT);
+    program->bind();
     qFunc.glDrawArrays(GL_POINTS, 0, positions_selected_points.size()/3);
-    qFunc.glUseProgram(0);
-    qFunc.glBindVertexArray(0);
+    vaos[2]->release();
+    program->release();
     qFunc.glPointSize(point_size);
 }
 // Gets wrapped point set
@@ -1003,7 +789,7 @@ QMenu* Scene_points_with_normal_item::contextMenu()
 
 void Scene_points_with_normal_item::setRenderingMode(RenderingMode m)
 {
-    Scene_item_with_display_list::setRenderingMode(m);
+    Scene_item::setRenderingMode(m);
     if (rendering_mode==Splatting && (!m_points->are_radii_uptodate()))
     {
         computes_local_spacing(6); // default value = small
@@ -1025,7 +811,7 @@ void Scene_points_with_normal_item::changed()
 {
 
     compute_normals_and_vertices();
-    initialize_buffers();
+    are_buffers_filled = false;
 }
 void Scene_points_with_normal_item::selection_changed(bool p_is_selected)
 {

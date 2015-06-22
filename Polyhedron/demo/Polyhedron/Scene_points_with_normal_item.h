@@ -1,11 +1,10 @@
 #ifndef POINT_SET_ITEM_H
 #define POINT_SET_ITEM_H
-
+#include "Scene_item.h"
 #include "Scene_points_with_normal_item_config.h"
 #include "Polyhedron_type_fwd.h"
 #include "Kernel_type.h"
 #include "Point_set_3.h"
-#include "Scene_item_with_display_list.h"
 
 #include <iostream>
 
@@ -19,7 +18,7 @@ class QAction;
 
 // This class represents a point set in the OpenGL scene
 class SCENE_POINTS_WITH_NORMAL_ITEM_EXPORT Scene_points_with_normal_item
-  : public Scene_item_with_display_list
+  : public Scene_item
 {
   Q_OBJECT
 
@@ -50,16 +49,10 @@ public:
 
   // Indicate if rendering mode is supported
   virtual bool supportsRenderingMode(RenderingMode m) const;
-  // Points OpenGL drawing in a display list
-  virtual void direct_draw() const;
+
   virtual void draw_edges(Viewer_interface* viewer) const;
   virtual void draw_points(Viewer_interface*) const;
-  // Normals OpenGL drawing
-  void draw_normals() const;
-  virtual void draw_edges() const { draw_normals(); }//to tweak scene
 
-  // Splat OpenGL drawing
-  virtual void draw_splats() const;
   virtual void draw_splats(Viewer_interface*) const;
   
   // Gets wrapped point set
@@ -108,19 +101,14 @@ private:
 
   mutable int texture[3];
 
-  mutable GLuint rendering_program_lines;
-  mutable GLuint rendering_program_points;
-  mutable GLuint rendering_program_splats;
-  mutable GLint location[9];
+  mutable QOpenGLShaderProgram *program;
   mutable GLuint textureId;
   mutable GLint sampler_location;
 
-  mutable GLuint vao[2];
-  mutable GLuint buffer[9];
-  void initialize_buffers();
-  void compile_shaders(void);
+  void initialize_buffers(Viewer_interface *viewer) const;
+
   void compute_normals_and_vertices(void);
-  void uniform_attrib(Viewer_interface*, int) const;
+
 
 }; // end class Scene_points_with_normal_item
 

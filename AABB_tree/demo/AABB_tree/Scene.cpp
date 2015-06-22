@@ -58,6 +58,7 @@ Scene::~Scene()
         buffers[i].destroy();
     for(int i=0; i<vao_size; i++)
         vao[i].destroy();
+
 }
 
 void Scene::compile_shaders()

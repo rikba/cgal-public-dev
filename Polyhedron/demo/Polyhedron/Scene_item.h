@@ -5,7 +5,24 @@
 #include <QString>
 #include <QPixmap>
 #include <QFont>
+<<<<<<< HEAD
 #include <QOpenGLFunctions>
+=======
+#include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLBuffer>
+#include <QOpenGLShader>
+#include <QOpenGLVertexArrayObject>
+#include <vector>
+#include <QMap>
+#define PROGRAM_WITH_LIGHT 0
+#define PROGRAM_WITHOUT_LIGHT 1
+#define PROGRAM_WITH_TEXTURE 2
+#define PROGRAM_WITH_TEXTURED_EDGES 3
+#define PROGRAM_INSTANCED 4
+#define PROGRAM_INSTANCED_WIRE 5
+
+
+>>>>>>> CGAL-Qt5_support-GF
 namespace qglviewer {
   class ManipulatedFrame;
 }
@@ -33,15 +50,53 @@ public:
       color_(defaultColor),
       visible_(true),
       rendering_mode(FlatPlusEdges),
-      defaultContextMenu(0)
-  {}
+      defaultContextMenu(0),
+      buffersSize(20),
+      vaosSize(10),
+      are_buffers_filled(false)
+  {
+
+      for(int i=0; i<vaosSize; i++)
+      {
+       vaos[i]->create();
+      }
+
+      for(int i=0; i<buffersSize; i++)
+      {
+       buffers[i].create();
+      }
+  }
+  Scene_item(int buffers_size, int vaos_size)
+    : name_("unamed"),
+      color_(defaultColor),
+      visible_(true),
+      rendering_mode(FlatPlusEdges),
+      defaultContextMenu(0),
+      buffersSize(buffers_size),
+      vaosSize(vaos_size),
+      are_buffers_filled(false)
+  {
+      nbVaos = 0;
+      for(int i=0; i<vaosSize; i++)
+      {
+          addVaos(i);
+          vaos[i]->create();
+      }
+
+      for(int i=0; i<buffersSize; i++)
+      {
+          QOpenGLBuffer n_buf;
+          buffers.push_back(n_buf);
+          buffers[i].create();
+      }
+  }
   virtual ~Scene_item();
   virtual Scene_item* clone() const = 0;
 
   // Indicate if rendering mode is supported
   virtual bool supportsRenderingMode(RenderingMode m) const = 0;
   // Flat/Gouraud OpenGL drawing
-  virtual void draw() const = 0;
+  virtual void draw() const {}
   virtual void draw(Viewer_interface*) const  { draw(); }
   // Wireframe OpenGL drawing
   virtual void draw_edges() const { draw(); }
@@ -149,13 +204,40 @@ protected:
   QColor color_;
   bool visible_;
   bool is_selected;
+  mutable bool are_buffers_filled;
   RenderingMode rendering_mode;
   QMenu* defaultContextMenu;
 
   int prev_shading;
   int cur_shading;
 
+
   mutable QOpenGLFunctions qFunc;
+  int buffersSize;
+  int vaosSize;
+  mutable std::vector<QOpenGLBuffer> buffers;
+  //not allowed to use vectors of VAO for some reason
+  //mutable QOpenGLVertexArrayObject vaos[10];
+  QMap<int,QOpenGLVertexArrayObject*> vaos;
+  int nbVaos;
+  void addVaos(int i)
+  {
+      QOpenGLVertexArrayObject* n_vao = new QOpenGLVertexArrayObject();
+      vaos[i] = n_vao;
+      nbVaos ++;
+  }
+
+
+  mutable QMap<int, QOpenGLShaderProgram*> shader_programs;
+  QOpenGLShaderProgram* getShaderProgram(int , Viewer_interface *viewer = 0) const;
+
+  int vertexLoc;
+  int normalLoc;
+  int colorLoc;
+
+  virtual void initialize_buffers(){}
+  virtual void compute_elements(){}
+  virtual void attrib_buffers(Viewer_interface*, int program_name) const;
 
 }; // end class Scene_item
 

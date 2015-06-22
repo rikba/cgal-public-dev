@@ -75,7 +75,7 @@ if(CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FO
     include(/home/mgimeno/Android/qt-android-cmake/AddQtAndroidApk.cmake)
     add_qt_android_apk(
                         AABB_demo_apk AABB_demo
-                        NAME "AABB from CMake"
+                        NAME "AABB demo"
                         DEPENDS
                         /home/mgimeno/Android/Android-build/lib/libgmp.so
                         /home/mgimeno/Téléchargements/android-ndk-r10d/platforms/android-16/arch-arm/usr/lib/libGLESv2.so

@@ -1,15 +1,14 @@
 #ifndef SCENE_NEF_POLYHEDRON_ITEM_H
 #define SCENE_NEF_POLYHEDRON_ITEM_H
-
+#include "Scene_item.h"
 #include "Scene_nef_polyhedron_item_config.h"
-#include "Scene_item_with_display_list.h"
 #include "Nef_type_fwd.h"
 #include <iostream>
 #include <queue>
 class Scene_polyhedron_item;
 
 class SCENE_NEF_POLYHEDRON_ITEM_EXPORT Scene_nef_polyhedron_item
- : public Scene_item_with_display_list 
+ : public Scene_item
 {
   Q_OBJECT
 public:
@@ -84,17 +83,10 @@ private:
   std::vector<double> color_facets;
   std::vector<double> color_points;
 
-  GLuint rendering_program_facets;
-  GLuint rendering_program_lines;
-  GLuint rendering_program_points;
-  GLint location[9];
+  mutable QOpenGLShaderProgram *program;
 
-  GLuint vao[1];
-  GLuint buffer[7];
-  void initialize_buffers();
-  void compile_shaders(void);
+  void initialize_buffers(Viewer_interface *viewer) const;
   void compute_normals_and_vertices(void);
-  void uniform_attrib(Viewer_interface*, int) const;
 
   void triangulate_facet();
   void triangulate_facet_color();
