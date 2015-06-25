@@ -59,11 +59,12 @@ if( POLYHEDRON_QTSCRIPT_DEBUGGER)
 endif()
 find_package(CGAL REQUIRED COMPONENTS Qt5)
 include( ${CGAL_USE_FILE} )
-find_package(Qt5 COMPONENTS OpenGL Script Xml ScriptTools)
+find_package(Qt5 COMPONENTS OpenGL Script Xml Svg ScriptTools)
 
 # Find Glew (required)
 if(NOT ANDROID)
-  find_package(GLEW)
+  #find_package(GLEW)
+set(GLEW_FOUND FALSE)
 else()
   set(GLEW_FOUND FALSE)
 endif()
@@ -159,7 +160,7 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
     Scene_item.cpp #Scene_item.moc
     #Scene_item_with_display_list.cpp
     Polyhedron_demo_plugin_helper.cpp)
-    qt5_use_modules(demo_framework OpenGL Gui Widgets Script Xml)
+    qt5_use_modules(demo_framework OpenGL Gui Widgets Script Xml Svg)
 
   target_link_libraries(demo_framework
     ${QGLVIEWER_LIBRARIES}
@@ -180,14 +181,14 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
     ${OPENGL_gl_LIBRARY}
    # ${OPENGL_glu_LIBRARY}
     )
-  qt5_use_modules(scene_basic_objects OpenGL Gui Xml Script Widgets)
+  qt5_use_modules(scene_basic_objects OpenGL Gui Xml Svg Script Widgets)
   add_library(point_dialog SHARED Show_point_dialog.cpp Show_point_dialog.ui ${Show_point_dialogUI_FILES})
-  qt5_use_modules(point_dialog OpenGL Gui Xml Script Widgets)
+  qt5_use_modules(point_dialog OpenGL Gui Xml Svg Script Widgets)
   target_link_libraries(point_dialog ${QT_LIBRARIES})
 
   macro(add_item item_name)
     add_library(${item_name} SHARED ${ARGN})
-    qt5_use_modules(${item_name} OpenGL Gui Xml Script Widgets)
+    qt5_use_modules(${item_name} OpenGL Gui Xml Svg Script Widgets)
     target_link_libraries(${item_name} demo_framework ${QT_LIBRARIES} ${CGAL_LIBRARIES} ${Boost_LIBRARIES})
   endmacro(add_item)
 
@@ -201,7 +202,7 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
     qt5_add_resources(gl_splat_rc GlSplat/glsplat.qrc)
     add_library(gl_splat SHARED
       GlSplat/GlSplat.cpp GlSplat/Shader.cpp ${gl_splat_rc})
-    qt5_use_modules(gl_splat OpenGL Widgets Gui Xml)
+    qt5_use_modules(gl_splat OpenGL Widgets Gui Xml Svg)
     target_link_libraries(gl_splat ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTOPENGL_LIBRARY} ${GLEW_LIBRARIES})
   endif(GLEW_FOUND)
   
@@ -253,6 +254,7 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
     add_definitions(${CGAL_POLYHEDRON_DEMO_DEFINITIONS})
 if(ANDROID)
     add_library  ( Polyhedron_3
+      SHARED
       MainWindow.cpp
       Polyhedron_3.cpp
       Viewer.cpp
@@ -273,7 +275,7 @@ else()
       ${FileLoaderDialogUI_files} ${MainWindowUI_files} ${PreferencesUI_FILES} ${RESOURCE_FILES} )
 endif()
     add_to_cached_list( CGAL_EXECUTABLE_TARGETS Polyhedron_3 )
-    qt5_use_modules(Polyhedron_3 Gui OpenGL Xml Widgets Script )
+    qt5_use_modules(Polyhedron_3 Gui OpenGL Xml Svg Widgets Script )
     if(EIGEN3_FOUND)
 #      add_executable( Polyhedron_3 Scene_tex_rendering.cpp Scene_tex_polyhedron_operations.cpp )
     endif()
@@ -525,6 +527,61 @@ endif()
                         /home/mgimeno/Android/Android-build/lib/libgmp.so
                         /home/mgimeno/Téléchargements/android-ndk-r10d/platforms/android-16/arch-arm/usr/lib/libGLESv2.so
                         /home/mgimeno/Android/libQGLViewer_Clone/libQGLViewer/build-for-android/libQGLViewer.so
+                        libdemo_framework.so
+                        libscene_polyhedron_item.so
+                        libscene_polygon_soup_item.so
+                        libscene_points_with_normal_item.so
+                        libscene_implicit_function_item.so
+                        libscene_polylines_item.so
+                        libpoint_dialog.so
+                        libscene_c2t3_item.so
+                        libscene_nef_polyhedron_item.so
+
+
+#libscene_polyhedron_selection_item.so
+#libscene_nef_polyhedron_item.so
+#libscene_basic_objects.so
+#libscene_combinatorial_map_item.so
+#libscene_polyhedron_transform_item.so
+#libscene_polyhedron_item_k_ring_selection.so
+#libscene_polyhedron_item_decorator.so
+#
+#libremeshing_plugin.so
+#libcamera_positions_plugin.so
+#libinside_out_plugin.so
+liboff_plugin.so
+#libnef_io_plugin.so
+#libpolylines_io_plugin.so
+#libio_implicit_function_plugin.so
+#libgocad_plugin.so
+#libstl_plugin.so
+#libxyz_plugin.so
+#libselection_io_plugin.so
+#liborient_soup_plugin.so
+#libtriangulate_facets_plugin.so
+#liboff_to_nef_plugin.so
+#liboff_to_xyz_plugin.so
+#libconvex_hull_plugin.so
+#libkernel_plugin.so
+#libpca_plugin.so
+#libself_intersection_plugin.so
+#libpolyhedron_stitching_plugin.so
+#libjoin_and_split_polyhedra_plugin.so
+#libsubdivision_methods_plugin.so
+#libmesh_simplification_plugin.so
+#libpolyhedron_slicer_plugin.so
+#libmesh_segmentation_plugin.so
+#libnef_plugin.so
+#libintersection_plugin.so
+#libtransform_polyhedron_plugin.so
+#libcorefinement_plugin.so
+#libtrivial_plugin.so
+#libcut_plugin.so
+#libpoint_inside_polyhedron_plugin.so
+#libpoint_set_simplification_plugin.so
+#libpoint_set_outliers_removal_plugin.so
+#libselection_plugin.so
+
                         INSTALL)
 endif()
 

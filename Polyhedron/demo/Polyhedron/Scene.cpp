@@ -20,6 +20,7 @@
 #include <QPointer>
 #include <QList>
 #include <QAbstractProxyModel>
+#include <QDebug>
 
 
 namespace {
@@ -326,13 +327,14 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
                 //else
              //       ::glShadeModel(GL_FLAT);
 
-                item.contextual_changed();
+
                 if(CGAL::check_gl_error(__FILE__, __LINE__)) {
                     std::cerr << "GL error was before the drawing of the item \""
                               << qPrintable(item.name()) << "\"\n"
                               << "  with_name = " << std::boolalpha << with_names
                               << std::endl;
                 }
+                item.contextual_changed();
                 if(viewer)
                     item.draw(viewer);
                 else
@@ -376,8 +378,7 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
                       item.selection_changed(false);
                 }
 
-
-
+                item.contextual_changed();
                 if(viewer)
                     item.draw_edges(viewer);
                 else
@@ -401,6 +402,7 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
                         item.selection_changed(false);
                         CGALglcolor(item.color());
                     }
+                    item.contextual_changed();
                     if(viewer)
                         item.draw_edges(viewer);
                     else
@@ -408,7 +410,6 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
                 }
             }
         }
-         item.contextual_changed();
         if(with_names) {
            // ::glPopName();
         }
@@ -430,14 +431,13 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
              //   ::glPointSize(2.f);
                 ::glLineWidth(1.0f);
                 CGALglcolor(item.color());
-
+                item.contextual_changed();
                 if(viewer)
                     item.draw_points(viewer);
                 else
                     item.draw_points();
             }
         }
-         item.contextual_changed();
         if(with_names) {
         //    ::glPopName();
         }

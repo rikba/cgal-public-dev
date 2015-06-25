@@ -76,7 +76,7 @@ public:
     return (m != Gouraud && m!=PointsPlusNormals && m!=Splatting); // CHECK THIS!
   }
 
-  void draw() const {
+/*  void draw() const {
     ::glBegin(GL_TRIANGLES);
     for(C2t3::Facet_iterator
           fit = c2t3().facets_begin(),
@@ -109,7 +109,7 @@ private:
     ::glVertex3d(pb.x(),pb.y(),pb.z());
     ::glVertex3d(pc.x(),pc.y(),pc.z());
   }
-
+*/
 private:
   C2t3 c2t3_;
 };

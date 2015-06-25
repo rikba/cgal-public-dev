@@ -3,7 +3,7 @@
 #include <map>
 #include <CGAL/gl.h>
 #include <CGAL/Simple_cartesian.h>
-#include <QGLViewer/manipulatedFrame.h>
+#include <manipulatedFrame.h>
 
 #include "Color_ramp.h"
 #include <Viewer_interface.h>
@@ -386,6 +386,7 @@ Scene_implicit_function_item::bbox() const
 void
 Scene_implicit_function_item::draw(Viewer_interface* viewer) const
 {
+    Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
 
@@ -420,6 +421,7 @@ Scene_implicit_function_item::draw(Viewer_interface* viewer) const
 void
 Scene_implicit_function_item::draw_edges(Viewer_interface* viewer) const
 {
+    Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
     //  draw_aux(viewer, true);

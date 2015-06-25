@@ -122,6 +122,7 @@ private:
     }
     void draw_edges(Viewer_interface* viewer) const
     {
+        Scene_item::draw();
         if(!are_buffers_filled)
             initialize_buffers(viewer);
         vaos[0]->bind();
@@ -241,6 +242,7 @@ private:
     }
     void draw_edges(Viewer_interface* viewer) const
     {
+        Scene_item::draw();
         if(!are_buffers_filled)
             initialize_buffers(viewer);
         vaos[0]->bind();

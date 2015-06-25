@@ -207,7 +207,7 @@ public:
 
   // Draw points using OpenGL calls.
   // Preconditions: OpenGL point size and color must be set.
-  void gl_draw_vertices() const
+  /*void gl_draw_vertices() const
   {
     // Draw *non-selected* points
     if (m_nb_selected_points < size())
@@ -237,10 +237,10 @@ public:
       ::glEnd();
     }
   }
-
+*/
   // Draw normals using OpenGL calls.
   // Preconditions: OpenGL line width and color must be set.
-  void gl_draw_normals(float scale = 1.0) const // scale applied to normal length
+  /*void gl_draw_normals(float scale = 1.0) const // scale applied to normal length
   {
     // Draw normals of *non-selected* points
     if (m_nb_selected_points < size())
@@ -280,10 +280,10 @@ public:
       ::glEnd();
     }
   }
-
+*/
   // Draw oriented points with radius using OpenGL calls.
   // Preconditions: must be used inbetween calls to GlSplat library
-  void gl_draw_splats() const
+  /*void gl_draw_splats() const
   {
     // TODO add support for selection
     ::glBegin(GL_POINTS);
@@ -298,7 +298,7 @@ public:
     }
     ::glEnd();
   }
-  
+*/
   bool are_radii_uptodate() const { return m_radii_are_uptodate; }
   void set_radii_uptodate(bool /*on*/) { m_radii_are_uptodate = false; }
 

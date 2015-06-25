@@ -7,8 +7,8 @@
 
 #include "Scene_basic_objects_config.h"
 
-#include <QGLViewer/manipulatedFrame.h>
-#include <QGLViewer/qglviewer.h>
+#include <manipulatedFrame.h>
+#include <qglviewer.h>
 #include <Viewer_interface.h>
 
 #include <cmath>

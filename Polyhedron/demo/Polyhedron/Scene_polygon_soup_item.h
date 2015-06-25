@@ -144,6 +144,7 @@ public:
     virtual void draw_points(Viewer_interface*) const;
     virtual void draw_edges(Viewer_interface* viewer) const;
     void changed();
+    void contextual_changed();
     bool isFinite() const { return true; }
     bool isEmpty() const;
     Bbox bbox() const;

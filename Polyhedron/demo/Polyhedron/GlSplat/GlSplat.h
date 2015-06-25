@@ -24,6 +24,7 @@
 #include <QString>
 #include <map>
 
+
 class QGLFramebufferObject;
 class QGLWidget;
 
@@ -68,18 +69,18 @@ class GLSPLAT_EXPORT SplatRenderer
 
   int mCurrentPass;
   int mBindedPass;
-  //GLuint mDummyTexId; // on ATI graphics card we need to bind a texture to get point sprite working !
+  GLuint mDummyTexId; // on ATI graphics card we need to bind a texture to get point sprite working !
   bool mWorkaroundATI;
   bool mBuggedAtiBlending;
   bool mIsInitialized;
-  //GLuint mNormalTextureID;
-  //GLuint mDepthTextureID;
+  GLuint mNormalTextureID;
+  GLuint mDepthTextureID;
   Shader mShaders[3];
   QString mShaderSrcs[6];
   QGLFramebufferObject* mRenderBuffer;
   float mCachedMV[16];    // modelview matrix
   float mCachedProj[16];  // projection matrix
-  //GLint mCachedVP[4];     // viewport
+  GLint mCachedVP[4];     // viewport
 
   struct UniformParameters
   {

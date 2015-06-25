@@ -190,10 +190,10 @@ MainWindow::MainWindow(QWidget* parent)
           this, SLOT(updateDisplayInfo()));
 
   connect(scene, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex & )),
-          viewer, SLOT(updateGL()));
+          viewer, SLOT(update()));
 
   connect(scene, SIGNAL(updated()),
-          viewer, SLOT(updateGL()));
+          viewer, SLOT(update()));
 
   connect(scene, SIGNAL(updated()),
           this, SLOT(selectionChanged()));
@@ -995,7 +995,7 @@ void MainWindow::selectionChanged()
     connect(viewer->manipulatedFrame(), SIGNAL(modified()),
             this, SLOT(updateInfo()));
   }
- // viewer->updateGL();
+  viewer->update();
 }
 
 void MainWindow::contextMenuRequested(const QPoint& global_pos) {

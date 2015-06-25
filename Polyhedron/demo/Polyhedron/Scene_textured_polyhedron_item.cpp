@@ -283,7 +283,7 @@ Scene_textured_polyhedron_item::toolTip() const
 
 // Points/Wireframe/Flat/Gouraud OpenGL drawing in a display list
 void Scene_textured_polyhedron_item::draw(Viewer_interface* viewer) const {
-
+Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
 
@@ -299,6 +299,7 @@ void Scene_textured_polyhedron_item::draw(Viewer_interface* viewer) const {
     vaos[0]->release();
 }
 void Scene_textured_polyhedron_item::draw_edges(Viewer_interface* viewer) const {
+    Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
 

@@ -67,14 +67,14 @@ bool Viewer::antiAliasing() const
 void Viewer::setAntiAliasing(bool b)
 {
   d->antialiasing = b;
-  ////updateGL();
+  update();
 
 }
 
 void Viewer::setTwoSides(bool b)
 {
   d->twosides = b;
- // //updateGL();
+ update();
 }
 
 bool Viewer::inFastDrawing() const {
@@ -104,7 +104,7 @@ void Viewer::fastDraw()
 void Viewer::initializeGL()
 {
   QGLViewer::initializeGL();
-  gl.initializeOpenGLFunctions();
+  //gl.initializeOpenGLFunctions();
   setBackgroundColor(::Qt::white);
   d->scene->initializeGL();
 
@@ -173,45 +173,46 @@ void Viewer::turnCameraBy180Degres() {
 
 void Viewer_impl::draw_aux(bool with_names, Viewer* viewer)
 {
-/*  if(scene == 0)
+  if(scene == 0)
     return;
 
-  ::glLineWidth(1.0f);
-  //::glPointSize(2.f);
-  ::glEnable(GL_POLYGON_OFFSET_FILL);
-  ::glPolygonOffset(1.0f,1.0f);
-  ::glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-
-  ::glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-
+  //::glLineWidth(1.0f);
+  ////::glPointSize(2.f);
+  //::glEnable(GL_POLYGON_OFFSET_FILL);
+  //::glPolygonOffset(1.0f,1.0f);
+  //::glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+  //
+  //::glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
+/*
   if(twosides)
     ::glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
   else
     ::glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
-
-  if(antialiasing)
+*/
+ if(antialiasing)
   {
-    ::glEnable(GL_BLEND);
-    ::glEnable(GL_LINE_SMOOTH);
-    ::glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //::glEnable(GL_BLEND);
+    //::glEnable(GL_LINE_SMOOTH);
+    //::glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    //::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
   else
   {
-    ::glDisable(GL_BLEND);
-    ::glDisable(GL_LINE_SMOOTH);
-    ::glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
-    ::glBlendFunc(GL_ONE, GL_ZERO);
+    //::glDisable(GL_BLEND);
+    //::glDisable(GL_LINE_SMOOTH);
+    //::glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
+    //::glBlendFunc(GL_ONE, GL_ZERO);
   }
   if(with_names)
     scene->drawWithNames(viewer);
   else
     scene->draw(viewer);
-  CGAL::check_gl_error(__FILE__, __LINE__);*/
+  CGAL::check_gl_error(__FILE__, __LINE__);
 }
 
 void Viewer::drawWithNames()
 {
+    qDebug()<<"withName";
   QGLViewer::draw();
   d->draw_aux(true, this);
 }

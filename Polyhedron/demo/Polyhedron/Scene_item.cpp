@@ -14,7 +14,7 @@ Scene_item::~Scene_item() {
     }
     for(int i=0; i<vaosSize; i++)
     {
-     vaos[i]->destroy();
+     //vaos[i]->destroy();
     }
 }
 
@@ -125,7 +125,7 @@ void Scene_item::select(double /*orig_x*/,
 // set-up the uniform attributes of the shader programs.
 void Scene_item::attrib_buffers(Viewer_interface* viewer, int program_name) const
 {
-    GLint is_both_sides = 0;
+    GLint is_both_sides = 1;
     QMatrix4x4 mvp_mat;
     QMatrix4x4 mv_mat;
     QMatrix4x4 f_mat;
@@ -141,7 +141,7 @@ void Scene_item::attrib_buffers(Viewer_interface* viewer, int program_name) cons
     for (int i=0; i<16; ++i)
         mv_mat.data()[i] = GLfloat(d_mat[i]);
 
-    qFunc.glGetIntegerv(GL_LIGHT_MODEL_TWO_SIDE, &is_both_sides);
+    //qFunc.glGetIntegerv(GL_LIGHT_MODEL_TWO_SIDE, &is_both_sides);
 
     QVector4D position(0.0f,0.0f,1.0f, 1.0f );
     QVector4D ambient(0.4f, 0.4f, 0.4f, 0.4f);

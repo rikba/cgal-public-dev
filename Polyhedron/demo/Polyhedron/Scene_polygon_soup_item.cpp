@@ -514,6 +514,7 @@ Scene_polygon_soup_item::toolTip() const
 
 void
 Scene_polygon_soup_item::draw(Viewer_interface* viewer) const {
+    Scene_item::draw();
     if(!are_buffers_filled)
     {
      initialize_buffers(viewer);
@@ -561,6 +562,7 @@ Scene_polygon_soup_item::draw_points(Viewer_interface* viewer) const {
 
 void
 Scene_polygon_soup_item::draw_edges(Viewer_interface* viewer) const {
+   Scene_item::draw();
     if(!are_buffers_filled)
     {
      initialize_buffers(viewer);
@@ -592,7 +594,19 @@ Scene_polygon_soup_item::changed()
     compute_normals_and_vertices();
     are_buffers_filled = false;
 }
+void
+Scene_polygon_soup_item::
+contextual_changed()
+{
+    prev_shading = cur_shading;
+    cur_shading = renderingMode();//new_shading;
+    if(prev_shading != cur_shading)
+       {
+            //Change the normals
+            changed();
+       }
 
+}
 Scene_polygon_soup_item::Bbox
 Scene_polygon_soup_item::bbox() const {
 

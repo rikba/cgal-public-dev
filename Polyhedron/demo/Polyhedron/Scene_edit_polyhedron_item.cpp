@@ -35,11 +35,11 @@ Scene_edit_polyhedron_item::Scene_edit_polyhedron_item
       pos_sphere(0),
       normals_sphere(0),
       k_ring_selector(poly_item, mw, Scene_polyhedron_item_k_ring_selection::Active_handle::VERTEX, true),
-      Scene_item(20,8),
-      quadric(gluNewQuadric())
+      Scene_item(20,8)
+      //quadric(gluNewQuadric())
 {
     mw->installEventFilter(this);
-    gluQuadricNormals(quadric, GLU_SMOOTH);
+   // gluQuadricNormals(quadric, GLU_SMOOTH);
     // bind vertex picking
     connect(&k_ring_selector, SIGNAL(selected(const std::set<Polyhedron::Vertex_handle>&)), this,
             SLOT(selected(const std::set<Polyhedron::Vertex_handle>&)));
@@ -137,7 +137,7 @@ Scene_edit_polyhedron_item::~Scene_edit_polyhedron_item()
     {
         delete_ctrl_vertices_group(false);
     }
-    gluDeleteQuadric(quadric);
+ //   gluDeleteQuadric(quadric);
     if (own_poly_item) delete poly_item;
 
 }
@@ -152,15 +152,15 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
 
         vaos[0]->bind();
         buffers[0].bind();
-        buffers[0].allocate(positions.data(), positions.size()*sizeof(double));
+        buffers[0].allocate(positions.data(), positions.size()*sizeof(float));
         program->enableAttributeArray("vertex");
-        program->setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[0].release();
 
         buffers[1].bind();
-        buffers[1].allocate(normals.data(), normals.size()*sizeof(double));
+        buffers[1].allocate(normals.data(), normals.size()*sizeof(float));
         program->enableAttributeArray("normals");
-        program->setAttributeBuffer("normals",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("normals",GL_FLOAT,0,3);
         buffers[1].release();
         vaos[0]->release();
         program->release();
@@ -170,15 +170,15 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
         program->bind();
         vaos[1]->bind();
         buffers[2].bind();
-        buffers[2].allocate(ROI_points.data(), ROI_points.size()*sizeof(double));
+        buffers[2].allocate(ROI_points.data(), ROI_points.size()*sizeof(float));
         program->enableAttributeArray("vertex");
-        program->setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[2].release();
 
         buffers[3].bind();
-        buffers[3].allocate(ROI_color.data(), ROI_color.size()*sizeof(double));
+        buffers[3].allocate(ROI_color.data(), ROI_color.size()*sizeof(float));
         program->enableAttributeArray("colors");
-        program->setAttributeBuffer("colors",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[3].release();
         vaos[1]->release();
         program->release();
@@ -191,15 +191,15 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
         program->bind();
         vaos[2]->bind();
         buffers[4].bind();
-        buffers[4].allocate(positions.data(), positions.size()*sizeof(double));
+        buffers[4].allocate(positions.data(), positions.size()*sizeof(float));
         program->enableAttributeArray("vertex");
-        program->setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[4].release();
 
         buffers[5].bind();
-        buffers[5].allocate(color_edges.data(), color_edges.size()*sizeof(double));
+        buffers[5].allocate(color_edges.data(), color_edges.size()*sizeof(float));
         program->enableAttributeArray("colors");
-        program->setAttributeBuffer("colors",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[5].release();
         vaos[2]->release();
         program->release();
@@ -210,31 +210,31 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
         program->bind();
         vaos[3]->bind();
         buffers[6].bind();
-        buffers[6].allocate(pos_sphere.data(), pos_sphere.size()*sizeof(double));
+        buffers[6].allocate(pos_sphere.data(), pos_sphere.size()*sizeof(float));
         program->enableAttributeArray("vertex");
-        program->setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[6].release();
 
         buffers[7].bind();
-        buffers[7].allocate(normals_sphere.data(), normals_sphere.size()*sizeof(double));
+        buffers[7].allocate(normals_sphere.data(), normals_sphere.size()*sizeof(float));
         program->enableAttributeArray("normals");
-        program->setAttributeBuffer("normals",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("normals",GL_FLOAT,0,3);
         buffers[7].release();
 
         buffers[8].bind();
-        buffers[8].allocate(color_sphere_ROI.data(), color_sphere_ROI.size()*sizeof(double));
+        buffers[8].allocate(color_sphere_ROI.data(), color_sphere_ROI.size()*sizeof(float));
         program->enableAttributeArray("colors");
-        program->setAttributeBuffer("colors",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[8].release();
 
         buffers[9].bind();
-        buffers[9].allocate(centers_ROI.data(), centers_ROI.size()*sizeof(double));
+        buffers[9].allocate(centers_ROI.data(), centers_ROI.size()*sizeof(float));
         program->enableAttributeArray("center");
-        program->setAttributeBuffer("center",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("center",GL_FLOAT,0,3);
         buffers[9].release();
 
-        qFunc.glVertexAttribDivisor(program->attributeLocation("center"), 1);
-        qFunc.glVertexAttribDivisor(program->attributeLocation("colors"), 1);
+      //  qFunc.glVertexAttribDivisor(program->attributeLocation("center"), 1);
+      //  qFunc.glVertexAttribDivisor(program->attributeLocation("colors"), 1);
         vaos[3]->release();
     }
     //vao for the BBOX
@@ -242,15 +242,15 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
         bbox_program.bind();
         vaos[4]->bind();
         buffers[10].bind();
-        buffers[10].allocate(pos_bbox.data(), pos_bbox.size()*sizeof(double));
+        buffers[10].allocate(pos_bbox.data(), pos_bbox.size()*sizeof(float));
         bbox_program.enableAttributeArray("vertex");
-        bbox_program.setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        bbox_program.setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[10].release();
 
         buffers[11].bind();
-        buffers[11].allocate(color_bbox.data(), color_bbox.size()*sizeof(double));
+        buffers[11].allocate(color_bbox.data(), color_bbox.size()*sizeof(float));
         bbox_program.enableAttributeArray("colors");
-        bbox_program.setAttributeBuffer("colors",GL_DOUBLE,0,3);
+        bbox_program.setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[11].release();
         vaos[4]->release();
         bbox_program.release();
@@ -261,15 +261,15 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
         program->bind();
         vaos[5]->bind();
         buffers[12].bind();
-        buffers[12].allocate(control_points.data(), control_points.size()*sizeof(double));
+        buffers[12].allocate(control_points.data(), control_points.size()*sizeof(float));
         program->enableAttributeArray("vertex");
-        program->setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[12].release();
 
         buffers[13].bind();
-        buffers[13].allocate(control_color.data(), control_color.size()*sizeof(double));
+        buffers[13].allocate(control_color.data(), control_color.size()*sizeof(float));
         program->enableAttributeArray("colors");
-        program->setAttributeBuffer("colors",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[13].release();
         vaos[5]->release();
         program->release();
@@ -280,31 +280,31 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
         program->bind();
         vaos[6]->bind();
         buffers[14].bind();
-        buffers[14].allocate(pos_sphere.data(), pos_sphere.size()*sizeof(double));
+        buffers[14].allocate(pos_sphere.data(), pos_sphere.size()*sizeof(float));
         program->enableAttributeArray("vertex");
-        program->setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[14].release();
 
         buffers[15].bind();
-        buffers[15].allocate(normals_sphere.data(), normals_sphere.size()*sizeof(double));
+        buffers[15].allocate(normals_sphere.data(), normals_sphere.size()*sizeof(float));
         program->enableAttributeArray("normals");
-        program->setAttributeBuffer("normals",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("normals",GL_FLOAT,0,3);
         buffers[15].release();
 
         buffers[16].bind();
-        buffers[16].allocate(color_sphere_control.data(), color_sphere_control.size()*sizeof(double));
+        buffers[16].allocate(color_sphere_control.data(), color_sphere_control.size()*sizeof(float));
         program->enableAttributeArray("colors");
-        program->setAttributeBuffer("colors",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[16].release();
 
         buffers[17].bind();
-        buffers[17].allocate(centers_control.data(), centers_control.size()*sizeof(double));
+        buffers[17].allocate(centers_control.data(), centers_control.size()*sizeof(float));
         program->enableAttributeArray("center");
-        program->setAttributeBuffer("center",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("center",GL_FLOAT,0,3);
         buffers[17].release();
 
-        qFunc.glVertexAttribDivisor(program->attributeLocation("center"), 1);
-        qFunc.glVertexAttribDivisor(program->attributeLocation("colors"), 1);
+       // qFunc.glVertexAttribDivisor(program->attributeLocation("center"), 1);
+       // qFunc.glVertexAttribDivisor(program->attributeLocation("colors"), 1);
         vaos[6]->release();
     }
     //vao for the axis
@@ -313,15 +313,15 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
         program->bind();
         vaos[7]->bind();
         buffers[18].bind();
-        buffers[18].allocate(pos_axis.data(), pos_axis.size()*sizeof(double));
+        buffers[18].allocate(pos_axis.data(), pos_axis.size()*sizeof(float));
         program->enableAttributeArray("vertex");
-        program->setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[18].release();
 
         buffers[19].bind();
-        buffers[19].allocate(color_lines.data(), color_lines.size()*sizeof(double));
+        buffers[19].allocate(color_lines.data(), color_lines.size()*sizeof(float));
         program->enableAttributeArray("colors");
-        program->setAttributeBuffer("colors",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[19].release();
         vaos[7]->release();
         program->release();
@@ -511,6 +511,7 @@ bool Scene_edit_polyhedron_item::eventFilter(QObject* /*target*/, QEvent *event)
 
 #include "opengl_tools.h"
 void Scene_edit_polyhedron_item::draw_edges(Viewer_interface* viewer) const {
+    Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
     vaos[2]->bind();
@@ -526,6 +527,7 @@ void Scene_edit_polyhedron_item::draw_edges(Viewer_interface* viewer) const {
     }
 }
 void Scene_edit_polyhedron_item::draw(Viewer_interface* viewer) const {
+    Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
     vaos[0]->bind();
@@ -544,7 +546,7 @@ void Scene_edit_polyhedron_item::draw(Viewer_interface* viewer) const {
 }
 
 void Scene_edit_polyhedron_item::draw_ROI_and_control_vertices(Viewer_interface* viewer) const {
-
+    Scene_item::draw();
     CGAL::GL::Color color;
     CGAL::GL::Point_size point_size; point_size.set_point_size(5);
 
@@ -566,7 +568,7 @@ void Scene_edit_polyhedron_item::draw_ROI_and_control_vertices(Viewer_interface*
             program = getShaderProgram(PROGRAM_INSTANCED);
             attrib_buffers(viewer,PROGRAM_INSTANCED);
             program->bind();
-            qFunc.glDrawArraysInstanced(GL_TRIANGLES, 0, pos_sphere.size()/3, ROI_points.size()/3);
+       //     qFunc.glDrawArraysInstanced(GL_TRIANGLES, 0, pos_sphere.size()/3, ROI_points.size()/3);
             program->release();
             vaos[3]->release();
         }
@@ -586,7 +588,7 @@ void Scene_edit_polyhedron_item::draw_ROI_and_control_vertices(Viewer_interface*
         program = getShaderProgram(PROGRAM_INSTANCED);
         attrib_buffers(viewer,PROGRAM_INSTANCED);
         program->bind();
-        qFunc.glDrawArraysInstanced(GL_TRIANGLES, 0, pos_sphere.size()/3, control_points.size()/3);
+   //     qFunc.glDrawArraysInstanced(GL_TRIANGLES, 0, pos_sphere.size()/3, control_points.size()/3);
         program->release();
         vaos[6]->release();
     }
@@ -640,7 +642,7 @@ void Scene_edit_polyhedron_item::draw_ROI_and_control_vertices(Viewer_interface*
                 QVector3D vec2(trans2[0], trans2[1], trans2[2]);
                     for(int i=0; i<16; i++)
                         f_mat.data()[i] = (float)f_matrix[i];
-                    GLdouble temp_mat[16];
+                    GLfloat temp_mat[16];
                     viewer->camera()->getModelViewProjectionMatrix(temp_mat);
                     for(int i=0; i<16; i++)
                         mvp_mat.data()[i] = (float)temp_mat[i];
@@ -760,12 +762,12 @@ Scene_edit_polyhedron_item* Scene_edit_polyhedron_item::clone() const {
     return 0;
 }
 void Scene_edit_polyhedron_item::select(
-        double orig_x,
-        double orig_y,
-        double orig_z,
-        double dir_x,
-        double dir_y,
-        double dir_z)
+        float orig_x,
+        float orig_y,
+        float orig_z,
+        float dir_x,
+        float dir_y,
+        float dir_z)
 {
     Scene_item::select(orig_x,
                        orig_y,
@@ -796,7 +798,7 @@ bool Scene_edit_polyhedron_item::keyPressEvent(QKeyEvent* e)
     return false;
 }
 
-void Scene_edit_polyhedron_item::create_Sphere(double R)
+void Scene_edit_polyhedron_item::create_Sphere(float R)
 {
 
     float T, P;

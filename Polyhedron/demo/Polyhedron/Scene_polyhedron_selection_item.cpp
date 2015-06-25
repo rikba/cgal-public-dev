@@ -1,5 +1,6 @@
 #include "Scene_polyhedron_selection_item.h"
 #include "Scene_polyhedron_selection_item.moc"
+#include <CGAL/internal/Operations_on_polyhedra/compute_normal.h>
 struct light_info
 {
     //position
@@ -164,7 +165,7 @@ void Scene_polyhedron_selection_item::compute_elements()
 
 void Scene_polyhedron_selection_item::draw(Viewer_interface* viewer) const
 {
-
+    Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
 
@@ -190,7 +191,7 @@ void Scene_polyhedron_selection_item::draw(Viewer_interface* viewer) const
 
 void Scene_polyhedron_selection_item::draw_edges(Viewer_interface* viewer) const
 {
-
+    Scene_item::draw();
     qFunc.glLineWidth(3.f);
     vaos[1]->bind();
     program = getShaderProgram(PROGRAM_WITHOUT_LIGHT);
@@ -204,7 +205,8 @@ void Scene_polyhedron_selection_item::draw_edges(Viewer_interface* viewer) const
 
 void Scene_polyhedron_selection_item::draw_points(Viewer_interface* viewer) const
 {
-    qFunc.glPointSize(5.f);
+    Scene_item::draw();
+    //qFunc.glPointSize(5.f);
     vaos[2]->bind();
     program = getShaderProgram(PROGRAM_WITHOUT_LIGHT);
     attrib_buffers(viewer,PROGRAM_WITHOUT_LIGHT);
@@ -212,6 +214,6 @@ void Scene_polyhedron_selection_item::draw_points(Viewer_interface* viewer) cons
     qFunc.glDrawArrays(GL_POINTS, 0, positions_points.size()/3);
     program->release();
     vaos[2]->release();
-    qFunc.glPointSize(1.f);
+    //qFunc.glPointSize(1.f);
 
 }

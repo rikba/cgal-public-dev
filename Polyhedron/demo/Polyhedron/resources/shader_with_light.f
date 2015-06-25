@@ -18,7 +18,7 @@ void main(void) {
    L = normalize(L); 
    V = normalize(V); 
    highp vec3 R = reflect(-L, N); 
-  vec4 diffuse; 
+   highp vec4 diffuse; 
    if(is_two_side == 1) 
        diffuse = abs(dot(N,L)) * light_diff * color; 
    else 

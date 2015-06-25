@@ -38,7 +38,7 @@ struct light_info
 };
 
 Scene_points_with_normal_item::Scene_points_with_normal_item()
-    : Scene_item(6,2),
+    : Scene_item(6,3),
       m_points(new Point_set),
       positions_lines(0),
       color_lines(0),
@@ -60,7 +60,7 @@ Scene_points_with_normal_item::Scene_points_with_normal_item()
 
 // Copy constructor
 Scene_points_with_normal_item::Scene_points_with_normal_item(const Scene_points_with_normal_item& toCopy)
-    : Scene_item(6,2), // do not call superclass' copy constructor
+    : Scene_item(6,3), // do not call superclass' copy constructor
       m_points(new Point_set(*toCopy.m_points)),
       positions_lines(0),
       color_lines(0),
@@ -93,7 +93,7 @@ Scene_points_with_normal_item::Scene_points_with_normal_item(const Scene_points_
 
 // Converts polyhedron to point set
 Scene_points_with_normal_item::Scene_points_with_normal_item(const Polyhedron& input_mesh)
-    : Scene_item(6,2),
+    : Scene_item(6,3),
       m_points(new Point_set),
       positions_lines(0),
       color_lines(0),
@@ -141,17 +141,17 @@ void Scene_points_with_normal_item::initialize_buffers(Viewer_interface *viewer)
 
         vaos[0]->bind();
         buffers[0].bind();
-        buffers[0].allocate(positions_lines.data(), positions_lines.size()*sizeof(double));
+        buffers[0].allocate(positions_lines.data(), positions_lines.size()*sizeof(float));
         program->enableAttributeArray("vertex");
-        program->setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[0].release();
 
 
 
         buffers[1].bind();
-        buffers[1].allocate(color_lines.data(), color_lines.size()*sizeof(double));
+        buffers[1].allocate(color_lines.data(), color_lines.size()*sizeof(float));
         program->enableAttributeArray("colors");
-        program->setAttributeBuffer("colors",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[1].release();
 
         vaos[0]->release();
@@ -164,17 +164,17 @@ void Scene_points_with_normal_item::initialize_buffers(Viewer_interface *viewer)
 
         vaos[1]->bind();
         buffers[2].bind();
-        buffers[2].allocate(positions_points.data(), positions_points.size()*sizeof(double));
+        buffers[2].allocate(positions_points.data(), positions_points.size()*sizeof(float));
         program->enableAttributeArray("vertex");
-        program->setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[2].release();
 
 
 
         buffers[3].bind();
-        buffers[3].allocate(color_points.data(), color_points.size()*sizeof(double));
+        buffers[3].allocate(color_points.data(), color_points.size()*sizeof(float));
         program->enableAttributeArray("colors");
-        program->setAttributeBuffer("colors",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[3].release();
 
         vaos[1]->release();
@@ -187,17 +187,17 @@ void Scene_points_with_normal_item::initialize_buffers(Viewer_interface *viewer)
 
         vaos[2]->bind();
         buffers[4].bind();
-        buffers[4].allocate(positions_selected_points.data(), positions_selected_points.size()*sizeof(double));
+        buffers[4].allocate(positions_selected_points.data(), positions_selected_points.size()*sizeof(float));
         program->enableAttributeArray("vertex");
-        program->setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[4].release();
 
 
 
         buffers[5].bind();
-        buffers[5].allocate(color_selected_points.data(), color_selected_points.size()*sizeof(double));
+        buffers[5].allocate(color_selected_points.data(), color_selected_points.size()*sizeof(float));
         program->enableAttributeArray("colors");
-        program->setAttributeBuffer("colors",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[5].release();
 
         vaos[2]->release();
@@ -208,11 +208,11 @@ void Scene_points_with_normal_item::initialize_buffers(Viewer_interface *viewer)
 
     qFunc.glBindBuffer(GL_ARRAY_BUFFER, buffer[6]);
     qFunc.glBufferData(GL_ARRAY_BUFFER,
-                 (positions_splats.size())*sizeof(double),
+                 (positions_splats.size())*sizeof(float),
                  positions_splats.data(), GL_STATIC_DRAW);
     qFunc.glVertexAttribPointer(4,
                           3,
-                          GL_DOUBLE,
+                          GL_FLOAT,
                           GL_FALSE,
                           0,
                           NULL
@@ -221,11 +221,11 @@ void Scene_points_with_normal_item::initialize_buffers(Viewer_interface *viewer)
 
     qFunc.glBindBuffer(GL_ARRAY_BUFFER, buffer[7]);
     qFunc.glBufferData(GL_ARRAY_BUFFER,
-                 (tex_coords.size())*sizeof(double),
+                 (tex_coords.size())*sizeof(float),
                  tex_coords.data(), GL_STATIC_DRAW);
     qFunc.glVertexAttribPointer(5,
                           2,
-                          GL_DOUBLE,
+                          GL_FLOAT,
                           GL_FALSE,
                           0,
                           NULL
@@ -234,11 +234,11 @@ void Scene_points_with_normal_item::initialize_buffers(Viewer_interface *viewer)
 
     qFunc.glBindBuffer(GL_ARRAY_BUFFER, buffer[8]);
     qFunc.glBufferData(GL_ARRAY_BUFFER,
-                 (normals.size())*sizeof(double),
+                 (normals.size())*sizeof(float),
                  normals.data(), GL_STATIC_DRAW);
     qFunc.glVertexAttribPointer(6,
                           3,
-                          GL_DOUBLE,
+                          GL_FLOAT,
                           GL_FALSE,
                           0,
                           NULL
@@ -311,7 +311,7 @@ void Scene_points_with_normal_item::compute_normals_and_vertices(void)
         // Draw *selected* points
         if (m_points->nb_selected_points() > 0)
         {
-            ::glPointSize(4.f);    // selected => bigger
+            //::glPointSize(4.f);    // selected => bigger
             for (Point_set_3<Kernel>::const_iterator it = m_points->begin(); it != m_points->end(); it++)
             {
                 const UI_point& p = *it;
@@ -448,7 +448,7 @@ void Scene_points_with_normal_item::uniform_attrib(Viewer_interface* viewer, int
     GLint is_both_sides = 0;
     GLfloat mv_mat[16];
 
-    GLdouble d_mat[16];
+    GLfloat d_mat[16];
     viewer->camera()->getModelViewProjectionMatrix(d_mat);
 
     for (int i=0; i<16; ++i){
@@ -656,6 +656,7 @@ void Scene_points_with_normal_item::draw_splats(Viewer_interface* viewer) const
 
 void Scene_points_with_normal_item::draw_edges(Viewer_interface* viewer) const
 {
+    Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
     vaos[0]->bind();
@@ -668,6 +669,7 @@ void Scene_points_with_normal_item::draw_edges(Viewer_interface* viewer) const
 }
 void Scene_points_with_normal_item::draw_points(Viewer_interface* viewer) const
 {
+    Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
 
@@ -679,9 +681,9 @@ void Scene_points_with_normal_item::draw_points(Viewer_interface* viewer) const
     vaos[1]->release();
     program->release();
 
-    GLfloat point_size;
-    qFunc.glGetFloatv(GL_POINT_SIZE, &point_size);
-    qFunc.glPointSize(4.f);
+    //GLfloat point_size;
+    //qFunc.glGetFloatv(GL_POINT_SIZE, &point_size);
+    //qFunc.glPointSize(4.f);
 
     vaos[2]->bind();
     program=getShaderProgram(PROGRAM_WITHOUT_LIGHT);
@@ -690,7 +692,7 @@ void Scene_points_with_normal_item::draw_points(Viewer_interface* viewer) const
     qFunc.glDrawArrays(GL_POINTS, 0, positions_selected_points.size()/3);
     vaos[2]->release();
     program->release();
-    qFunc.glPointSize(point_size);
+   // qFunc.glPointSize(point_size);
 }
 // Gets wrapped point set
 Point_set* Scene_points_with_normal_item::point_set()
@@ -739,7 +741,7 @@ void Scene_points_with_normal_item::computes_local_spacing(int k)
         for (Point_set::iterator it=m_points->begin(); it!=end; ++it, ++i)
         {
             Neighbor_search search(tree, *it, k+1);
-            double maxdist2 = (--search.end())->second; // squared distance to furthest neighbor
+            float maxdist2 = (--search.end())->second; // squared distance to furthest neighbor
             it->radius() = sqrt(maxdist2)/2.;
         }
     }

@@ -5,10 +5,7 @@
 #include <QString>
 #include <QPixmap>
 #include <QFont>
-<<<<<<< HEAD
 #include <QOpenGLFunctions>
-=======
-#include <QOpenGLFunctions_3_3_Core>
 #include <QOpenGLBuffer>
 #include <QOpenGLShader>
 #include <QOpenGLVertexArrayObject>
@@ -20,9 +17,6 @@
 #define PROGRAM_WITH_TEXTURED_EDGES 3
 #define PROGRAM_INSTANCED 4
 #define PROGRAM_INSTANCED_WIRE 5
-
-
->>>>>>> CGAL-Qt5_support-GF
 namespace qglviewer {
   class ManipulatedFrame;
 }
@@ -55,7 +49,6 @@ public:
       vaosSize(10),
       are_buffers_filled(false)
   {
-
       for(int i=0; i<vaosSize; i++)
       {
        vaos[i]->create();
@@ -76,13 +69,8 @@ public:
       vaosSize(vaos_size),
       are_buffers_filled(false)
   {
+      areVaosCreated = false;
       nbVaos = 0;
-      for(int i=0; i<vaosSize; i++)
-      {
-          addVaos(i);
-          vaos[i]->create();
-      }
-
       for(int i=0; i<buffersSize; i++)
       {
           QOpenGLBuffer n_buf;
@@ -92,11 +80,24 @@ public:
   }
   virtual ~Scene_item();
   virtual Scene_item* clone() const = 0;
-
+  mutable  bool areVaosCreated;
   // Indicate if rendering mode is supported
   virtual bool supportsRenderingMode(RenderingMode m) const = 0;
   // Flat/Gouraud OpenGL drawing
-  virtual void draw() const {}
+  virtual void draw() const {
+        if(!areVaosCreated)
+        {
+            for(int i=0; i<vaosSize; i++)
+            {
+                {
+                    addVaos(i);
+                    vaos[i]->create();
+                }
+            }
+            areVaosCreated = true;
+        }
+
+}
   virtual void draw(Viewer_interface*) const  { draw(); }
   // Wireframe OpenGL drawing
   virtual void draw_edges() const { draw(); }
@@ -218,9 +219,9 @@ protected:
   mutable std::vector<QOpenGLBuffer> buffers;
   //not allowed to use vectors of VAO for some reason
   //mutable QOpenGLVertexArrayObject vaos[10];
-  QMap<int,QOpenGLVertexArrayObject*> vaos;
-  int nbVaos;
-  void addVaos(int i)
+  mutable QMap<int,QOpenGLVertexArrayObject*> vaos;
+  mutable int nbVaos;
+  void addVaos(int i)const
   {
       QOpenGLVertexArrayObject* n_vao = new QOpenGLVertexArrayObject();
       vaos[i] = n_vao;

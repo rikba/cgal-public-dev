@@ -10,7 +10,7 @@
 #include <CGAL/corefinement_operations.h>
 void Scene_combinatorial_map_item::initialize_buffers()
 {
-    qFunc.glBindVertexArray(vao);
+    /*qFunc.glBindVertexArray(vao);
     buffer[0] = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
     if(!(buffer[0].create()))
         std::cout<<"ERROR lors de la creation"<<std::endl;
@@ -28,7 +28,7 @@ void Scene_combinatorial_map_item::initialize_buffers()
     qFunc.glEnableVertexAttribArray(0);*/
 
     // Clean-up
-    qFunc.glBindVertexArray(0);
+    //qFunc.glBindVertexArray(0);
 
 }
 
@@ -374,7 +374,7 @@ void Scene_combinatorial_map_item::direct_draw() const {
             }
             else
             {
-                for ( ;vol_it!=vol_end; ++vol_it )
+               /* for ( ;vol_it!=vol_end; ++vol_it )
                 {
                     if ( !combinatorial_map().is_marked(vol_it,facetreated) )
                     {
@@ -395,7 +395,7 @@ void Scene_combinatorial_map_item::direct_draw() const {
                         }
                         ::glEnd();
                     }
-                }
+                }*/
             }
             if ( index==volume_to_display ) break;
         }
@@ -415,7 +415,7 @@ void Scene_combinatorial_map_item::direct_draw() const {
 void Scene_combinatorial_map_item::direct_draw_edges() const {
     typedef Combinatorial_map_3::One_dart_per_cell_const_range<1> Edge_darts;
     Edge_darts darts=combinatorial_map().one_dart_per_cell<1>();
-    ::glBegin(GL_LINES);
+   /* ::glBegin(GL_LINES);
     for (Edge_darts::const_iterator dit=darts.begin();dit!=darts.end();++dit){
         CGAL_assertion(!dit->is_free(1));
         const Kernel::Point_3& a = dit->attribute<0>()->point();
@@ -423,18 +423,18 @@ void Scene_combinatorial_map_item::direct_draw_edges() const {
         ::glVertex3d(a.x(),a.y(),a.z());
         ::glVertex3d(b.x(),b.y(),b.z());
     }
-    ::glEnd();
+    ::glEnd();*/
 }
 
 void Scene_combinatorial_map_item::draw_points() const{
     typedef Combinatorial_map_3::Attribute_const_range<0>::type Point_range;
     const Point_range& points=combinatorial_map().attributes<0>();
-    ::glBegin(GL_POINTS);
+   /* ::glBegin(GL_POINTS);
     for(Point_range::const_iterator pit=boost::next(points.begin());pit!=points.end();++pit){
         const Kernel::Point_3& p=pit->point();
         ::glVertex3d(p.x(),p.y(),p.z());
     }
-    ::glEnd();
+    ::glEnd();*/
 }
 
 bool Scene_combinatorial_map_item::isEmpty() const {return combinatorial_map().number_of_darts()==0;}

@@ -301,8 +301,8 @@ Scene_polylines_item::initialize_buffers(Viewer_interface *viewer = 0) const
         program->setAttributeBuffer("center",GL_FLOAT,0,3);
         buffers[4].release();
 
-        qFunc.glVertexAttribDivisor(program->attributeLocation("center"), 1);
-        qFunc.glVertexAttribDivisor(program->attributeLocation("colors"), 1);
+        //qFunc.glVertexAttribDivisor(program->attributeLocation("center"), 1);
+        //qFunc.glVertexAttribDivisor(program->attributeLocation("colors"), 1);
         vaos[1]->release();
 
         program->release();
@@ -336,7 +336,7 @@ Scene_polylines_item::initialize_buffers(Viewer_interface *viewer = 0) const
         program->setAttributeBuffer("center",GL_FLOAT,0,3);
         buffers[7].release();
 
-        qFunc.glVertexAttribDivisor(program->attributeLocation("center"), 1);
+       // qFunc.glVertexAttribDivisor(program->attributeLocation("center"), 1);
         vaos[2]->release();
         program->release();
     }
@@ -657,7 +657,7 @@ Scene_polylines_item::supportsRenderingMode(RenderingMode m) const {
 // Shaded OpenGL drawing: only draw spheres
 void
 Scene_polylines_item::draw(Viewer_interface* viewer) const {
-
+Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
     if(d->draw_extremities)
@@ -666,7 +666,7 @@ Scene_polylines_item::draw(Viewer_interface* viewer) const {
         program = getShaderProgram(PROGRAM_INSTANCED);
         attrib_buffers(viewer, PROGRAM_INSTANCED);
         program->bind();
-        qFunc.glDrawArraysInstanced(GL_TRIANGLES, 0, positions_spheres.size()/4, nbSpheres);
+       //qFunc.glDrawArraysInstanced(GL_TRIANGLES, 0, positions_spheres.size()/4, nbSpheres);
         program->release();
         vaos[1]->release();
     }
@@ -675,7 +675,7 @@ Scene_polylines_item::draw(Viewer_interface* viewer) const {
 // Wireframe OpenGL drawing
 void 
 Scene_polylines_item::draw_edges(Viewer_interface* viewer) const {
-
+Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
 
@@ -694,7 +694,7 @@ Scene_polylines_item::draw_edges(Viewer_interface* viewer) const {
         attrib_buffers(viewer, PROGRAM_INSTANCED_WIRE);
         program = getShaderProgram(PROGRAM_INSTANCED_WIRE);
         program->bind();
-        qFunc.glDrawArraysInstanced(GL_LINES, 0, positions_wire_spheres.size()/4, nbSpheres);
+       // qFunc.glDrawArraysInstanced(GL_LINES, 0, positions_wire_spheres.size()/4, nbSpheres);
         program->release();
         vaos[2]->release();
     }
@@ -703,6 +703,7 @@ Scene_polylines_item::draw_edges(Viewer_interface* viewer) const {
 
 void 
 Scene_polylines_item::draw_points(Viewer_interface* viewer) const {
+    Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
 

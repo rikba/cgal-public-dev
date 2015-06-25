@@ -75,13 +75,13 @@ private:
   Nef_polyhedron* nef_poly;
 
 
-  std::vector<double> positions_lines;
-  std::vector<double> positions_facets;
-  std::vector<double> positions_points;
-  std::vector<double> normals;
-  std::vector<double> color_lines;
-  std::vector<double> color_facets;
-  std::vector<double> color_points;
+  std::vector<float> positions_lines;
+  std::vector<float> positions_facets;
+  std::vector<float> positions_points;
+  std::vector<float> normals;
+  std::vector<float> color_lines;
+  std::vector<float> color_facets;
+  std::vector<float> color_points;
 
   mutable QOpenGLShaderProgram *program;
 

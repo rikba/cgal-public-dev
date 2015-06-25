@@ -1,3 +1,5 @@
+
+
 #include <CGAL/check_gl_error.h>
 #include "Scene_polyhedron_item.h"
 #include <CGAL/AABB_intersections.h>
@@ -191,7 +193,7 @@ Scene_polyhedron_item::triangulate_facet(Facet_iterator fit)
         positions_facets.push_back(ffit->vertex(2)->point().z());
         positions_facets.push_back(1.0);
 
-        if (cur_shading == GL_FLAT || cur_shading == GL_SMOOTH)
+        if (cur_shading == Flat || cur_shading == Gouraud)
         {
 
             typedef typename Kernel::Vector_3	    Vector;
@@ -301,7 +303,7 @@ Scene_polyhedron_item::triangulate_facet_color(Facet_iterator fit)
 #include <QObject>
 #include <QMenu>
 #include <QAction>
-#include <CGAL/gl_render.h>
+//#include <CGAL/gl_render.h>
 
 struct light_info
 {
@@ -440,7 +442,6 @@ Scene_polyhedron_item::compute_normals_and_vertices(void)
     typedef typename Polyhedron::Halfedge_around_facet_circulator HF_circulator;
 
 
-
     Facet_iterator f = poly->facets_begin();
 
     for(f = poly->facets_begin();
@@ -456,10 +457,9 @@ Scene_polyhedron_item::compute_normals_and_vertices(void)
             HF_circulator end = he;
             CGAL_For_all(he,end)
             {
-
-                // If Flat shading:1 normal per polygon added once per vertex
-                if (cur_shading == GL_FLAT)
-                {
+              //  If Flat shading:1 normal per polygon added once per vertex
+               if (cur_shading == Flat || cur_shading == FlatPlusEdges)
+               {
 
                     Vector n = compute_facet_normal<Facet,Kernel>(*f);
                     normals.push_back(n.x());
@@ -468,7 +468,7 @@ Scene_polyhedron_item::compute_normals_and_vertices(void)
                 }
 
                 // If Gouraud shading: 1 normal per vertex
-                else if (cur_shading == GL_SMOOTH)
+                else if (cur_shading == Gouraud)
                 {
 
                     Vector n = compute_vertex_normal<typename Polyhedron::Vertex,Kernel>(*he->vertex());
@@ -655,7 +655,7 @@ Scene_polyhedron_item::Scene_polyhedron_item()
       erase_next_picked_facet_m(false),
       plugin_has_set_color_vector_m(false)
 {
-    cur_shading=GL_FLAT;
+    cur_shading= FlatPlusEdges;
     is_selected = true;
     init();
 
@@ -677,7 +677,7 @@ Scene_polyhedron_item::Scene_polyhedron_item(Polyhedron* const p)
       erase_next_picked_facet_m(false),
       plugin_has_set_color_vector_m(false)
 {
-    cur_shading=GL_FLAT;
+    cur_shading=FlatPlusEdges;
     is_selected = true;
     init();
     changed();
@@ -699,7 +699,7 @@ Scene_polyhedron_item::Scene_polyhedron_item(const Polyhedron& p)
       erase_next_picked_facet_m(false),
       plugin_has_set_color_vector_m(false)
 {
-    cur_shading=GL_FLAT;
+    cur_shading=FlatPlusEdges;
     is_selected=true;
     init();
     changed();
@@ -845,6 +845,7 @@ void Scene_polyhedron_item::set_erase_next_picked_facet(bool b)
 }
 
 void Scene_polyhedron_item::draw(Viewer_interface* viewer) const {
+    Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
 
@@ -852,9 +853,7 @@ void Scene_polyhedron_item::draw(Viewer_interface* viewer) const {
     if(!is_selected)
         vaos[0]->bind();
     else
-    {
         vaos[2]->bind();
-    }
     attrib_buffers(viewer, PROGRAM_WITH_LIGHT);
     program = getShaderProgram(PROGRAM_WITH_LIGHT);
     program->bind();
@@ -868,7 +867,7 @@ void Scene_polyhedron_item::draw(Viewer_interface* viewer) const {
 
 // Points/Wireframe/Flat/Gouraud OpenGL drawing in a display list
 void Scene_polyhedron_item::draw_edges(Viewer_interface* viewer) const {
-
+    Scene_item::draw();
     if(!is_selected)
     {
         vaos[1]->bind();
@@ -891,7 +890,9 @@ void Scene_polyhedron_item::draw_edges(Viewer_interface* viewer) const {
 
 void
 Scene_polyhedron_item::draw_points(Viewer_interface* viewer) const {
-
+    Scene_item::draw();
+    program = getShaderProgram(PROGRAM_WITHOUT_LIGHT, viewer);
+    program->bind();
     vaos[1]->bind();
     attrib_buffers(viewer, PROGRAM_WITHOUT_LIGHT);
     program->bind();
@@ -943,16 +944,15 @@ void
 Scene_polyhedron_item::
 contextual_changed()
 {
-    GLint new_shading;
-    qFunc.glGetIntegerv(GL_SHADE_MODEL, &new_shading);
+    //GLint new_shading ;
+   // qFunc.glGetIntegerv(GL_SHADE_MODEL, &new_shading);
     prev_shading = cur_shading;
-    cur_shading = new_shading;
+    cur_shading = renderingMode();//new_shading;
     if(prev_shading != cur_shading)
-        if(cur_shading == GL_SMOOTH || cur_shading == GL_FLAT && prev_shading == GL_SMOOTH )
-        {
+       {
             //Change the normals
             changed();
-        }
+       }
 
 }
 void

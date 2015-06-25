@@ -89,15 +89,15 @@ private:
   QAction* actionSelectDuplicatedPoints;
 
 
-  std::vector<double> positions_lines;
-  std::vector<double> positions_points;
-  std::vector<double> positions_splats;
-  std::vector<double> positions_selected_points;
-  std::vector<double> color_lines;
-  std::vector<double> color_points;
-  std::vector<double> color_selected_points;
-  std::vector<double> normals;
-  std::vector<double> tex_coords;
+  std::vector<float> positions_lines;
+  std::vector<float> positions_points;
+  std::vector<float> positions_splats;
+  std::vector<float> positions_selected_points;
+  std::vector<float> color_lines;
+  std::vector<float> color_points;
+  std::vector<float> color_selected_points;
+  std::vector<float> normals;
+  std::vector<float> tex_coords;
 
   mutable int texture[3];
 

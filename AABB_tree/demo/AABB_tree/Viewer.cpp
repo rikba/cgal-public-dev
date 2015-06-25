@@ -51,8 +51,7 @@ void Viewer::initializeGL()
 {
     QGLViewer::initializeGL();
     // Set up the rendering context, load shaders and other resources, etc.:
-    gl = QOpenGLContext::currentContext()->functions();
-    gl->initializeOpenGLFunctions();
+
     setBackgroundColor(::Qt::white);
     m_pScene->setGL(gl);
     m_pScene->compile_shaders();

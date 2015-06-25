@@ -36,8 +36,8 @@
 
 #include <QtCore/qglobal.h>
 #include <CGAL/gl.h>
-#include <QGLViewer/manipulatedFrame.h>
-#include <QGLViewer/qglviewer.h>
+#include <manipulatedFrame.h>
+#include <qglviewer.h>
 #include <QApplication>
 #include <QThread>
 #include <QMessageBox>

@@ -4,7 +4,7 @@
 #include "Polyhedron_type.h"
 #include "Scene_polyhedron_item.h"
 
-#include <QGLViewer/qglviewer.h>
+#include <qglviewer.h>
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QMainWindow>

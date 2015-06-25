@@ -39,8 +39,8 @@ public:
   typedef Polyhedron::Traits::Point_3  value_type;
   typedef value_type&  reference;
   typedef boost::read_write_property_map_tag category;
-  Array_based_vertex_point_map(std::vector<double>* positions) : positions(positions) {}
-  std::vector<double>* positions;
+  Array_based_vertex_point_map(std::vector<float>* positions) : positions(positions) {}
+  std::vector<float>* positions;
 };
 
 
@@ -253,12 +253,12 @@ public slots:
     if(any_changes) { emit itemChanged(); }
   }
 
-  void select(double orig_x,
-              double orig_y,
-              double orig_z,
-              double dir_x,
-              double dir_y,
-              double dir_z);
+  void select(float orig_x,
+              float orig_y,
+              float orig_z,
+              float dir_x,
+              float dir_y,
+              float dir_z);
 
   void deform(); // deform the mesh
 // members
@@ -266,25 +266,25 @@ private:
   Ui::DeformMesh* ui_widget;
   Scene_polyhedron_item* poly_item;
   // For drawing
-  std::vector<GLdouble> positions;
+  std::vector<GLfloat> positions;
   std::vector<unsigned int> tris;
   std::vector<unsigned int> edges;
-  std::vector<GLdouble> color_lines;
-  std::vector<GLdouble> color_bbox;
-  std::vector<GLdouble> color_edges;
-  std::vector<GLdouble> ROI_points;
-  std::vector<GLdouble> control_points;
-  std::vector<GLdouble> ROI_color;
-  std::vector<GLdouble> control_color;
-  std::vector<GLdouble> normals;
-  std::vector<GLdouble> pos_bbox;
-  std::vector<GLdouble> pos_axis;
-  std::vector<GLdouble> pos_sphere;
-  std::vector<GLdouble> normals_sphere;
-  std::vector<GLdouble> centers_control;
-  std::vector<GLdouble> centers_ROI;
-  std::vector<GLdouble> color_sphere_ROI;
-  std::vector<GLdouble> color_sphere_control;
+  std::vector<GLfloat> color_lines;
+  std::vector<GLfloat> color_bbox;
+  std::vector<GLfloat> color_edges;
+  std::vector<GLfloat> ROI_points;
+  std::vector<GLfloat> control_points;
+  std::vector<GLfloat> ROI_color;
+  std::vector<GLfloat> control_color;
+  std::vector<GLfloat> normals;
+  std::vector<GLfloat> pos_bbox;
+  std::vector<GLfloat> pos_axis;
+  std::vector<GLfloat> pos_sphere;
+  std::vector<GLfloat> normals_sphere;
+  std::vector<GLfloat> centers_control;
+  std::vector<GLfloat> centers_ROI;
+  std::vector<GLfloat> color_sphere_ROI;
+  std::vector<GLfloat> color_sphere_control;
   mutable QOpenGLShaderProgram *program;
   mutable QOpenGLShaderProgram bbox_program;
 
@@ -292,7 +292,7 @@ private:
   void initialize_buffers(Viewer_interface *viewer) const;
   void compute_normals_and_vertices(void);
   void compute_bbox(const Scene_interface::Bbox&);
-  void create_Sphere(double);
+  void create_Sphere(float);
 
 
 
@@ -302,7 +302,7 @@ private:
   Ctrl_vertices_group_data_list::iterator active_group;
   Ctrl_vertices_group_data_list ctrl_vertex_frame_map; // keep list of group of control vertices with assoc data
 
-  double length_of_axis; // for drawing axis at a group of control vertices
+  float length_of_axis; // for drawing axis at a group of control vertices
 
   // by interleaving 'viewer's events (check constructor), keep followings:
   Mouse_keyboard_state_deformation state;
@@ -696,7 +696,7 @@ protected:
     }
   }
 protected:
-  GLUquadric* quadric; // for drawing spheres
+  //GLUquadric* quadric; // for drawing spheres
 }; // end class Scene_edit_polyhedron_item
 
 #endif // SCENE_EDIT_POLYHEDRON_ITEM_H

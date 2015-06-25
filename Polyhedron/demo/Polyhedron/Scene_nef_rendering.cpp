@@ -1,8 +1,8 @@
-#include "config.h"
+/*#include "config.h"
 #ifdef CGAL_POLYHEDRON_DEMO_USE_NEF
 #include "Nef_type.h"
-#include <CGAL/Nef_S2/OGL_base_object.h>
-#include <CGAL/Nef_3/OGL_helper.h>
+//#include <CGAL/Nef_S2/OGL_base_object.h>
+//#include <CGAL/Nef_3/OGL_helper.h>
 #include <CGAL/glu.h>
 
 #include <QList>
@@ -214,3 +214,4 @@ void gl_render_nef_vertices(Nef_polyhedron* p)
   }
 }
 #endif // CGAL_POLYHEDRON_DEMO_USE_NEF
+*/
