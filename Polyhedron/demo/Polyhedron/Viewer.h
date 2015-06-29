@@ -4,7 +4,7 @@
 #include "Viewer_config.h"
 #include <CGAL_demo/Viewer_interface.h>
 
-#include <qglviewer.h>
+#include <QGLViewer/qglviewer.h>
 #include <QPoint>
 #include <QOpenGLFunctions>
 

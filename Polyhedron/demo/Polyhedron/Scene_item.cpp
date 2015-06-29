@@ -125,7 +125,7 @@ void Scene_item::select(double /*orig_x*/,
 // set-up the uniform attributes of the shader programs.
 void Scene_item::attrib_buffers(Viewer_interface* viewer, int program_name) const
 {
-    GLint is_both_sides = 1;
+
     QMatrix4x4 mvp_mat;
     QMatrix4x4 mv_mat;
     QMatrix4x4 f_mat;
@@ -161,7 +161,7 @@ void Scene_item::attrib_buffers(Viewer_interface* viewer, int program_name) cons
         shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("light_spec", specular);
         shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("light_amb", ambient);
         shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("spec_power", 51.8f);
-        shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("is_two_side", is_both_sides);
+        shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("is_two_side", viewer->is_two_sides);
         shader_programs[PROGRAM_WITH_LIGHT]->release();
         break;
     case PROGRAM_WITHOUT_LIGHT:
@@ -174,7 +174,7 @@ void Scene_item::attrib_buffers(Viewer_interface* viewer, int program_name) cons
         shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("light_spec", specular);
         shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("light_amb", ambient);
         shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("spec_power", 51.8f);
-        shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("is_two_side", is_both_sides);
+        shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("is_two_side", viewer->is_two_sides);
         shader_programs[PROGRAM_WITHOUT_LIGHT]->setAttributeValue("normals", 0.0,0.0,0.0);
         shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("f_matrix",f_mat);
 
@@ -233,7 +233,7 @@ void Scene_item::attrib_buffers(Viewer_interface* viewer, int program_name) cons
         shader_programs[PROGRAM_INSTANCED]->setUniformValue("light_spec", specular);
         shader_programs[PROGRAM_INSTANCED]->setUniformValue("light_amb", ambient);
         shader_programs[PROGRAM_INSTANCED]->setUniformValue("spec_power", 51.8f);
-        shader_programs[PROGRAM_INSTANCED]->setUniformValue("is_two_side", is_both_sides);
+        shader_programs[PROGRAM_INSTANCED]->setUniformValue("is_two_side", viewer->is_two_sides);
         shader_programs[PROGRAM_INSTANCED]->release();
 
         break;

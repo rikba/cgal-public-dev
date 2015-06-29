@@ -149,6 +149,10 @@ protected slots:
   void filterOperations();
 
   void on_actionRecenterScene_triggered();
+
+  //Controls
+
+  void toggle_frameManipulation(bool b);
 protected:
   void loadPlugins();
   bool initPlugin(QObject*);

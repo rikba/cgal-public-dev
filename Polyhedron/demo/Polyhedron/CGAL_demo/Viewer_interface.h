@@ -1,7 +1,7 @@
 #ifndef VIEWER_INTERFACE_H
 #define VIEWER_INTERFACE_H
 
-#include <qglviewer.h>
+#include <QGLViewer/qglviewer.h>
 #include <QWidget>
 #include <QPoint>
 
@@ -18,6 +18,7 @@ class VIEWER_EXPORT Viewer_interface : public QGLViewer {
   Q_OBJECT
 
 public:
+  mutable int is_two_sides;
   Viewer_interface(QWidget* parent) : QGLViewer(parent) {}
   virtual ~Viewer_interface() {}
 

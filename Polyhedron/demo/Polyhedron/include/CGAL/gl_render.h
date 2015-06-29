@@ -1,8 +1,9 @@
-#ifndef _GL_RENDER_
-#define _GL_RENDER_
-
 #include <CGAL/gl.h>
 #include <CGAL/internal/Operations_on_polyhedra/compute_normal.h>
+/*#ifndef _GL_RENDER_
+#define _GL_RENDER_
+
+
 
 
 
@@ -101,3 +102,4 @@ void gl_render_edges(Polyhedron& polyhedron)
 
 
 
+*/

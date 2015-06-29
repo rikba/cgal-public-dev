@@ -3,7 +3,7 @@
 #include <map>
 #include <CGAL/gl.h>
 #include <CGAL/Simple_cartesian.h>
-#include <manipulatedFrame.h>
+#include <QGLViewer/manipulatedFrame.h>
 
 #include "Color_ramp.h"
 #include <Viewer_interface.h>
@@ -15,7 +15,6 @@ bool is_nan(double d)
 {
     return !CGAL::Is_valid<double>()( d );
 }
-
 void Scene_implicit_function_item::initialize_buffers(Viewer_interface *viewer = 0) const
 {
     //vao fot the cutting plane
@@ -36,7 +35,6 @@ void Scene_implicit_function_item::initialize_buffers(Viewer_interface *viewer =
         program->enableAttributeArray("v_texCoord");
         program->setAttributeBuffer("v_texCoord",GL_FLOAT,0,2);
         buffers[1].release();
-        program->setAttributeValue("normal", QVector3D(0,0,0));
 
         program->release();
         vaos[0]->release();
@@ -54,7 +52,6 @@ void Scene_implicit_function_item::initialize_buffers(Viewer_interface *viewer =
         program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[2].release();
 
-        program->setAttributeValue("colors", QVector3D(0,0,0));
         program->release();
         vaos[1]->release();
     }
@@ -70,7 +67,6 @@ void Scene_implicit_function_item::initialize_buffers(Viewer_interface *viewer =
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[3].release();
-        program->setAttributeValue("colors", QVector3D(0.6,0.6,0.6));
         program->release();
         vaos[2]->release();
     }
@@ -110,23 +106,27 @@ void Scene_implicit_function_item::compute_vertices_and_texmap(void)
     // The Quad
     {
 
-
         //A
         positions_tex_quad.push_back(b.xmin);
         positions_tex_quad.push_back(b.ymin);
         positions_tex_quad.push_back(z);
+        texture_map.push_back(0.0);
+        texture_map.push_back(0.0);
 
 
         //B
         positions_tex_quad.push_back(b.xmin);
         positions_tex_quad.push_back(b.ymax);
         positions_tex_quad.push_back(z);
-
+        texture_map.push_back(0.0);
+        texture_map.push_back(1.0);
 
         //C
         positions_tex_quad.push_back(b.xmax);
         positions_tex_quad.push_back(b.ymax);
         positions_tex_quad.push_back(z);
+        texture_map.push_back(1.0);
+        texture_map.push_back(1.0);
 
 
 
@@ -134,38 +134,24 @@ void Scene_implicit_function_item::compute_vertices_and_texmap(void)
         positions_tex_quad.push_back(b.xmin);
         positions_tex_quad.push_back(b.ymin);
         positions_tex_quad.push_back(z);
-
+        texture_map.push_back(0.0);
+        texture_map.push_back(0.0);
 
         //C
         positions_tex_quad.push_back(b.xmax);
         positions_tex_quad.push_back(b.ymax);
         positions_tex_quad.push_back(z);
-
+        texture_map.push_back(1.0);
+        texture_map.push_back(1.0);
 
         //D
         positions_tex_quad.push_back(b.xmax);
         positions_tex_quad.push_back(b.ymin);
         positions_tex_quad.push_back(z);
-
-
-        //UV Mapping x2 but I don't know why.
-        texture_map.push_back(0.0);
-        texture_map.push_back(0.0);
-
-        texture_map.push_back(0.0);
-        texture_map.push_back(1.0);
-
-        texture_map.push_back(1.0);
-        texture_map.push_back(1.0);
-
-        texture_map.push_back(0.0);
-        texture_map.push_back(0.0);
-
-        texture_map.push_back(1.0);
-        texture_map.push_back(1.0);
-
         texture_map.push_back(1.0);
         texture_map.push_back(0.0);
+
+
 
 
 
@@ -347,7 +333,7 @@ Scene_implicit_function_item(Implicit_function_interface* f)
     ,Scene_item(4,3)
 
 {
-    texture = new Texture(grid_size_-1,grid_size_-1);
+    texture = new Texture(grid_size_,grid_size_);
     blue_color_ramp_.build_blue();
     red_color_ramp_.build_red();
     qFunc.initializeOpenGLFunctions();
@@ -413,6 +399,7 @@ Scene_implicit_function_item::draw(Viewer_interface* viewer) const
     program->setUniformValue("light_amb", QVector4D(1.0,1.0,1.0,1.0));
     program->setUniformValue("light_diff", QVector4D(0,0,0,1));
     program->setAttributeValue("color_facets", QVector3D(1.0,1.0,1.0));
+    program->setAttributeValue("normal", QVector3D(0,0,0));
     qFunc.glDrawArrays(GL_TRIANGLES, 0, positions_tex_quad.size()/3);
     vaos[0]->release();
     program->release();
@@ -429,6 +416,7 @@ Scene_implicit_function_item::draw_edges(Viewer_interface* viewer) const
     attrib_buffers(viewer, PROGRAM_WITHOUT_LIGHT);
     program = getShaderProgram(PROGRAM_WITHOUT_LIGHT);
     program->bind();
+    program->setAttributeValue("colors", QVector3D(0,0,0));
     qFunc.glDrawArrays(GL_LINES, 0, positions_cube.size()/3);
     vaos[1]->release();
     vaos[2]->bind();
@@ -440,6 +428,7 @@ Scene_implicit_function_item::draw_edges(Viewer_interface* viewer) const
         f_mat.data()[i] = GLfloat(d_mat[i]);
     }
     program->setUniformValue("f_matrix", f_mat);
+    program->setAttributeValue("colors", QVector3D(0.6,0.6,0.6));
     qFunc.glDrawArrays(GL_LINES, 0, positions_grid.size()/3);
     vaos[2]->release();
     program->release();

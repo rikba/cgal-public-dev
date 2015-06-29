@@ -536,20 +536,21 @@ endif()
                         libpoint_dialog.so
                         libscene_c2t3_item.so
                         libscene_nef_polyhedron_item.so
+                        libscene_polyhedron_selection_item.so
+                        libscene_nef_polyhedron_item.so
+                        libscene_basic_objects.so
+                        libscene_combinatorial_map_item.so
+                        libscene_polyhedron_transform_item.so
+                        libscene_polyhedron_item_k_ring_selection.so
+                        libscene_polyhedron_item_decorator.so
+                        libscene_textured_polyhedron_item.so
 
+liboff_plugin.so
+#libparameterization_plugin.so
 
-#libscene_polyhedron_selection_item.so
-#libscene_nef_polyhedron_item.so
-#libscene_basic_objects.so
-#libscene_combinatorial_map_item.so
-#libscene_polyhedron_transform_item.so
-#libscene_polyhedron_item_k_ring_selection.so
-#libscene_polyhedron_item_decorator.so
-#
 #libremeshing_plugin.so
 #libcamera_positions_plugin.so
 #libinside_out_plugin.so
-liboff_plugin.so
 #libnef_io_plugin.so
 #libpolylines_io_plugin.so
 #libio_implicit_function_plugin.so
@@ -576,11 +577,18 @@ liboff_plugin.so
 #libtransform_polyhedron_plugin.so
 #libcorefinement_plugin.so
 #libtrivial_plugin.so
-#libcut_plugin.so
+libcut_plugin.so
 #libpoint_inside_polyhedron_plugin.so
 #libpoint_set_simplification_plugin.so
 #libpoint_set_outliers_removal_plugin.so
 #libselection_plugin.so
+#libpoisson_plugin.so
+#libscale_space_reconstruction_plugin.so
+#
+#libnormal_estimation_plugin.so
+#libpoint_set_average_spacing_plugin.so
+#libjet_fitting_plugin.so
+#libpoint_set_smoothing_plugin.so
 
                         INSTALL)
 endif()

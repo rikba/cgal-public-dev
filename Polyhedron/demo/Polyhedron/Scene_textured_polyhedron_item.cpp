@@ -85,7 +85,7 @@ void Scene_textured_polyhedron_item::initialize_buffers(Viewer_interface *viewer
     qFunc.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     qFunc.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     qFunc.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+   // glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
     are_buffers_filled = true;
 }
@@ -124,7 +124,7 @@ Scene_textured_polyhedron_item::compute_normals_and_vertices(void)
         {
 
             // If Flat shading:1 normal per polygon added once per vertex
-            if (cur_shading == GL_FLAT)
+            if (cur_shading == Flat || cur_shading == FlatPlusEdges)
             {
 
                 Vector n = compute_facet_normal<Facet,Kernel>(*f);
@@ -134,7 +134,7 @@ Scene_textured_polyhedron_item::compute_normals_and_vertices(void)
             }
 
             // If Gouraud shading: 1 normal per vertex
-            else if(cur_shading == GL_SMOOTH)
+            else if(cur_shading == Gouraud)
             {
 
                 const typename Facet::Normal_3& n = he->vertex()->normal();
@@ -200,7 +200,7 @@ Scene_textured_polyhedron_item::Scene_textured_polyhedron_item()
       textures_map_lines(0),poly(new Textured_polyhedron)
 {
     texture.GenerateCheckerBoard(2048,2048,128,0,0,0,250,250,255);
-    cur_shading=GL_FLAT;
+    cur_shading=FlatPlusEdges;
     is_selected=false;
     qFunc.initializeOpenGLFunctions();
     qFunc.glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -211,7 +211,7 @@ Scene_textured_polyhedron_item::Scene_textured_polyhedron_item(Textured_polyhedr
     : Scene_item(5,2),smooth_shading(true),positions_lines(0),positions_facets(0),textures_map_facets(0),
       textures_map_lines(0), poly(p)
 {
-    cur_shading=GL_FLAT;
+    cur_shading=FlatPlusEdges;
     is_selected=false;
     texture.GenerateCheckerBoard(2048,2048,128,0,0,0,250,250,255);
     qFunc.initializeOpenGLFunctions();
@@ -223,7 +223,7 @@ Scene_textured_polyhedron_item::Scene_textured_polyhedron_item(const Textured_po
       textures_map_lines(0), poly(new Textured_polyhedron(p))
 {
     texture.GenerateCheckerBoard(2048,2048,128,0,0,0,250,250,255);
-    cur_shading=GL_FLAT;
+    cur_shading=FlatPlusEdges;
     is_selected=false;
     qFunc.initializeOpenGLFunctions();
     changed();
@@ -347,10 +347,8 @@ void
 Scene_textured_polyhedron_item::
 contextual_changed()
 {
-    GLint new_shading;
-    qFunc.glGetIntegerv(GL_SHADE_MODEL, &new_shading);
     prev_shading = cur_shading;
-    cur_shading = new_shading;
+    cur_shading = renderingMode();
     if(prev_shading != cur_shading)
     {
         changed();
@@ -362,7 +360,7 @@ Scene_textured_polyhedron_item::selection_changed(bool p_is_selected)
     if(p_is_selected != is_selected)
     {
         is_selected = p_is_selected;
-        initialize_buffers();
+        are_buffers_filled = false;
     }
     else
         is_selected = p_is_selected;

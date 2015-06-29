@@ -3,8 +3,8 @@
 
 #include "Scene_polyhedron_item.h"
 #include "Scene_polyhedron_transform_item_config.h"
-#include <manipulatedFrame.h>
-#include <qglviewer.h>
+#include <QGLViewer/manipulatedFrame.h>
+#include <QGLViewer/qglviewer.h>
 #include <QKeyEvent>
 
 // This class represents a polyhedron in the OpenGL scene

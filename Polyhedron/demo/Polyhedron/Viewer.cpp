@@ -4,7 +4,8 @@
 #include "Scene_draw_interface.h"
 #include <QMouseEvent>
 #include <QKeyEvent>
-#include <manipulatedCameraFrame.h>
+#include <QGLViewer/manipulatedCameraFrame.h>
+#include <QOpenGLContext>
 #ifndef GL_MULTISAMPLE
 #define GL_MULTISAMPLE 0x809D
 #endif
@@ -77,7 +78,9 @@ void Viewer::setAntiAliasing(bool b)
 void Viewer::setTwoSides(bool b)
 {
   d->twosides = b;
- update();
+  is_two_sides = b;
+  update();
+
 }
 
 bool Viewer::inFastDrawing() const {
@@ -186,12 +189,7 @@ void Viewer_impl::draw_aux(bool with_names, Viewer* viewer)
   //::glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
   //
   //::glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-/*
-  if(twosides)
-    ::glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-  else
-    ::glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
-*/
+viewer->setBackgroundColor(viewer->backgroundColor());
   if(!viewer->context()->isOpenGLES())
   {
       if(antialiasing)

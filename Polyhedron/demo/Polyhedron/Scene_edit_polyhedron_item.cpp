@@ -509,7 +509,6 @@ bool Scene_edit_polyhedron_item::eventFilter(QObject* /*target*/, QEvent *event)
     return false;
 }
 
-#include "opengl_tools.h"
 void Scene_edit_polyhedron_item::draw_edges(Viewer_interface* viewer) const {
     Scene_item::draw();
     if(!are_buffers_filled)
@@ -547,10 +546,10 @@ void Scene_edit_polyhedron_item::draw(Viewer_interface* viewer) const {
 
 void Scene_edit_polyhedron_item::draw_ROI_and_control_vertices(Viewer_interface* viewer) const {
     Scene_item::draw();
-    CGAL::GL::Color color;
-    CGAL::GL::Point_size point_size; point_size.set_point_size(5);
+    //CGAL::GL::Color color;
+    //CGAL::GL::Point_size point_size; point_size.set_point_size(5);
 
-    color.set_rgb_color(0, 1.f, 0);
+   // color.set_rgb_color(0, 1.f, 0);
     if(ui_widget->ShowROICheckBox->isChecked()) {
 
         if(!ui_widget->ShowAsSphereCheckBox->isChecked()) {

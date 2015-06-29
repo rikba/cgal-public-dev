@@ -37,7 +37,7 @@
      <x>0</x>
      <y>0</y>
      <width>978</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -141,10 +141,18 @@
     <addaction name="menuDockWindows"/>
     <addaction name="menuCamera"/>
    </widget>
+   <widget class="QMenu" name="menuControls">
+    <property name="title">
+     <string>Controls</string>
+    </property>
+    <addaction name="actionManipulated_Frame"/>
+    <addaction name="actionSelection"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuOperations"/>
    <addaction name="menuView"/>
+   <addaction name="menuControls"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="sceneDockWidget">
@@ -294,8 +302,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>545</width>
-            <height>178</height>
+            <width>541</width>
+            <height>175</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout">
@@ -644,6 +652,22 @@
   <action name="actionPreferences">
    <property name="text">
     <string>&amp;Preferences</string>
+   </property>
+  </action>
+  <action name="actionManipulated_Frame">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Manipulated frame</string>
+   </property>
+  </action>
+  <action name="actionSelection">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Selection</string>
    </property>
   </action>
  </widget>

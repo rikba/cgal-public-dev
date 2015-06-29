@@ -48,8 +48,8 @@
 #include "Show_point_dialog.h"
 #include "File_loader_dialog.h"
 
-#include <manipulatedCameraFrame.h>
-#include <manipulatedFrame.h>
+#include <QGLViewer/manipulatedCameraFrame.h>
+#include <QGLViewer/manipulatedFrame.h>
 
 #ifdef QT_SCRIPT_LIB
 #  include <QScriptEngine>
@@ -998,8 +998,18 @@ void MainWindow::selectionChanged()
   if(viewer->manipulatedFrame() != 0) {
     connect(viewer->manipulatedFrame(), SIGNAL(modified()),
             this, SLOT(updateInfo()));
+
+    connect(ui->actionManipulated_Frame, SIGNAL(toggled(bool)),
+                                 this, SLOT(toggle_frameManipulation(bool)));
+
   }
   viewer->update();
+}
+
+void MainWindow::toggle_frameManipulation(bool b)
+{
+    viewer->frame_manipulation = b;
+    qDebug()<<"frame manipulation "<<b;
 }
 
 void MainWindow::contextMenuRequested(const QPoint& global_pos) {
@@ -1386,6 +1396,7 @@ void MainWindow::on_actionSetBackgroundColor_triggered()
   QColor c =  QColorDialog::getColor();
   if(c.isValid()) {
     viewer->setBackgroundColor(c);
+    viewer->update();
   }
 }
 

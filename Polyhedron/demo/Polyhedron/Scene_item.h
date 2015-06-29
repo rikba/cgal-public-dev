@@ -51,12 +51,15 @@ public:
   {
       for(int i=0; i<vaosSize; i++)
       {
-       vaos[i]->create();
+          addVaos(i);
+          vaos[i]->create();
       }
 
       for(int i=0; i<buffersSize; i++)
       {
-       buffers[i].create();
+          QOpenGLBuffer n_buf;
+          buffers.push_back(n_buf);
+          buffers[i].create();
       }
   }
   Scene_item(int buffers_size, int vaos_size)
@@ -88,11 +91,9 @@ public:
         if(!areVaosCreated)
         {
             for(int i=0; i<vaosSize; i++)
-            {
-                {
+            { 
                     addVaos(i);
                     vaos[i]->create();
-                }
             }
             areVaosCreated = true;
         }

@@ -193,9 +193,6 @@ Scene_polyhedron_item::triangulate_facet(Facet_iterator fit)
         positions_facets.push_back(ffit->vertex(2)->point().z());
         positions_facets.push_back(1.0);
 
-        if (cur_shading == Flat || cur_shading == Gouraud)
-        {
-
             typedef typename Kernel::Vector_3	    Vector;
             Vector n = compute_facet_normal<Facet,Traits>(*fit);
             normals.push_back(n.x());
@@ -209,7 +206,7 @@ Scene_polyhedron_item::triangulate_facet(Facet_iterator fit)
             normals.push_back(n.x());
             normals.push_back(n.y());
             normals.push_back(n.z());
-        }
+
 
     }
 }
@@ -849,7 +846,6 @@ void Scene_polyhedron_item::draw(Viewer_interface* viewer) const {
     if(!are_buffers_filled)
         initialize_buffers(viewer);
 
-
     if(!is_selected)
         vaos[0]->bind();
     else
@@ -961,7 +957,7 @@ Scene_polyhedron_item::selection_changed(bool p_is_selected)
     if(p_is_selected != is_selected)
     {
         is_selected = p_is_selected;
-        initialize_buffers();
+        are_buffers_filled = false;
     }
 
 }
