@@ -5,7 +5,10 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <manipulatedCameraFrame.h>
-class Viewer_impl {
+#ifndef GL_MULTISAMPLE
+#define GL_MULTISAMPLE 0x809D
+#endif
+class Viewer_impl{
 public:
   Scene_draw_interface* scene;
   bool antialiasing;
@@ -189,19 +192,16 @@ void Viewer_impl::draw_aux(bool with_names, Viewer* viewer)
   else
     ::glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
 */
- if(antialiasing)
+  if(!viewer->context()->isOpenGLES())
   {
-    //::glEnable(GL_BLEND);
-    //::glEnable(GL_LINE_SMOOTH);
-    //::glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-    //::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  }
-  else
-  {
-    //::glDisable(GL_BLEND);
-    //::glDisable(GL_LINE_SMOOTH);
-    //::glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
-    //::glBlendFunc(GL_ONE, GL_ZERO);
+      if(antialiasing)
+      {
+          glEnable(GL_MULTISAMPLE);
+      }
+      else
+      {
+          glDisable(GL_MULTISAMPLE);
+      }
   }
   if(with_names)
     scene->drawWithNames(viewer);

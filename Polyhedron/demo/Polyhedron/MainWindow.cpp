@@ -29,7 +29,7 @@
 #include <QMap>
 #include <QStandardItemModel>
 #include <QStandardItem>
-
+#include <QGLFormat>
 #include <stdexcept>
 
 #ifdef QT_SCRIPT_LIB
@@ -136,6 +136,10 @@ MainWindow::MainWindow(QWidget* parent)
   // do not save the state of the viewer (anoying)
   viewer->setStateFileName(QString::null);
 
+  //enables Multi Sample Anti Aliasing
+  QSurfaceFormat msaaFormat;
+  msaaFormat.setSamples(4);
+  viewer->setFormat(msaaFormat);
   // setup scene
   scene = new Scene(this);
   viewer->setScene(scene);
