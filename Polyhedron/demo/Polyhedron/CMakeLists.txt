@@ -544,7 +544,9 @@ endif()
                         libscene_polyhedron_item_k_ring_selection.so
                         libscene_polyhedron_item_decorator.so
                         libscene_textured_polyhedron_item.so
+                        libscene_edit_polyhedron_item.so
 
+libedit_polyhedron_plugin.so
 liboff_plugin.so
 #libparameterization_plugin.so
 
@@ -577,7 +579,7 @@ liboff_plugin.so
 #libtransform_polyhedron_plugin.so
 #libcorefinement_plugin.so
 #libtrivial_plugin.so
-libcut_plugin.so
+#libcut_plugin.so
 #libpoint_inside_polyhedron_plugin.so
 #libpoint_set_simplification_plugin.so
 #libpoint_set_outliers_removal_plugin.so

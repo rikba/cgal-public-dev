@@ -28,6 +28,7 @@ Viewer::Viewer(QWidget* parent, bool antialiasing)
   d->antialiasing = antialiasing;
   d->twosides = false;
   d->macro_mode = false;
+  program_list.resize(0);
   setShortcut(EXIT_VIEWER, 0);
   setKeyDescription(Qt::Key_T,
                     tr("Turn the camera by 180 degrees"));
@@ -218,7 +219,9 @@ void Viewer::drawWithNames()
 void Viewer::postSelection(const QPoint& pixel)
 {
   bool found = false;
-  qglviewer::Vec point = camera()->pointUnderPixel(pixel, found);
+  //qglviewer::Vec point = camera()->pointUnderPixel(pixel, found);
+  qglviewer::Vec point = pointUnderPixelGLES(,camerea(),pixel, found);
+
   if(found) {
     emit selectedPoint(point.x,
                        point.y,

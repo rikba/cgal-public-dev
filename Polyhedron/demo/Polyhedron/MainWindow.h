@@ -153,6 +153,7 @@ protected slots:
   //Controls
 
   void toggle_frameManipulation(bool b);
+  void toggle_SelectionMode(bool b);
 protected:
   void loadPlugins();
   bool initPlugin(QObject*);

@@ -19,6 +19,7 @@ class VIEWER_EXPORT Viewer_interface : public QGLViewer {
 
 public:
   mutable int is_two_sides;
+  std::vector<QOpenGLShaderProgram*> program_list;
   Viewer_interface(QWidget* parent) : QGLViewer(parent) {}
   virtual ~Viewer_interface() {}
 

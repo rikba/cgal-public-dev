@@ -35,6 +35,7 @@ public:
   bool antiAliasing() const;
 
   bool inFastDrawing() const;
+
 public slots:
   void setAntiAliasing(bool b);
   void setTwoSides(bool b);
