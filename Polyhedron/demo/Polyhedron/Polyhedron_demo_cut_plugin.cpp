@@ -352,6 +352,7 @@ private:
   Scene_plane_item* plane_item;
   Scene_edges_item* edges_item;
   QAction* actionCreateCutPlane;
+  QTime sequencer;
 
   typedef std::map<QObject*,  AABB_tree*> Trees;
   Trees trees;
@@ -377,6 +378,7 @@ void Polyhedron_demo_cut_plugin::init(QMainWindow* mainWindow,
   actionCreateCutPlane = new QAction(tr("Create cutting plane"), mainWindow);
   connect(actionCreateCutPlane, SIGNAL(triggered()),
           this, SLOT(createCutPlane()));
+  sequencer.start();
 }
 
 QList<QAction*> Polyhedron_demo_cut_plugin::actions() const {
@@ -431,6 +433,7 @@ void Polyhedron_demo_cut_plugin::cut() {
   edges_item->edges.clear();
   QTime time;
   time.start();
+
   for(int i = 0, end = scene->numberOfEntries(); i < end; ++i) {
     Scene_item* item = scene->item(i);
     Scene_polyhedron_item* poly_item = qobject_cast<Scene_polyhedron_item*>(item);
@@ -466,8 +469,12 @@ void Polyhedron_demo_cut_plugin::cut() {
         edges_item->edges.push_back(*inter_seg);
     }
   }
-  
-  messages->information(QString("cut (%1 ms). %2 edges.").arg(time.elapsed()).arg(edges_item->edges.size()));
+
+  if(sequencer.elapsed()>1000)
+  {
+      sequencer.restart();
+      messages->information(QString("cut (%1 ms). %2 edges.").arg(time.elapsed()).arg(edges_item->edges.size()));
+  }
   scene->itemChanged(edges_item);
   QApplication::restoreOverrideCursor();
 }
