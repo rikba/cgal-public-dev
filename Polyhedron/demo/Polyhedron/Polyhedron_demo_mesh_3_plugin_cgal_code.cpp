@@ -45,7 +45,7 @@ typedef Tr::Point Point_3;
 namespace {
 void CGALglcolor(QColor c)
 {
-    ::glColor4d(c.red()/255.0, c.green()/255.0, c.blue()/255.0, c.alpha()/255.0);
+    //::glColor4d(c.red()/255.0, c.green()/255.0, c.blue()/255.0, c.alpha()/255.0);
 }
 }
 
