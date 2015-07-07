@@ -138,6 +138,7 @@ public:
 
   // Event handling
   virtual bool keyPressEvent(QKeyEvent*){return false;}
+  mutable QMap<int, QOpenGLShaderProgram*> shader_programs;
 public slots:
   // Call that once you have finished changing something in the item
   // (either the properties or internal data)
@@ -230,7 +231,7 @@ protected:
   }
 
 
-  mutable QMap<int, QOpenGLShaderProgram*> shader_programs;
+
   QOpenGLShaderProgram* getShaderProgram(int , Viewer_interface *viewer = 0) const;
 
   int vertexLoc;

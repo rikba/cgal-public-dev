@@ -1001,28 +1001,21 @@ void MainWindow::selectionChanged()
 
     connect(ui->actionManipulated_Frame, SIGNAL(toggled(bool)),
                                  this, SLOT(toggle_frameManipulation(bool)));
-
-    connect(ui->actionSelection, SIGNAL(toggled(bool)),
-                                 this, SLOT(toggle_SelectionMode(bool)));
-
-
   }
+  connect(ui->actionSelection, SIGNAL(toggled(bool)),
+                               this, SLOT(toggle_SelectionMode(bool)));
+
   viewer->update();
 }
 
 void MainWindow::toggle_frameManipulation(bool b)
 {
     viewer->frame_manipulation = b;
-    qDebug()<<"frame manipulation "<<b;
 }
 void MainWindow::toggle_SelectionMode(bool b)
 {
-    if(b)
-        viewer->setMouseBinding(Qt::NoModifier, Qt::LeftButton, QGLViewer::SELECT);
-    else
-        viewer->setMouseBinding(Qt::NoModifier, Qt::LeftButton, QGLViewer::CAMERA, QGLViewer::ROTATE);
+    viewer->selection_mode = b;
 
-    qDebug()<<"selection "<<b;
 }
 
 

@@ -18,6 +18,7 @@
 #include <cmath>
 #include <boost/variant.hpp>
 
+
 class QEvent;
 class QMouseEvent;
 namespace GlSplat { class SplatRenderer; }
@@ -141,13 +142,20 @@ private slots:
   void setSelectionRay(double, double, double, double, double, double);
 
 private:
-  void draw_aux(bool with_names, Viewer_interface*);
+  void draw_aux(Viewer_interface*);
   typedef QList<Scene_item*> Entries;
   Entries m_entries;
   int selected_item;
   QList<int> selected_items_list;
   int item_A;
   int item_B;
+  struct shaders_info
+  {
+      QByteArray code;
+      int program_index;
+      int shader_index;
+      int item_index;
+  };
 #ifdef CGAL_GLEW_ENABLED
   static GlSplat::SplatRenderer* ms_splatting;
   static int ms_splattingCounter;
@@ -176,6 +184,7 @@ private:
   QPixmap checkOnPixmap;
   QPixmap checkOffPixmap;
   mutable int size;
+
 }; // end class SceneDelegate
 
 #endif // SCENE_H

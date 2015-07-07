@@ -230,7 +230,6 @@ public:
 protected:
   void timerEvent(QTimerEvent *event);
 
-
 public slots:
   void changed();
   void selected(const std::set<Polyhedron::Vertex_handle>& m)

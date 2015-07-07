@@ -115,7 +115,7 @@ Scene_edit_polyhedron_item::Scene_edit_polyhedron_item
     };
     const char fragment_shader_source[]=
     {
-        "varying vec3 fColors; \n"
+        "varying highp vec3 fColors; \n"
         " \n"
         "void main(void) \n"
         "{ \n"
@@ -335,6 +335,12 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
         vaos[7]->release();
         program->release();
     }
+    if(program_list_is_empty)
+    {
+    foreach(QOpenGLShaderProgram* prog, shader_programs)
+        viewer->program_list.push_back(prog);
+    k_ring_selector.edit_programs = viewer->program_list;
+    }
     are_buffers_filled = true;
 }
 
@@ -485,12 +491,16 @@ bool Scene_edit_polyhedron_item::eventFilter(QObject* /*target*/, QEvent *event)
         QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
         Qt::KeyboardModifiers modifiers = keyEvent->modifiers();
 
-        state.ctrl_pressing = modifiers.testFlag(Qt::ControlModifier);
+        //state.ctrl_pressing = modifiers.testFlag(Qt::ControlModifier);
         state.shift_pressing = modifiers.testFlag(Qt::ShiftModifier);
     }
+   QGLViewer* viewer = *QGLViewer::QGLViewerPool().begin();
+        state.ctrl_pressing = viewer->frame_manipulation;
     // mouse events
     if(event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseButtonRelease)
     {
+           qDebug()<<"<state.ctrl_pressing="<<state.ctrl_pressing;
+           qDebug()<<"<state.shift_pressing="<<state.shift_pressing;
         QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
         if(mouse_event->button() == Qt::LeftButton) {
             state.left_button_pressing = event->type() == QEvent::MouseButtonPress;
@@ -537,7 +547,10 @@ void Scene_edit_polyhedron_item::draw_edges(Viewer_interface* viewer) const {
 void Scene_edit_polyhedron_item::draw(Viewer_interface* viewer) const {
     Scene_item::draw();
     if(!are_buffers_filled)
+    {
         initialize_buffers(viewer);
+
+    }
     vaos[0]->bind();
     program = getShaderProgram(PROGRAM_WITH_LIGHT);
     attrib_buffers(viewer,PROGRAM_WITH_LIGHT);
@@ -559,6 +572,8 @@ void Scene_edit_polyhedron_item::draw_ROI_and_control_vertices(Viewer_interface*
     //CGAL::GL::Point_size point_size; point_size.set_point_size(5);
 
    // color.set_rgb_color(0, 1.f, 0);
+       // qFunc.glEnable(GL_POINT_SPRITE);
+        //qFunc.glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
     if(ui_widget->ShowROICheckBox->isChecked()) {
 
         if(!ui_widget->ShowAsSphereCheckBox->isChecked()) {

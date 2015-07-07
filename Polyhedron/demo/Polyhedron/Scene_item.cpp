@@ -168,13 +168,6 @@ void Scene_item::attrib_buffers(Viewer_interface* viewer, int program_name) cons
         shader_programs[PROGRAM_WITHOUT_LIGHT]->bind();
         shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("mvp_matrix", mvp_mat);
         shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("mv_matrix", mv_mat);
-
-        shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("light_pos", position);
-        shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("light_diff", diffuse);
-        shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("light_spec", specular);
-        shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("light_amb", ambient);
-        shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("spec_power", 51.8f);
-        shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("is_two_side", viewer->is_two_sides);
         shader_programs[PROGRAM_WITHOUT_LIGHT]->setAttributeValue("normals", 0.0,0.0,0.0);
         shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("f_matrix",f_mat);
 

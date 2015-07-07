@@ -209,10 +209,10 @@ viewer->setBackgroundColor(viewer->backgroundColor());
   CGAL::check_gl_error(__FILE__, __LINE__);
 }
 
-void Viewer::drawWithNames()
+void Viewer::drawWithNames(const QPoint &point)
 {
-    qDebug()<<"withName";
   QGLViewer::draw();
+  d->scene->picking_target = point;
   d->draw_aux(true, this);
 }
 
@@ -220,7 +220,7 @@ void Viewer::postSelection(const QPoint& pixel)
 {
   bool found = false;
   //qglviewer::Vec point = camera()->pointUnderPixel(pixel, found);
-  qglviewer::Vec point = pointUnderPixelGLES(,camerea(),pixel, found);
+  qglviewer::Vec point = pointUnderPixelGLES(d->scene->list_programs,camera(),pixel, found);
 
   if(found) {
     emit selectedPoint(point.x,

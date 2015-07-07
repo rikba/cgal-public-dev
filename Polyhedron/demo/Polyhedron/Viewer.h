@@ -28,7 +28,7 @@ public:
   void draw();
   void fastDraw();
   void initializeGL();
-  void drawWithNames();
+  void drawWithNames(const QPoint& point);
   void postSelection(const QPoint&);
 
   void setScene(Scene_draw_interface* scene);

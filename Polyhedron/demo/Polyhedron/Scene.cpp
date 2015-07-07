@@ -21,7 +21,7 @@
 #include <QList>
 #include <QAbstractProxyModel>
 #include <QDebug>
-
+#include "Viewer_interface.h"
 
 namespace {
 void CGALglcolor(QColor c)
@@ -274,41 +274,115 @@ Scene::keyPressEvent(QKeyEvent* e){
 void 
 Scene::draw()
 {
-    draw_aux(false, 0);
+    draw_aux(0);
 }
 void
 Scene::draw(Viewer_interface* viewer)
 {
-    draw_aux(false, viewer);
+    draw_aux(viewer);
 }
 void 
 Scene::drawWithNames()
 {
-    draw_aux(true, 0);
+    drawWithNames(0);
 }
 void
 Scene::drawWithNames(Viewer_interface* viewer)
 {
-    draw_aux(true, viewer);
+    QOpenGLFunctions gl;
+    gl.initializeOpenGLFunctions();
+
+    std::vector<shaders_info> original_shaders;
+    QColor bgColor(viewer->backgroundColor());
+
+    //draws the image in the fbo
+    for(int index = 0; index < m_entries.size(); ++index)
+    {
+        Scene_item& item = *m_entries[index];
+        //transforms the index in a corresponding unique RGB color for picking.
+        int R = (index & 0x000000FF) >>  0;
+        int G = (index & 0x0000FF00) >>  8;
+        int B = (index & 0x00FF0000) >> 16;
+        float r= R/255.0;
+        float g = G/255.0;
+        float b = B/255.0;
+        //The fragmentertex source code
+        QString picking_fragment_source(
+                    "void main(void) { \n"
+                    "gl_FragColor = vec4(");
+        picking_fragment_source.append(QString::number(r)+","+QString::number(g)+","+QString::number(b)+",1.0); \n"
+                                                                                                        "} \n"
+                                                                                                        "\n");
+
+        foreach(QOpenGLShaderProgram* program, item.shader_programs)
+        {
+            for(int j=0; j<(int)program->shaders().size(); j++)
+            {
+                if(program->shaders().at(j)->shaderType() == QOpenGLShader::Fragment)
+                {
+                    //copies the original shaders of each program
+                    shaders_info c;
+                    c.code = program->shaders().at(j)->sourceCode();
+                    c.program_index = item.shader_programs.key(program);
+                    c.shader_index = j;
+                    c.item_index = index;
+                    original_shaders.push_back(c);
+                    //replace their fragment shaders so they display with the picking color
+                    program->shaders().at(j)->compileSourceCode(picking_fragment_source);
+                }
+                program->link();
+            }
+        }
+        viewer->setBackgroundColor(::Qt::white);
+
+        if(item.visible())
+        {
+            item.draw(viewer);
+        }
+    }
+    //determines the size of the buffer
+    int deviceWidth = viewer->camera()->screenWidth();
+    int deviceHeight = viewer->camera()->screenHeight();
+    int rowLength = deviceWidth * 4; // data asked in RGBA,so 4 bytes.
+    const static int dataLength = rowLength * deviceHeight;
+    GLubyte* buffer = new GLubyte[dataLength];
+
+    // Qt uses upper corner for its origin while GL uses the lower corner.
+    glReadPixels(picking_target.x(), deviceHeight-1-picking_target.y(), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+    std::vector<QOpenGLShaderProgram*> all_programs(0);
+    //resets the originals programs
+    for(int i=0; i<(int)original_shaders.size(); i++)
+    {
+        int entries_index = original_shaders[i].item_index;
+        int program_index = original_shaders[i].program_index;
+        int shader_index = original_shaders[i].shader_index;
+        m_entries[entries_index]->shader_programs[program_index]->shaders().at(shader_index)->compileSourceCode(original_shaders[i].code);
+        m_entries[entries_index]->shader_programs[program_index]->link();
+        all_programs.push_back(m_entries[entries_index]->shader_programs[program_index]);
+
+    }
+
+    int ID = (buffer[0] + buffer[1] * 256 +buffer[2] * 256*256);
+    //if the picked color is not white (background color)
+    if(buffer[0]*buffer[1]*buffer[2] < 255*255*255)
+        viewer->setSelectedName(ID);
+    else
+        viewer->setSelectedName(-1);
+    viewer->setBackgroundColor(bgColor);
+    list_programs = all_programs;
 }
 
 void 
-Scene::draw_aux(bool with_names, Viewer_interface* viewer)
-{
-    // Flat/Gouraud OpenGL drawing
+Scene::draw_aux(Viewer_interface* viewer)
+{    // Flat/Gouraud OpenGL drawing
     for(int index = 0; index < m_entries.size(); ++index)
     {
-        if(with_names) {
-      //      ::glPushName(index);
-        }
         Scene_item& item = *m_entries[index];
         if(item.visible())
         {
             if(item.renderingMode() == Flat || item.renderingMode() == FlatPlusEdges || item.renderingMode() == Gouraud)
             {
-          //      ::glEnable(GL_LIGHTING);
-          //      ::glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-          //      ::glPointSize(2.f);
+                //      ::glPointSize(2.f);
                 ::glLineWidth(1.0f);
                 if(index == selected_item)
                 {
@@ -322,60 +396,35 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
                     CGALglcolor(item.color());
                 }
 
-              //  if(item.renderingMode() == Gouraud)
-           //         ::glShadeModel(GL_SMOOTH);
-                //else
-             //       ::glShadeModel(GL_FLAT);
-
-
-                if(CGAL::check_gl_error(__FILE__, __LINE__)) {
-                    std::cerr << "GL error was before the drawing of the item \""
-                              << qPrintable(item.name()) << "\"\n"
-                              << "  with_name = " << std::boolalpha << with_names
-                              << std::endl;
-                }
                 item.contextual_changed();
                 if(viewer)
                     item.draw(viewer);
                 else
                     item.draw();
-                if(CGAL::check_gl_error(__FILE__, __LINE__)) {
-                    std::cerr << "GL error was after the drawing of the item \""
-                              << qPrintable(item.name()) << "\"\n"
-                              << "  with_name = " << std::boolalpha << with_names
-                              << std::endl;
-                }
             }
         }
-        if(with_names) {
-          //  ::glPopName();
-        }
     }
+
 
     // Wireframe OpenGL drawing
     for(int index = 0; index < m_entries.size(); ++index)
     {
-        if(with_names) {
-            //::glPushName(index);
-        }//
         Scene_item& item = *m_entries[index];
         if(item.visible())
         {
             if(item.renderingMode() == FlatPlusEdges || item.renderingMode() == Wireframe)
             {
-              //  ::glDisable(GL_LIGHTING);
-              //  ::glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-              //  ::glPointSize(2.f);
+                //  ::glPointSize(2.f);
                 ::glLineWidth(1.0f);
                 if(index == selected_item)
                 {
                     CGALglcolor(Qt::black);
-                      item.selection_changed(true);
+                    item.selection_changed(true);
                 }
                 else
                 {
                     CGALglcolor(item.color().lighter(50));
-                      item.selection_changed(false);
+                    item.selection_changed(false);
                 }
 
                 item.contextual_changed();
@@ -386,9 +435,7 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
             }
             else{
                 if( item.renderingMode() == PointsPlusNormals ){
-                //    ::glDisable(GL_LIGHTING);
-                //    ::glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-                //    ::glPointSize(2.f);
+                    //    ::glPointSize(2.f);
                     ::glLineWidth(1.0f);
                     if(index == selected_item)
                     {
@@ -410,25 +457,17 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
                 }
             }
         }
-        if(with_names) {
-           // ::glPopName();
-        }
     }
 
     // Points OpenGL drawing
     for(int index = 0; index < m_entries.size(); ++index)
     {
-        if(with_names) {
-          //  ::glPushName(index);
-        }
         Scene_item& item = *m_entries[index];
         if(item.visible())
         {
             if(item.renderingMode() == Points  || item.renderingMode() == PointsPlusNormals)
             {
-             //   ::glDisable(GL_LIGHTING);
-             //   ::glPolygonMode(GL_FRONT_AND_BACK,GL_POINT);
-             //   ::glPointSize(2.f);
+                //   ::glPointSize(2.f);
                 ::glLineWidth(1.0f);
                 CGALglcolor(item.color());
                 item.contextual_changed();
@@ -438,10 +477,9 @@ Scene::draw_aux(bool with_names, Viewer_interface* viewer)
                     item.draw_points();
             }
         }
-        if(with_names) {
-        //    ::glPopName();
-        }
+
     }
+
     // Splatting
    /* if(!with_names && ms_splatting->isSupported())
     {

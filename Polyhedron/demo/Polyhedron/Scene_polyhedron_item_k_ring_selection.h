@@ -20,6 +20,7 @@ class SCENE_POLYHEDRON_ITEM_K_RING_SELECTION_EXPORT Scene_polyhedron_item_k_ring
 {
   Q_OBJECT
 public:
+  mutable std::vector<QOpenGLShaderProgram*> edit_programs;
   struct Active_handle { enum Type{ VERTEX = 0, FACET = 1, EDGE = 2 }; };
 
   typedef boost::graph_traits<Polyhedron>::edge_descriptor edge_descriptor;
@@ -161,11 +162,12 @@ protected:
   {
     // This filter is both filtering events from 'viewer' and 'main window'
     // key events
+      QGLViewer* viewer = *QGLViewer::QGLViewerPool().begin();
     if(event->type() == QEvent::KeyPress || event->type() == QEvent::KeyRelease)  {
       QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
       Qt::KeyboardModifiers modifiers = keyEvent->modifiers();
 
-      state.shift_pressing = modifiers.testFlag(Qt::ShiftModifier);
+      state.shift_pressing = (modifiers.testFlag(Qt::ShiftModifier));
     }
     // mouse events
     if(event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseButtonRelease) {
@@ -174,17 +176,17 @@ protected:
         state.left_button_pressing = event->type() == QEvent::MouseButtonPress;
       }   
     }
-
     // use mouse move event for paint-like selection
     if(event->type() == QEvent::MouseMove &&
-      (state.shift_pressing && state.left_button_pressing) )    
+      ((state.shift_pressing || viewer->selection_mode) && state.left_button_pressing) )
     { // paint with mouse move event 
       QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
-      QGLViewer* viewer = *QGLViewer::QGLViewerPool().begin();
+      //QTouchEvent* touch_event = static_cast<QTouchEvent*>(event);
       qglviewer::Camera* camera = viewer->camera();
 
       bool found = false;
-      const qglviewer::Vec& point = camera->pointUnderPixel(mouse_event->pos(), found);
+      const qglviewer::Vec& point = viewer->pointUnderPixelGLES(edit_programs, camera, mouse_event->pos(), found);
+      //const qglviewer::Vec& point = viewer->pointUnderPixelGLES(edit_programs, camera, touch_event->touchPoints().first().pos().toPoint(), found);
       if(found)
       {
         const qglviewer::Vec& orig = camera->position();

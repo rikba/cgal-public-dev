@@ -578,12 +578,12 @@ liboff_plugin.so
 #libintersection_plugin.so
 #libtransform_polyhedron_plugin.so
 #libcorefinement_plugin.so
-#libtrivial_plugin.so
+libtrivial_plugin.so
 #libcut_plugin.so
 #libpoint_inside_polyhedron_plugin.so
 #libpoint_set_simplification_plugin.so
 #libpoint_set_outliers_removal_plugin.so
-#libselection_plugin.so
+libselection_plugin.so
 #libpoisson_plugin.so
 #libscale_space_reconstruction_plugin.so
 #
