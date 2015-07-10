@@ -9,6 +9,11 @@
 #ifndef GL_MULTISAMPLE
 #define GL_MULTISAMPLE 0x809D
 #endif
+//just so it can compile.
+#ifndef GL_VERTEX_PROGRAM_POINT_SIZE
+#define GL_VERTEX_PROGRAM_POINT_SIZE 1
+#endif
+
 class Viewer_impl{
 public:
   Scene_draw_interface* scene;
@@ -114,7 +119,10 @@ void Viewer::initializeGL()
   //gl.initializeOpenGLFunctions();
   setBackgroundColor(::Qt::white);
   d->scene->initializeGL();
-
+  if(!context()->isOpenGLES())
+  {
+    gl->glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+  }
   // ::glFogf(GL_FOG_DENSITY, 0.05f);
   // ::glHint(GL_FOG_HINT, GL_NICEST);
   // ::glFogi(GL_FOG_MODE, GL_LINEAR);

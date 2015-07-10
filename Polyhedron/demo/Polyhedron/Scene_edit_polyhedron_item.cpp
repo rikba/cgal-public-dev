@@ -499,8 +499,16 @@ bool Scene_edit_polyhedron_item::eventFilter(QObject* /*target*/, QEvent *event)
     // mouse events
     if(event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseButtonRelease)
     {
-           qDebug()<<"<state.ctrl_pressing="<<state.ctrl_pressing;
-           qDebug()<<"<state.shift_pressing="<<state.shift_pressing;
+        if(viewer->frame_manipulation)
+            state.ctrl_pressing = true;
+        else
+            state.ctrl_pressing = false;
+        if(viewer->selection_mode)
+            state.shift_pressing = true;
+        else
+            state.shift_pressing = false;
+        qDebug()<<"<state.ctrl_pressing="<<state.ctrl_pressing;
+        qDebug()<<"<state.shift_pressing="<<state.shift_pressing;
         QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
         if(mouse_event->button() == Qt::LeftButton) {
             state.left_button_pressing = event->type() == QEvent::MouseButtonPress;
