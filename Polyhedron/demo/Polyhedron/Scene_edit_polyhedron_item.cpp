@@ -129,6 +129,7 @@ Scene_edit_polyhedron_item::Scene_edit_polyhedron_item
     //the spheres :
     create_Sphere(length_of_axis/15.0);
     changed();
+    cadencer.start();
 }
 
 Scene_edit_polyhedron_item::~Scene_edit_polyhedron_item()
@@ -499,6 +500,9 @@ bool Scene_edit_polyhedron_item::eventFilter(QObject* /*target*/, QEvent *event)
     // mouse events
     if(event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseButtonRelease)
     {
+        if(cadencer.elapsed()>500)
+        {
+            cadencer.restart();
         if(viewer->frame_manipulation)
             state.ctrl_pressing = true;
         else
@@ -507,8 +511,8 @@ bool Scene_edit_polyhedron_item::eventFilter(QObject* /*target*/, QEvent *event)
             state.shift_pressing = true;
         else
             state.shift_pressing = false;
-        qDebug()<<"<state.ctrl_pressing="<<state.ctrl_pressing;
-        qDebug()<<"<state.shift_pressing="<<state.shift_pressing;
+        //qDebug()<<"<state.ctrl_pressing="<<state.ctrl_pressing;
+        //qDebug()<<"<state.shift_pressing="<<state.shift_pressing;
         QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
         if(mouse_event->button() == Qt::LeftButton) {
             state.left_button_pressing = event->type() == QEvent::MouseButtonPress;
@@ -516,6 +520,7 @@ bool Scene_edit_polyhedron_item::eventFilter(QObject* /*target*/, QEvent *event)
         if(mouse_event->button() == Qt::RightButton) {
             state.right_button_pressing = event->type() == QEvent::MouseButtonPress;
         }
+    }
     }
     ////////////////// //////////////// /////////////////////
 

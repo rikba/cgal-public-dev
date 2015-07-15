@@ -24,7 +24,7 @@
 #include <QGLBuffer>
 #include <QGLShader>
 #include <QGLShaderProgram>
-
+#include <QTime>
 
 typedef Polyhedron::Vertex_handle Vertex_handle;
 typedef boost::graph_traits<Polyhedron>::vertex_descriptor		vertex_descriptor;
@@ -262,6 +262,8 @@ public slots:
   void deform(); // deform the mesh
 // members
 private:
+  //to limit the number of touchevents in one second
+  QTime cadencer;
   Ui::DeformMesh* ui_widget;
   Scene_polyhedron_item* poly_item;
   // For drawing

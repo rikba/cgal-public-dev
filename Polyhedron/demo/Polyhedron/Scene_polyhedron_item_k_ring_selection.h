@@ -186,7 +186,6 @@ protected:
 
       bool found = false;
       const qglviewer::Vec& point = viewer->pointUnderPixelGLES(edit_programs, camera, mouse_event->pos(), found);
-      qDebug()<<"fin";
       //const qglviewer::Vec& point = viewer->pointUnderPixelGLES(edit_programs, camera, touch_event->touchPoints().first().pos().toPoint(), found);
       if(found)
       {
