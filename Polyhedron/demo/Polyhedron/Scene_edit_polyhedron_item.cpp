@@ -129,7 +129,6 @@ Scene_edit_polyhedron_item::Scene_edit_polyhedron_item
     //the spheres :
     create_Sphere(length_of_axis/15.0);
     changed();
-    cadencer.start();
 }
 
 Scene_edit_polyhedron_item::~Scene_edit_polyhedron_item()
@@ -487,32 +486,29 @@ bool Scene_edit_polyhedron_item::eventFilter(QObject* /*target*/, QEvent *event)
     Mouse_keyboard_state_deformation old_state = state;
     ////////////////// TAKE EVENTS /////////////////////
     // key events
+
     if(event->type() == QEvent::KeyPress || event->type() == QEvent::KeyRelease)
     {
         QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
         Qt::KeyboardModifiers modifiers = keyEvent->modifiers();
 
-        //state.ctrl_pressing = modifiers.testFlag(Qt::ControlModifier);
-        state.shift_pressing = modifiers.testFlag(Qt::ShiftModifier);
+        ctrl_pressing = modifiers.testFlag(Qt::ControlModifier);
+        shift_pressing = modifiers.testFlag(Qt::ShiftModifier);
     }
    QGLViewer* viewer = *QGLViewer::QGLViewerPool().begin();
-        state.ctrl_pressing = viewer->frame_manipulation;
     // mouse events
+
     if(event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseButtonRelease)
     {
-        if(cadencer.elapsed()>500)
-        {
-            cadencer.restart();
-        if(viewer->frame_manipulation)
+
+        if(viewer->frame_manipulation || ctrl_pressing  )
             state.ctrl_pressing = true;
         else
             state.ctrl_pressing = false;
-        if(viewer->selection_mode)
+        if(viewer->selection_mode || shift_pressing )
             state.shift_pressing = true;
         else
             state.shift_pressing = false;
-        //qDebug()<<"<state.ctrl_pressing="<<state.ctrl_pressing;
-        //qDebug()<<"<state.shift_pressing="<<state.shift_pressing;
         QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
         if(mouse_event->button() == Qt::LeftButton) {
             state.left_button_pressing = event->type() == QEvent::MouseButtonPress;
@@ -521,14 +517,13 @@ bool Scene_edit_polyhedron_item::eventFilter(QObject* /*target*/, QEvent *event)
             state.right_button_pressing = event->type() == QEvent::MouseButtonPress;
         }
     }
-    }
     ////////////////// //////////////// /////////////////////
 
     if(!poly_item->visible()) { return false; } // if not visible just update event state but don't do any action
 
     // check state changes between old and current state
-    bool ctrl_pressed_now = state.ctrl_pressing && !old_state.ctrl_pressing;
-    bool ctrl_released_now = !state.ctrl_pressing && old_state.ctrl_pressing;
+    bool ctrl_pressed_now = ctrl_pressing && !old_state.ctrl_pressing;
+    bool ctrl_released_now = !ctrl_pressing && old_state.ctrl_pressing;
     if(ctrl_pressed_now || ctrl_released_now || event->type() == QEvent::HoverMove)
     {// activate a handle manipulated frame
         QGLViewer* viewer = *QGLViewer::QGLViewerPool().begin();
@@ -537,7 +532,6 @@ bool Scene_edit_polyhedron_item::eventFilter(QObject* /*target*/, QEvent *event)
 
         if(need_repaint) { emit itemChanged(); }
     }
-
     return false;
 }
 

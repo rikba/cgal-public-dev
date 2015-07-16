@@ -14,6 +14,7 @@
 #include <queue>
 
 #include <CGAL/boost/graph/selection.h>
+#include <QTime>
 
 class SCENE_POLYHEDRON_ITEM_K_RING_SELECTION_EXPORT Scene_polyhedron_item_k_ring_selection 
   : public QObject
@@ -38,12 +39,14 @@ public:
   int                    k_ring;
   Scene_polyhedron_item* poly_item;
 
-  Scene_polyhedron_item_k_ring_selection() {}
+  Scene_polyhedron_item_k_ring_selection() {cadencer.start();}
 
   Scene_polyhedron_item_k_ring_selection
     (Scene_polyhedron_item* poly_item, QMainWindow* mw, Active_handle::Type aht, int k_ring)
   {
     init(poly_item, mw, aht, k_ring);
+    cadencer.start();
+
   }
 
   void init(Scene_polyhedron_item* poly_item, QMainWindow* mw, Active_handle::Type aht, int k_ring) {
@@ -88,6 +91,7 @@ signals:
 
 protected:
 
+  QTime cadencer;
   template<class HandleType>
   void process_selection(HandleType clicked) {
     const std::set<HandleType>& selection = extract_k_ring(clicked, k_ring);
@@ -177,23 +181,28 @@ protected:
       }   
     }
     // use mouse move event for paint-like selection
-    if(event->type() == QEvent::MouseMove &&
-      ((state.shift_pressing || viewer->selection_mode) && state.left_button_pressing) )
-    { // paint with mouse move event 
-      QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
-      //QTouchEvent* touch_event = static_cast<QTouchEvent*>(event);
-      qglviewer::Camera* camera = viewer->camera();
+    if(cadencer.elapsed()>300)
+    {
+        cadencer.restart();
+      if(event->type() == QEvent::MouseMove &&
+        ((state.shift_pressing || viewer->selection_mode) && state.left_button_pressing) )
+      { // paint with mouse move event
 
-      bool found = false;
-      const qglviewer::Vec& point = viewer->pointUnderPixelGLES(edit_programs, camera, mouse_event->pos(), found);
-      //const qglviewer::Vec& point = viewer->pointUnderPixelGLES(edit_programs, camera, touch_event->touchPoints().first().pos().toPoint(), found);
-      if(found)
-      {
-        const qglviewer::Vec& orig = camera->position();
-        const qglviewer::Vec& dir = point - orig;
-        poly_item->select(orig.x, orig.y, orig.z, dir.x, dir.y, dir.z);
-      }
-    }//end MouseMove
+        QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
+        //QTouchEvent* touch_event = static_cast<QTouchEvent*>(event);
+        qglviewer::Camera* camera = viewer->camera();
+
+        bool found = false;
+        const qglviewer::Vec& point = viewer->pointUnderPixelGLES(edit_programs, camera, mouse_event->pos(), found);
+        //const qglviewer::Vec& point = viewer->pointUnderPixelGLES(edit_programs, camera, touch_event->touchPoints().first().pos().toPoint(), found);
+        if(found)
+        {
+          const qglviewer::Vec& orig = camera->position();
+          const qglviewer::Vec& dir = point - orig;
+          poly_item->select(orig.x, orig.y, orig.z, dir.x, dir.y, dir.z);
+        }
+      }//end MouseMove
+  }
     return false;
   }
 };

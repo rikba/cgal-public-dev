@@ -998,13 +998,11 @@ void MainWindow::selectionChanged()
   if(viewer->manipulatedFrame() != 0) {
     connect(viewer->manipulatedFrame(), SIGNAL(modified()),
             this, SLOT(updateInfo()));
-
-    connect(ui->actionManipulated_Frame, SIGNAL(toggled(bool)),
-                                 this, SLOT(toggle_frameManipulation(bool)));
   }
   connect(ui->actionSelection, SIGNAL(toggled(bool)),
                                this, SLOT(toggle_SelectionMode(bool)));
-
+  connect(ui->actionManipulated_Frame, SIGNAL(toggled(bool)),
+                               this, SLOT(toggle_frameManipulation(bool)));
   viewer->update();
 }
 
