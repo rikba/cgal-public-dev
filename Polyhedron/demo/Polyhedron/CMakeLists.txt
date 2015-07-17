@@ -97,6 +97,7 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
 
   include_directories ( ${QGLVIEWER_INCLUDE_DIR} )
   include_directories ( ${GLEW_INCLUDE_DIR} )
+  include_directories ( ${Boost_INCLUDE_DIR} )
 
   qt5_wrap_ui( MainWindowUI_files MainWindow.ui )
   qt5_wrap_ui( FileLoaderDialogUI_files FileLoaderDialog.ui )
@@ -548,8 +549,8 @@ endif()
 
 libedit_polyhedron_plugin.so
 liboff_plugin.so
-#libparameterization_plugin.so
 
+#libparameterization_plugin.so
 #libremeshing_plugin.so
 #libcamera_positions_plugin.so
 #libinside_out_plugin.so
@@ -578,12 +579,16 @@ liboff_plugin.so
 #libintersection_plugin.so
 #libtransform_polyhedron_plugin.so
 #libcorefinement_plugin.so
+
 libtrivial_plugin.so
+
 #libcut_plugin.so
 #libpoint_inside_polyhedron_plugin.so
 #libpoint_set_simplification_plugin.so
 #libpoint_set_outliers_removal_plugin.so
+
 libselection_plugin.so
+
 #libpoisson_plugin.so
 #libscale_space_reconstruction_plugin.so
 #
