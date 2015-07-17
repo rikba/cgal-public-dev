@@ -36,10 +36,8 @@ Scene_edit_polyhedron_item::Scene_edit_polyhedron_item
       normals_sphere(0),
       k_ring_selector(poly_item, mw, Scene_polyhedron_item_k_ring_selection::Active_handle::VERTEX, true),
       Scene_item(20,8)
-      //quadric(gluNewQuadric())
 {
     mw->installEventFilter(this);
-   // gluQuadricNormals(quadric, GLU_SMOOTH);
     // bind vertex picking
     connect(&k_ring_selector, SIGNAL(selected(const std::set<Polyhedron::Vertex_handle>&)), this,
             SLOT(selected(const std::set<Polyhedron::Vertex_handle>&)));
