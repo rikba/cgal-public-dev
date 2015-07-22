@@ -144,6 +144,7 @@ Scene_edit_polyhedron_item::~Scene_edit_polyhedron_item()
 /// For the Shader gestion///
 void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0) const
 {
+
     //vao for the facets
     {
         program = getShaderProgram(PROGRAM_WITH_LIGHT, viewer);
@@ -334,10 +335,12 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
     program_list_is_empty = false;
     }
     are_buffers_filled = true;
+
 }
 
 void Scene_edit_polyhedron_item::compute_normals_and_vertices(void)
 {
+
     ROI_points.clear();
     control_points.clear();
     BOOST_FOREACH(vertex_descriptor vd, deform_mesh.roi_vertices())
@@ -528,6 +531,7 @@ bool Scene_edit_polyhedron_item::eventFilter(QObject* /*target*/, QEvent *event)
 }
 
 void Scene_edit_polyhedron_item::draw_edges(Viewer_interface* viewer) const {
+
     Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
@@ -542,6 +546,7 @@ void Scene_edit_polyhedron_item::draw_edges(Viewer_interface* viewer) const {
     if(rendering_mode == Wireframe) {
         draw_ROI_and_control_vertices(viewer);
     }
+
 }
 void Scene_edit_polyhedron_item::draw(Viewer_interface* viewer) const {
     Scene_item::draw();
@@ -566,6 +571,7 @@ void Scene_edit_polyhedron_item::draw(Viewer_interface* viewer) const {
 }
 
 void Scene_edit_polyhedron_item::draw_ROI_and_control_vertices(Viewer_interface* viewer) const {
+
     Scene_item::draw();
     //CGAL::GL::Color color;
     //CGAL::GL::Point_size point_size; point_size.set_point_size(5);
@@ -721,9 +727,11 @@ void Scene_edit_polyhedron_item::compute_bbox(const Scene_interface::Bbox& bb){
 
 void Scene_edit_polyhedron_item::changed()
 {
+
     compute_normals_and_vertices();
     update_normals();
     are_buffers_filled = false;
+
 }
 
 Scene_polyhedron_item* Scene_edit_polyhedron_item::to_polyhedron_item() {

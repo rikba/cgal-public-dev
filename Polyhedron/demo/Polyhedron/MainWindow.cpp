@@ -1003,12 +1003,13 @@ void MainWindow::selectionChanged()
                                this, SLOT(toggle_SelectionMode(bool)));
   connect(ui->actionManipulated_Frame, SIGNAL(toggled(bool)),
                                this, SLOT(toggle_frameManipulation(bool)));
+
   viewer->update();
 }
 
 void MainWindow::toggle_frameManipulation(bool b)
 {
-    viewer->frame_manipulation = b;
+    viewer->frame_manipulation_requested = b;
 }
 void MainWindow::toggle_SelectionMode(bool b)
 {

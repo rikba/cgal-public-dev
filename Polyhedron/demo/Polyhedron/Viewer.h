@@ -33,7 +33,7 @@ public:
 
   void setScene(Scene_draw_interface* scene);
   bool antiAliasing() const;
-
+  bool frame_manipulation_requested;
   bool inFastDrawing() const;
 
 public slots:
@@ -49,6 +49,7 @@ public slots:
 protected:
   void mousePressEvent(QMouseEvent*);
   void keyPressEvent(QKeyEvent*);
+  bool event(QEvent *e);
 
 protected:
   Viewer_impl* d;

@@ -34,6 +34,7 @@ Viewer::Viewer(QWidget* parent, bool antialiasing)
   d->twosides = false;
   d->macro_mode = false;
   program_list.resize(0);
+  frame_manipulation_requested = false;
   setShortcut(EXIT_VIEWER, 0);
   setKeyDescription(Qt::Key_T,
                     tr("Turn the camera by 180 degrees"));
@@ -310,4 +311,17 @@ QString Viewer::dumpCameraCoordinates()
   } else {
     return QString();
   }
+}
+
+bool Viewer::event(QEvent *e)
+{
+    if(e->type() == QEvent::TouchBegin)
+    {
+        if(frame_manipulation_requested && manipulatedFrame())
+            frame_manipulation = true;
+        else
+            frame_manipulation = false;
+    }
+        QGLViewer::event(e);
+
 }
