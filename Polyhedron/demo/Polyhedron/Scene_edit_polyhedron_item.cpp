@@ -126,6 +126,7 @@ Scene_edit_polyhedron_item::Scene_edit_polyhedron_item
 
     //the spheres :
     create_Sphere(length_of_axis/15.0);
+    program_list_is_empty = true;
     changed();
 }
 
@@ -143,14 +144,10 @@ Scene_edit_polyhedron_item::~Scene_edit_polyhedron_item()
 /// For the Shader gestion///
 void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0) const
 {
-    bool program_list_is_empty = false;
-    if( viewer->program_list.size()==0)
-        program_list_is_empty = true;
     //vao for the facets
     {
         program = getShaderProgram(PROGRAM_WITH_LIGHT, viewer);
-        if(program_list_is_empty)
-            viewer->program_list.push_back(program);
+
         program->bind();
 
         vaos[0]->bind();
@@ -170,8 +167,6 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
     }
     //vao for the ROI points
     {   program = getShaderProgram(PROGRAM_WITHOUT_LIGHT, viewer);
-        if(program_list_is_empty)
-            viewer->program_list.push_back(program);
         program->bind();
         vaos[1]->bind();
         buffers[2].bind();
@@ -212,8 +207,6 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
     //vao for the ROI spheres
     {
         program = getShaderProgram(PROGRAM_INSTANCED, viewer);
-        if(program_list_is_empty)
-            viewer->program_list.push_back(program);
         program->bind();
         vaos[3]->bind();
         buffers[6].bind();
@@ -338,6 +331,7 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
     foreach(QOpenGLShaderProgram* prog, shader_programs)
         viewer->program_list.push_back(prog);
     k_ring_selector.edit_programs = viewer->program_list;
+    program_list_is_empty = false;
     }
     are_buffers_filled = true;
 }

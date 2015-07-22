@@ -142,7 +142,16 @@ void Viewer::mousePressEvent(QMouseEvent* event)
     event->accept();
   }
   else {
-    QGLViewer::mousePressEvent(event);
+      if(frame_manipulation)
+      {
+          setMouseBinding(Qt::Key(0),Qt::NoModifier, Qt::LeftButton, FRAME, ROTATE);
+      }
+      else
+      {
+          setMouseBinding(Qt::NoModifier, Qt::LeftButton, CAMERA, ROTATE);
+
+      }
+          QGLViewer::mousePressEvent(event);
   }
 }
 
@@ -229,7 +238,6 @@ void Viewer::postSelection(const QPoint& pixel)
   bool found = false;
   //qglviewer::Vec point = camera()->pointUnderPixel(pixel, found);
   qglviewer::Vec point = pointUnderPixelGLES(d->scene->list_programs,camera(),pixel, found);
-
   if(found) {
     emit selectedPoint(point.x,
                        point.y,

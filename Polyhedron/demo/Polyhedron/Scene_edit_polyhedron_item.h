@@ -84,7 +84,6 @@ private:
   std::vector<qglviewer::Vec> initial_positions;
   Deform_mesh* deform_mesh;
 
-
 public:
   Control_vertices_data(Deform_mesh* deform_mesh, qglviewer::ManipulatedFrame* frame = 0)
     : frame(frame), bbox(0,0,0,0,0,0), rot_direction(0.,0.,1.), deform_mesh(deform_mesh)
@@ -262,6 +261,7 @@ public slots:
   void deform(); // deform the mesh
 // members
 private:
+  mutable bool program_list_is_empty;
   bool ctrl_pressing ;
   bool shift_pressing;
   Ui::DeformMesh* ui_widget;
@@ -395,7 +395,7 @@ public:
 
     active_group = --ctrl_vertex_frame_map.end();
 
-    connect(new_frame, SIGNAL(modified()), this, SLOT(deform()));  // OK we are deforming via timer,
+   // connect(new_frame, SIGNAL(modified()), this, SLOT(deform()));  // OK we are deforming via timer,
     // but it makes demo more responsive if we also add this signal
     emit itemChanged();
 
