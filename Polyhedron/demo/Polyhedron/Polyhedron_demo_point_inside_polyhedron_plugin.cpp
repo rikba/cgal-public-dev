@@ -230,6 +230,7 @@ public slots:
     }
 
     scene->addItem(point_item);
+    point_item->changed();
   }
 private:
   QMainWindow* mw;
