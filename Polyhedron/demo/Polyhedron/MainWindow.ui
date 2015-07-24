@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>978</width>
-    <height>594</height>
+    <height>761</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -172,7 +172,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
-          <widget class="QToolButton" name="addButton">
+          <widget class="Adaptable_button" name="addButton">
            <property name="text">
             <string>+</string>
            </property>
@@ -183,7 +183,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="removeButton">
+          <widget class="Adaptable_button" name="removeButton">
            <property name="text">
             <string>-</string>
            </property>
@@ -194,7 +194,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="duplicateButton">
+          <widget class="Adaptable_button" name="duplicateButton">
            <property name="text">
             <string>...</string>
            </property>
@@ -303,7 +303,7 @@
             <x>0</x>
             <y>0</y>
             <width>541</width>
-            <height>175</height>
+            <height>167</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout">
@@ -676,6 +676,11 @@
    <class>Viewer</class>
    <extends>QWidget</extends>
    <header>Viewer.h</header>
+  </customwidget>
+  <customwidget>
+   <class>Adaptable_button</class>
+   <extends>QToolButton</extends>
+   <header>Adaptable_button.h</header>
   </customwidget>
  </customwidgets>
  <resources>

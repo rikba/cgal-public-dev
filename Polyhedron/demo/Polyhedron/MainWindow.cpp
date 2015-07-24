@@ -1215,6 +1215,7 @@ void MainWindow::on_actionLoad_triggered()
                                      QDir::current().dirName()).toString();
 
   QFileDialog dialog(this);
+  dialog.setSizeGripEnabled(true);
   dialog.setDirectory(directory);
   dialog.setNameFilters(filters);
   dialog.setFileMode(QFileDialog::ExistingFiles);
