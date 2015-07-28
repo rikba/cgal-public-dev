@@ -143,8 +143,9 @@ void Viewer::mousePressEvent(QMouseEvent* event)
     event->accept();
   }
   else {
-      if(frame_manipulation)
+      if(frame_manipulation_requested && manipulatedFrame())
       {
+          qDebug()<<"mouse binding";
           setMouseBinding(Qt::Key(0),Qt::NoModifier, Qt::LeftButton, FRAME, ROTATE);
       }
       else
@@ -317,8 +318,11 @@ bool Viewer::event(QEvent *e)
 {
     if(e->type() == QEvent::TouchBegin)
     {
-        if(frame_manipulation_requested && manipulatedFrame())
+        if(frame_manipulation_requested)
+        {
             frame_manipulation = true;
+            qDebug()<<"frame manip = true";
+        }
         else
             frame_manipulation = false;
     }

@@ -639,12 +639,13 @@ protected:
       return false;  
     }
     if(ctrl_vertex_frame_map.empty()) { return false; }
-
+    qDebug()<<"not empty";
     QGLViewer* viewer = *QGLViewer::QGLViewerPool().begin();
     qglviewer::Camera* camera = viewer->camera();
 
     if(!state.ctrl_pressing) 
     {   
+        qDebug()<<"ctrl not pressed";
       if(viewer->manipulatedFrame() == NULL) 
       { return false;}
       viewer->setManipulatedFrame(NULL);    
@@ -676,9 +677,11 @@ protected:
       rot_constraint.setRotationConstraintType(qglviewer::AxisPlaneConstraint::FREE);
 
     if(viewer->manipulatedFrame() == min_it->frame)
-    { return false; }
+    {
+        qDebug()<<"min_it";
+                  return false; }
     viewer->setManipulatedFrame(min_it->frame);
-
+qDebug()<<"pas min it";
     return true;
   }
 

@@ -497,7 +497,10 @@ bool Scene_edit_polyhedron_item::eventFilter(QObject* /*target*/, QEvent *event)
     {
 
         if(viewer->frame_manipulation || ctrl_pressing  )
+        {
+            qDebug()<<"ctrl_pressing";
             state.ctrl_pressing = true;
+        }
         else
             state.ctrl_pressing = false;
         if(viewer->selection_mode || shift_pressing )
@@ -521,6 +524,7 @@ bool Scene_edit_polyhedron_item::eventFilter(QObject* /*target*/, QEvent *event)
     bool ctrl_released_now = !ctrl_pressing && old_state.ctrl_pressing;
     if(ctrl_pressed_now || ctrl_released_now || event->type() == QEvent::HoverMove)
     {// activate a handle manipulated frame
+        qDebug()<<"activate";
         QGLViewer* viewer = *QGLViewer::QGLViewerPool().begin();
         const QPoint& p = viewer->mapFromGlobal(QCursor::pos());
         bool need_repaint = activate_closest_manipulated_frame(p.x(), p.y());
