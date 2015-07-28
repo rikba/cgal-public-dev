@@ -13,6 +13,7 @@
 #include <QFileInfo>
 #include <QStringList>
 #include <QSet>
+#include <QCheckBox>
 
 class Scene;
 class Viewer;
@@ -183,6 +184,8 @@ private:
   QVector<PluginNamePair > plugins;
 #ifdef QT_SCRIPT_LIB
   QScriptEngine* script_engine;
+  QCheckBox *ctrl_checkBox;
+  QCheckBox *shift_checkBox;
 public:
   void evaluate_script(QString script, 
                        const QString & fileName = QString(),

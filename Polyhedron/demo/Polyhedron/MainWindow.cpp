@@ -297,9 +297,27 @@ MainWindow::MainWindow(QWidget* parent)
     this->addDockWidget(Qt::BottomDockWidgetArea, dock);
     dock->hide();
   }
+
   debugger->setAutoShowStandardWindow(false);
   debugger->attachTo(script_engine);
 #  endif // QT_SCRIPTTOOLS_LIB
+  QDockWidget* controls = new QDockWidget(tr("Controls"), this);
+  controls->setObjectName("controls");
+  QWidget *dock_contain = new QWidget(controls);
+  QVBoxLayout *layout = new QVBoxLayout(dock_contain);
+  ctrl_checkBox = new QCheckBox(dock_contain);
+  shift_checkBox = new QCheckBox(dock_contain);
+
+  ctrl_checkBox->setText("Manipulated Frame");
+  shift_checkBox->setText("Selection");
+  layout->addWidget(ctrl_checkBox);
+  layout->addWidget(shift_checkBox);
+  layout->setAlignment(shift_checkBox, Qt::AlignBottom);
+  dock_contain->setLayout(layout);
+  dock_contain->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed));
+  controls->setWidget(dock_contain);
+  this->addDockWidget(Qt::LeftDockWidgetArea, controls);
+
   QScriptValue fun = script_engine->newFunction(myPrintFunction);
   script_engine->globalObject().setProperty("print", fun);
   
@@ -999,9 +1017,9 @@ void MainWindow::selectionChanged()
     connect(viewer->manipulatedFrame(), SIGNAL(modified()),
             this, SLOT(updateInfo()));
   }
-  connect(ui->actionSelection, SIGNAL(toggled(bool)),
+  connect(shift_checkBox, SIGNAL(toggled(bool)),
                                this, SLOT(toggle_SelectionMode(bool)));
-  connect(ui->actionManipulated_Frame, SIGNAL(toggled(bool)),
+  connect(ctrl_checkBox, SIGNAL(toggled(bool)),
                                this, SLOT(toggle_frameManipulation(bool)));
 
   viewer->update();

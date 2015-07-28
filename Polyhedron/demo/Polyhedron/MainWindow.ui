@@ -141,18 +141,10 @@
     <addaction name="menuDockWindows"/>
     <addaction name="menuCamera"/>
    </widget>
-   <widget class="QMenu" name="menuControls">
-    <property name="title">
-     <string>Controls</string>
-    </property>
-    <addaction name="actionManipulated_Frame"/>
-    <addaction name="actionSelection"/>
-   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuOperations"/>
    <addaction name="menuView"/>
-   <addaction name="menuControls"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="sceneDockWidget">
@@ -303,7 +295,7 @@
             <x>0</x>
             <y>0</y>
             <width>541</width>
-            <height>167</height>
+            <height>124</height>
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout">
