@@ -530,6 +530,7 @@ bool Scene_edit_polyhedron_item::eventFilter(QObject* /*target*/, QEvent *event)
 
         if(need_repaint) { emit itemChanged(); }
     }
+
     return false;
 }
 
