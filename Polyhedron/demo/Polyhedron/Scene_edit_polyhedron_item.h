@@ -1,6 +1,7 @@
+
 #ifndef SCENE_EDIT_POLYHEDRON_ITEM_H
 #define SCENE_EDIT_POLYHEDRON_ITEM_H
-//#define CGAL_PROFILE 
+//#define CGAL_PROFILE
 #include "Scene_edit_polyhedron_item_config.h"
 #include "Scene_polyhedron_item.h"
 #include "Scene_polyhedron_item_k_ring_selection.h"
@@ -65,7 +66,7 @@ put(Array_based_vertex_point_map pmap,
 }
 
 typedef CGAL::Surface_mesh_deformation<Polyhedron, CGAL::Default, CGAL::Default, CGAL::ORIGINAL_ARAP
-  ,CGAL::Default, CGAL::Default, CGAL::Default, 
+  ,CGAL::Default, CGAL::Default, CGAL::Default,
   Array_based_vertex_point_map> Deform_mesh;
 
 
@@ -78,7 +79,7 @@ public:
   std::vector<vertex_descriptor> ctrl_vertices_group;
   qglviewer::ManipulatedFrame* frame;  // manframe assoc with a group of control vertices
   qglviewer::Vec frame_initial_center; // initial center of frame
-  Scene_interface::Bbox bbox;          // bbox of control vertices inside group  
+  Scene_interface::Bbox bbox;          // bbox of control vertices inside group
   qglviewer::Vec rot_direction;        // vector for constraint rotation
 private:
   std::vector<qglviewer::Vec> initial_positions;
@@ -124,7 +125,7 @@ private:
   void reset_initial_positions()
   {
     initial_positions.clear();
-    
+
     for(std::vector<vertex_descriptor>::iterator hb = ctrl_vertices_group.begin(); hb != ctrl_vertices_group.end(); ++hb)
     {
       qglviewer::Vec point((*hb)->point().x(), (*hb)->point().y(), (*hb)->point().z() );
@@ -143,7 +144,7 @@ private:
     return center_acc / initial_positions.size();
   }
   Scene_interface::Bbox calculate_initial_bbox()
-  {    
+  {
     if(initial_positions.empty()) {return Scene_interface::Bbox(0,0,0,0,0,0); }
 
     const qglviewer::Vec& p_i = *(initial_positions.begin());
@@ -167,16 +168,16 @@ struct Mouse_keyboard_state_deformation
   bool left_button_pressing;
   bool right_button_pressing;
 
-  Mouse_keyboard_state_deformation() 
+  Mouse_keyboard_state_deformation()
     : ctrl_pressing(false), shift_pressing(false), left_button_pressing(false), right_button_pressing(false)
   { }
 };
 
 // This class represents a polyhedron in the OpenGL scene
-class SCENE_EDIT_POLYHEDRON_ITEM_EXPORT Scene_edit_polyhedron_item 
+class SCENE_EDIT_POLYHEDRON_ITEM_EXPORT Scene_edit_polyhedron_item
   : public Scene_item {
   Q_OBJECT
-public:  
+public:
   /// Create an Scene_edit_polyhedron_item from a Scene_polyhedron_item.
   /// The ownership of the polyhedron is moved to the new edit_polyhedron
   /// item.
@@ -193,10 +194,10 @@ public:
   void setName(QString n);
   void setVisible(bool b);
   void setRenderingMode(RenderingMode m);
-  
+
   // Indicate if rendering mode is supported
-  bool supportsRenderingMode(RenderingMode m) const { 
-    return m == Gouraud; 
+  bool supportsRenderingMode(RenderingMode m) const {
+    return m == Gouraud;
   }
   // Points/Wireframe/Flat/Gouraud OpenGL drawing in a display list
   void draw() const{}
@@ -225,7 +226,7 @@ public:
   // take mouse events from viewer, main-window does not work
   // take keyboard events from main-window, which is more stable
   bool eventFilter(QObject *target, QEvent *event);
-  
+
 protected:
   void timerEvent(QTimerEvent *event);
 
@@ -321,7 +322,7 @@ public:
   {
     if(!is_there_any_ctrl_vertices_group()) {
       print_message("There is no group of control vertices, create one!");
-      return false; 
+      return false;
     } // no group of control vertices to insert
 
     bool inserted = deform_mesh.insert_control_vertex(v);
@@ -336,7 +337,7 @@ public:
   {
     return deform_mesh.insert_roi_vertex(v);
   }
-  
+
   bool erase_control_vertex(vertex_descriptor v)
   {
     if(deform_mesh.erase_control_vertex(v)) // API should be safe enough to do that (without checking empty group of control vertices etc.)
@@ -346,7 +347,7 @@ public:
     }
 
     print_message("Selected vertex is not a control vertex!");
-    return false;     
+    return false;
   }
 
   bool erase_roi_vertex(vertex_descriptor v)
@@ -361,7 +362,7 @@ public:
     for(boost::tie(vb, ve) = vertices(*polyhedron()); vb != ve; ++vb)
     {
       insert_roi_vertex(*vb);
-    }   
+    }
   }
 
   void clear_roi()
@@ -374,12 +375,12 @@ public:
     deform_mesh.clear_roi_vertices();
 
     create_ctrl_vertices_group(); // create one new group of control vertices
-  } 
+  }
 
   void create_ctrl_vertices_group()
   {
     for(Ctrl_vertices_group_data_list::iterator it = ctrl_vertex_frame_map.begin(); it != ctrl_vertex_frame_map.end(); ++it) {
-      if(it->ctrl_vertices_group.empty()) { 
+      if(it->ctrl_vertices_group.empty()) {
         active_group = it;
         return;
       }
@@ -404,17 +405,17 @@ public:
 
   void delete_ctrl_vertices_group(bool create_new = true)
   {
-    if(!is_there_any_ctrl_vertices_group()) { 
+    if(!is_there_any_ctrl_vertices_group()) {
       print_message("There is no group of control vertices to be deleted!");
-      return; 
+      return;
     } // no group of control vertices
 
-    // delete group representative    
+    // delete group representative
     for(Ctrl_vertices_group_data_list::iterator it = ctrl_vertex_frame_map.begin(); it != ctrl_vertex_frame_map.end(); ++it)
     {
       if(it == active_group)
       {
-        delete it->frame;        
+        delete it->frame;
         for(std::vector<vertex_descriptor>::iterator v_it = it->ctrl_vertices_group.begin(); v_it != it->ctrl_vertices_group.end(); ++v_it) {
           deform_mesh.erase_control_vertex(*v_it);
         }
@@ -426,12 +427,12 @@ public:
     // assign another ctrl_vertices_group to active_group
     Ctrl_vertices_group_data_list::iterator hgb, hge;
     if( is_there_any_ctrl_vertices_group(hgb, hge) )
-    { 
-      active_group = hgb; 
+    {
+      active_group = hgb;
     } // no group of control vertices
     else if(create_new)
-    { 
-      create_ctrl_vertices_group(); 
+    {
+      create_ctrl_vertices_group();
     }
   }
 
@@ -440,11 +441,11 @@ public:
     Ctrl_vertices_group_data_list::iterator hgb, hge;
     if( !is_there_any_ctrl_vertices_group(hgb, hge) ) {
       print_message("There is no group of control vertices to iterate on!");
-      return; 
+      return;
     }
     // shift
     if(hgb == active_group) { active_group = --hge; }
-    else                    {--active_group; }    
+    else                    {--active_group; }
   }
 
   void next_ctrl_vertices_group()
@@ -452,15 +453,15 @@ public:
     Ctrl_vertices_group_data_list::iterator hgb, hge;
     if( !is_there_any_ctrl_vertices_group(hgb, hge) ) {
       print_message("There is no group of control vertices to iterate on!");
-      return; 
+      return;
     }
     // shift
     if(--hge == active_group) { active_group = hgb; }
-    else                      {++active_group; }    
+    else                      {++active_group; }
   }
 
   void pivoting_end()
-  {       
+  {
     for(Ctrl_vertices_group_data_list::iterator it = ctrl_vertex_frame_map.begin(); it != ctrl_vertex_frame_map.end(); ++it)
     {
       //update constraint rotation vector, set only for the last group
@@ -490,7 +491,7 @@ public:
   }
 
   void save_roi(const char* file_name) const
-  { 
+  {
     std::ofstream out(file_name);
     // save roi
     out << deform_mesh.roi_vertices().size() << std::endl;
@@ -500,12 +501,12 @@ public:
     }
     out << std::endl;
     // save control vertices
-    
+
     out << ctrl_vertex_frame_map.size() << std::endl; // control vertices count
     for(Ctrl_vertices_group_data_list::const_iterator hgb = ctrl_vertex_frame_map.begin(); hgb != ctrl_vertex_frame_map.end(); ++hgb) {
 
       out << hgb->ctrl_vertices_group.size() << std::endl;
-      for(std::vector<vertex_descriptor>::const_iterator hb = hgb->ctrl_vertices_group.begin(); hb != hgb->ctrl_vertices_group.end(); ++hb) 
+      for(std::vector<vertex_descriptor>::const_iterator hb = hgb->ctrl_vertices_group.begin(); hb != hgb->ctrl_vertices_group.end(); ++hb)
       {
         out << (*hb)->id() << " ";
       }
@@ -514,7 +515,7 @@ public:
   }
 
   void read_roi(const char* file_name)
-  { 
+  {
     clear_roi();
     delete_ctrl_vertices_group(false);
 
@@ -542,9 +543,9 @@ public:
     {
       create_ctrl_vertices_group();
       int ctrl_size;
-      in >> ctrl_size;      
-      while(ctrl_size-- > 0) 
-      {                    
+      in >> ctrl_size;
+      while(ctrl_size-- > 0)
+      {
         std::size_t v_id;
         in >> v_id;
         insert_control_vertex(all_vertices[v_id]);
@@ -570,7 +571,7 @@ public:
   boost::optional<std::size_t> get_minimum_isolated_component() {
     Travel_isolated_components::Minimum_visitor visitor;
     Travel_isolated_components().travel<Vertex_handle>
-      (vertices(*polyhedron()).first, vertices(*polyhedron()).second, 
+      (vertices(*polyhedron()).first, vertices(*polyhedron()).second,
        polyhedron()->size_of_vertices(), Is_selected(deform_mesh), visitor);
     return visitor.minimum;
   }
@@ -634,26 +635,24 @@ protected:
 
   bool activate_closest_manipulated_frame(int x, int y)
   {
-    if(state.ctrl_pressing && (state.left_button_pressing || state.right_button_pressing) ) 
-    { // user is deforming currently don't change the state 
-      return false;  
+    if(state.ctrl_pressing && (state.left_button_pressing || state.right_button_pressing) )
+    { // user is deforming currently don't change the state
+      return false;
     }
     if(ctrl_vertex_frame_map.empty()) { return false; }
-    qDebug()<<"not empty";
     QGLViewer* viewer = *QGLViewer::QGLViewerPool().begin();
     qglviewer::Camera* camera = viewer->camera();
 
-    if(!state.ctrl_pressing) 
-    {   
-        qDebug()<<"ctrl not pressed";
-      if(viewer->manipulatedFrame() == NULL) 
+    if(!state.ctrl_pressing)
+    {
+      if(viewer->manipulatedFrame() == NULL)
       { return false;}
-      viewer->setManipulatedFrame(NULL);    
+      viewer->setManipulatedFrame(NULL);
       return true;
     }
-    
+
     // now find closest frame and make it active manipulated frame
-    Ctrl_vertices_group_data_list::iterator min_it = ctrl_vertex_frame_map.begin();    
+    Ctrl_vertices_group_data_list::iterator min_it = ctrl_vertex_frame_map.begin();
     const qglviewer::Vec& pos_it = camera->projectedCoordinatesOf(min_it->frame->position());
     float min_dist = std::pow(pos_it.x - x, 2) + std::pow(pos_it.y - y, 2);
 
@@ -678,10 +677,8 @@ protected:
 
     if(viewer->manipulatedFrame() == min_it->frame)
     {
-        qDebug()<<"min_it";
                   return false; }
     viewer->setManipulatedFrame(min_it->frame);
-qDebug()<<"pas min it";
     return true;
   }
 
@@ -691,11 +688,11 @@ qDebug()<<"pas min it";
     BOOST_FOREACH(vertex_descriptor vd, deform_mesh.roi_vertices())
     {
       std::size_t id = vd->id();
-      const Polyhedron::Traits::Vector_3& n = 
+      const Polyhedron::Traits::Vector_3& n =
         compute_vertex_normal<Polyhedron::Vertex, Polyhedron::Traits>(*vd);
       normals[id*3] = n.x();
-      normals[id*3+1] = n.y(); 
-      normals[id*3+2] = n.z(); 
+      normals[id*3+1] = n.y();
+      normals[id*3+2] = n.z();
 
     }
   }

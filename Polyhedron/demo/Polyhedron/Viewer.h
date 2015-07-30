@@ -1,3 +1,4 @@
+
 #ifndef VIEWER_H
 #define VIEWER_H
 
@@ -33,7 +34,6 @@ public:
 
   void setScene(Scene_draw_interface* scene);
   bool antiAliasing() const;
-  bool frame_manipulation_requested;
   bool inFastDrawing() const;
 
 public slots:
@@ -43,13 +43,12 @@ public slots:
   void turnCameraBy180Degres();
 
   QString dumpCameraCoordinates();
-  bool moveCameraToCoordinates(QString, 
+  bool moveCameraToCoordinates(QString,
                                float animation_duration = 0.5f);
 
 protected:
   void mousePressEvent(QMouseEvent*);
   void keyPressEvent(QKeyEvent*);
-  bool event(QEvent *e);
 
 protected:
   Viewer_impl* d;

@@ -1,3 +1,4 @@
+
 #include <CGAL/check_gl_error.h>
 #include "Viewer.h"
 #include <CGAL/gl.h>
@@ -34,7 +35,6 @@ Viewer::Viewer(QWidget* parent, bool antialiasing)
   d->twosides = false;
   d->macro_mode = false;
   program_list.resize(0);
-  frame_manipulation_requested = false;
   setShortcut(EXIT_VIEWER, 0);
   setKeyDescription(Qt::Key_T,
                     tr("Turn the camera by 180 degrees"));
@@ -72,7 +72,7 @@ void Viewer::setScene(Scene_draw_interface* scene)
 
 bool Viewer::antiAliasing() const
 {
-  return d->antialiasing; 
+  return d->antialiasing;
 }
 
 void Viewer::setAntiAliasing(bool b)
@@ -136,16 +136,15 @@ void Viewer::initializeGL()
 void Viewer::mousePressEvent(QMouseEvent* event)
 {
   if(event->button() == Qt::RightButton &&
-     event->modifiers().testFlag(Qt::ShiftModifier)) 
+     event->modifiers().testFlag(Qt::ShiftModifier))
   {
     select(event->pos());
     requestContextMenu(event->globalPos());
     event->accept();
   }
   else {
-      if(frame_manipulation_requested && manipulatedFrame())
+      if(frame_manipulation)
       {
-          qDebug()<<"mouse binding";
           setMouseBinding(Qt::Key(0),Qt::NoModifier, Qt::LeftButton, FRAME, ROTATE);
       }
       else
@@ -298,7 +297,7 @@ QString Viewer_interface::dumpFrame(const qglviewer::Frame& frame) {
 bool Viewer::moveCameraToCoordinates(QString s, float animation_duration) {
   qglviewer::Frame new_frame;
   if(readFrame(s, new_frame)) {
-    camera()->interpolateTo(new_frame, animation_duration); 
+    camera()->interpolateTo(new_frame, animation_duration);
     return true;
   }
   else
@@ -312,20 +311,4 @@ QString Viewer::dumpCameraCoordinates()
   } else {
     return QString();
   }
-}
-
-bool Viewer::event(QEvent *e)
-{
-    if(e->type() == QEvent::TouchBegin)
-    {
-        if(frame_manipulation_requested)
-        {
-            frame_manipulation = true;
-            qDebug()<<"frame manip = true";
-        }
-        else
-            frame_manipulation = false;
-    }
-        QGLViewer::event(e);
-
 }
