@@ -14,11 +14,7 @@
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QSettings>
-
-//New for Qt5 version !
-#if QT_VERSION >= 0x050000
 #include <QMimeData>
-#endif
 
 #include <QGLViewer/vec.h>
 
@@ -108,7 +104,7 @@ void MainWindow::show_only(QString tag)
     {
       err << object->metaObject()->className()
           << " \"" << object->objectName() << "\" only in: ";
-      foreach(QString s, show_only_in)
+      Q_FOREACH(QString s, show_only_in)
         err << s << " ";
       const bool visible = show_only_in.contains(tag);
       err << (visible ? "(enabled)\n" : "(disabled)\n");

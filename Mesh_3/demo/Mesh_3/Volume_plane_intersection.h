@@ -33,13 +33,13 @@ public:
   bool supportsRenderingMode(RenderingMode) const { return true; }
   QString toolTip() const { return "Tooling"; }
 
-  void draw(QGLViewer*)const;
+  void draw(Viewer*)const;
 
   void setX(Volume_plane_interface* x) { a = x; }
   void setY(Volume_plane_interface* x) { b = x; }
   void setZ(Volume_plane_interface* x) { c = x; }
 
-public slots:
+public Q_SLOTS:
   void planeRemoved(Volume_plane_interface* i) {
     if(a == i) {
       a = NULL;
@@ -69,7 +69,7 @@ private:
   mutable QOpenGLShaderProgram rendering_program;
   void compute_elements();
   void init_buffers();
-  void attrib_buffers(QGLViewer*) const;
+  void attrib_buffers(Viewer*) const;
   void compile_shaders();
 };
 

@@ -1,6 +1,3 @@
-
-
-#include <CGAL/check_gl_error.h>
 #include "Scene_polyhedron_item.h"
 #include <CGAL/AABB_intersections.h>
 #include "Kernel_type.h"
@@ -17,7 +14,7 @@
 #include <CGAL/Constrained_Delaunay_triangulation_2.h>
 #include <CGAL/Constrained_triangulation_plus_2.h>
 #include <CGAL/Triangulation_2_filtered_projection_traits_3.h>
-#include <CGAL/internal/Operations_on_polyhedra/compute_normal.h>
+#include <CGAL/Polygon_mesh_processing/compute_normal.h>
 
 #include <QVariant>
 #include <list>
@@ -25,6 +22,8 @@
 #include <iostream>
 #include <QDebug>
 
+
+#include <limits>
 
 typedef CGAL::AABB_face_graph_triangle_primitive<Polyhedron> Primitive;
 typedef CGAL::AABB_traits<Kernel, Primitive> AABB_traits;
@@ -67,12 +66,12 @@ void delete_aabb_tree(Scene_polyhedron_item* item)
     }
 }
 
-typedef typename Polyhedron::Traits Traits;
-typedef typename Polyhedron::Facet Facet;
+typedef Polyhedron::Traits Traits;
+typedef Polyhedron::Facet Facet;
 typedef CGAL::Triangulation_2_filtered_projection_traits_3<Traits>   P_traits;
-typedef typename Polyhedron::Halfedge_handle Halfedge_handle;
+typedef Polyhedron::Halfedge_handle Halfedge_handle;
 struct Face_info {
-    typename Polyhedron::Halfedge_handle e[3];
+    Polyhedron::Halfedge_handle e[3];
     bool is_external;
 };
 typedef CGAL::Triangulation_vertex_base_with_info_2<Halfedge_handle,
@@ -91,7 +90,7 @@ typedef CGAL::Constrained_triangulation_plus_2<CDTbase>              CDT;
 void
 Scene_polyhedron_item::is_Triangulated()
 {
-    typedef typename Polyhedron::Halfedge_around_facet_circulator HF_circulator;
+    typedef Polyhedron::Halfedge_around_facet_circulator HF_circulator;
     Facet_iterator f = poly->facets_begin();
     int nb_points_per_facet =0;
 
@@ -119,20 +118,20 @@ void
 Scene_polyhedron_item::triangulate_facet(Facet_iterator fit)
 {
     //Computes the normal of the facet
-    typename Traits::Vector_3 normal =
-            compute_facet_normal<Facet,Traits>(*fit);
+    Traits::Vector_3 normal =
+            CGAL::Polygon_mesh_processing::compute_face_normal(fit,*poly);
 
     P_traits cdt_traits(normal);
     CDT cdt(cdt_traits);
 
-    typename Facet::Halfedge_around_facet_circulator
+    Facet::Halfedge_around_facet_circulator
             he_circ = fit->facet_begin(),
             he_circ_end(he_circ);
 
     // Iterates on the vector of facet handles
-    typename CDT::Vertex_handle previous, first;
+    CDT::Vertex_handle previous, first;
     do {
-        typename CDT::Vertex_handle vh = cdt.insert(he_circ->vertex()->point());
+        CDT::Vertex_handle vh = cdt.insert(he_circ->vertex()->point());
         if(first == 0) {
             first = vh;
         }
@@ -145,7 +144,7 @@ Scene_polyhedron_item::triangulate_facet(Facet_iterator fit)
     cdt.insert_constraint(previous, first);
 
     // sets mark is_external
-    for(typename CDT::All_faces_iterator
+    for(CDT::All_faces_iterator
         fit2 = cdt.all_faces_begin(),
         end = cdt.all_faces_end();
         fit2 != end; ++fit2)
@@ -153,10 +152,10 @@ Scene_polyhedron_item::triangulate_facet(Facet_iterator fit)
         fit2->info().is_external = false;
     }
     //check if the facet is external or internal
-    std::queue<typename CDT::Face_handle> face_queue;
+    std::queue<CDT::Face_handle> face_queue;
     face_queue.push(cdt.infinite_vertex()->face());
     while(! face_queue.empty() ) {
-        typename CDT::Face_handle fh = face_queue.front();
+        CDT::Face_handle fh = face_queue.front();
         face_queue.pop();
         if(fh->info().is_external) continue;
         fh->info().is_external = true;
@@ -170,7 +169,7 @@ Scene_polyhedron_item::triangulate_facet(Facet_iterator fit)
 
     //iterates on the internal faces to add the vertices to the positions
     //and the normals to the appropriate vectors
-    for(typename CDT::Finite_faces_iterator
+    for(CDT::Finite_faces_iterator
         ffit = cdt.finite_faces_begin(),
         end = cdt.finite_faces_end();
         ffit != end; ++ffit)
@@ -193,8 +192,12 @@ Scene_polyhedron_item::triangulate_facet(Facet_iterator fit)
         positions_facets.push_back(ffit->vertex(2)->point().z());
         positions_facets.push_back(1.0);
 
-            typedef typename Kernel::Vector_3	    Vector;
-            Vector n = compute_facet_normal<Facet,Traits>(*fit);
+
+        if (cur_shading == Flat || cur_shading == FlatPlusEdges || cur_shading == Gouraud)
+        {
+
+            typedef Kernel::Vector_3	    Vector;
+            Vector n = CGAL::Polygon_mesh_processing::compute_face_normal(fit, *poly);
             normals.push_back(n.x());
             normals.push_back(n.y());
             normals.push_back(n.z());
@@ -211,23 +214,23 @@ Scene_polyhedron_item::triangulate_facet(Facet_iterator fit)
     }
 }
 
-void
-Scene_polyhedron_item::triangulate_facet_color(Facet_iterator fit)
+}
+void Scene_polyhedron_item::triangulate_facet_color(Facet_iterator fit)
 {
-    typename Traits::Vector_3 normal =
-            compute_facet_normal<Facet,Traits>(*fit);
+    Traits::Vector_3 normal =
+            CGAL::Polygon_mesh_processing::compute_face_normal(fit, *poly);
 
     P_traits cdt_traits(normal);
     CDT cdt(cdt_traits);
 
-    typename Facet::Halfedge_around_facet_circulator
+    Facet::Halfedge_around_facet_circulator
             he_circ = fit->facet_begin(),
             he_circ_end(he_circ);
 
     // Iterates on the vector of facet handles
-    typename CDT::Vertex_handle previous, first;
+    CDT::Vertex_handle previous, first;
     do {
-        typename CDT::Vertex_handle vh = cdt.insert(he_circ->vertex()->point());
+        CDT::Vertex_handle vh = cdt.insert(he_circ->vertex()->point());
         if(first == 0) {
             first = vh;
         }
@@ -240,7 +243,7 @@ Scene_polyhedron_item::triangulate_facet_color(Facet_iterator fit)
     cdt.insert_constraint(previous, first);
 
     // sets mark is_external
-    for(typename CDT::All_faces_iterator
+    for(CDT::All_faces_iterator
         afit = cdt.all_faces_begin(),
         end = cdt.all_faces_end();
         afit != end; ++afit)
@@ -248,10 +251,10 @@ Scene_polyhedron_item::triangulate_facet_color(Facet_iterator fit)
         afit->info().is_external = false;
     }
     //check if the facet is external or internal
-    std::queue<typename CDT::Face_handle> face_queue;
+    std::queue<CDT::Face_handle> face_queue;
     face_queue.push(cdt.infinite_vertex()->face());
     while(! face_queue.empty() ) {
-        typename CDT::Face_handle fh = face_queue.front();
+        CDT::Face_handle fh = face_queue.front();
         face_queue.pop();
         if(fh->info().is_external) continue;
         fh->info().is_external = true;
@@ -264,7 +267,7 @@ Scene_polyhedron_item::triangulate_facet_color(Facet_iterator fit)
     }
 
     //iterates on the internal faces to add the vertices to the positions vector
-    for(typename CDT::Finite_faces_iterator
+    for(CDT::Finite_faces_iterator
         ffit = cdt.finite_faces_begin(),
         end = cdt.finite_faces_end();
         ffit != end; ++ffit)
@@ -302,23 +305,8 @@ Scene_polyhedron_item::triangulate_facet_color(Facet_iterator fit)
 #include <QAction>
 //#include <CGAL/gl_render.h>
 
-struct light_info
-{
-    //position
-    QVector4D position;
 
-    //ambient
-    QVector4D ambient;
-
-    //diffuse
-    QVector4D diffuse;
-
-    //specular
-    QVector4D specular;
-};
-
-void
-Scene_polyhedron_item::initialize_buffers(Viewer_interface* viewer) const
+void Scene_polyhedron_item::initialize_buffers(Viewer_interface* viewer) const
 {
     //vao containing the data for the unselected facets
     {
@@ -326,7 +314,8 @@ Scene_polyhedron_item::initialize_buffers(Viewer_interface* viewer) const
         program->bind();
         vaos[0]->bind();
         buffers[0].bind();
-        buffers[0].allocate(positions_facets.data(), positions_facets.size()*sizeof(float));
+        buffers[0].allocate(positions_facets.data(),
+                            static_cast<int>(positions_facets.size()*sizeof(float)));
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,4);
         buffers[0].release();
@@ -334,13 +323,15 @@ Scene_polyhedron_item::initialize_buffers(Viewer_interface* viewer) const
 
 
         buffers[1].bind();
-        buffers[1].allocate(normals.data(), normals.size()*sizeof(float));
+        buffers[1].allocate(normals.data(),
+                            static_cast<int>(normals.size()*sizeof(float)));
         program->enableAttributeArray("normals");
         program->setAttributeBuffer("normals",GL_FLOAT,0,3);
         buffers[1].release();
 
         buffers[2].bind();
-        buffers[2].allocate(color_facets.data(), color_facets.size()*sizeof(float));
+        buffers[2].allocate(color_facets.data(),
+                            static_cast<int>(color_facets.size()*sizeof(float)));
         program->enableAttributeArray("colors");
         program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[2].release();
@@ -355,13 +346,15 @@ Scene_polyhedron_item::initialize_buffers(Viewer_interface* viewer) const
         vaos[1]->bind();
 
         buffers[3].bind();
-        buffers[3].allocate(positions_lines.data(), positions_lines.size()*sizeof(float));
+        buffers[3].allocate(positions_lines.data(),
+                            static_cast<int>(positions_lines.size()*sizeof(float)));
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,4);
         buffers[3].release();
 
         buffers[4].bind();
-        buffers[4].allocate(color_lines.data(), color_lines.size()*sizeof(float));
+        buffers[4].allocate(color_lines.data(),
+                            static_cast<int>(color_lines.size()*sizeof(float)));
         program->enableAttributeArray("colors");
         program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[4].release();
@@ -378,20 +371,23 @@ Scene_polyhedron_item::initialize_buffers(Viewer_interface* viewer) const
 
 
         buffers[5].bind();
-        buffers[5].allocate(positions_facets.data(), positions_facets.size()*sizeof(float));
+        buffers[5].allocate(positions_facets.data(),
+                            static_cast<int>(positions_facets.size()*sizeof(float)));
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,4);
         buffers[5].release();
 
         buffers[6].bind();
-        buffers[6].allocate(normals.data(), normals.size()*sizeof(float));
+        buffers[6].allocate(normals.data(),
+                            static_cast<int>(normals.size()*sizeof(float)));
         program->enableAttributeArray("normals");
         program->setAttributeBuffer("normals",GL_FLOAT,0,3);
         buffers[6].release();
 
 
         buffers[7].bind();
-        buffers[7].allocate(color_facets_selected.data(), color_facets_selected.size()*sizeof(float));
+        buffers[7].allocate(color_facets_selected.data(),
+                            static_cast<int>(color_facets_selected.size()*sizeof(float)));
         program->enableAttributeArray("colors");
         program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[7].release();
@@ -405,13 +401,15 @@ Scene_polyhedron_item::initialize_buffers(Viewer_interface* viewer) const
         vaos[3]->bind();
         program->bind();
         buffers[8].bind();
-        buffers[8].allocate(positions_lines.data(), positions_lines.size()*sizeof(float));
+        buffers[8].allocate(positions_lines.data(),
+                            static_cast<int>(positions_lines.size()*sizeof(float)));
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,4);
         buffers[8].release();
 
         buffers[9].bind();
-        buffers[9].allocate(color_lines_selected.data(), color_lines_selected.size()*sizeof(float));
+        buffers[9].allocate(color_lines_selected.data(),
+                            static_cast<int>(color_lines_selected.size()*sizeof(float)));
         program->enableAttributeArray("colors");
         program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[9].release();
@@ -425,18 +423,17 @@ Scene_polyhedron_item::initialize_buffers(Viewer_interface* viewer) const
 void
 Scene_polyhedron_item::compute_normals_and_vertices(void)
 {
-    positions_facets.clear();
-    positions_lines.clear();
-    normals.clear();
+    positions_facets.resize(0);
+    positions_lines.resize(0);
+    normals.resize(0);
 
 
     //Facets
-    typedef typename Polyhedron::Traits	    Kernel;
-    typedef typename Kernel::Point_3	    Point;
-    typedef typename Kernel::Vector_3	    Vector;
-    typedef typename Polyhedron::Facet	    Facet;
-    typedef typename Polyhedron::Facet_iterator Facet_iterator;
-    typedef typename Polyhedron::Halfedge_around_facet_circulator HF_circulator;
+    typedef Polyhedron::Traits	    Kernel;
+    typedef Kernel::Point_3	    Point;
+    typedef Kernel::Vector_3	    Vector;
+    typedef Polyhedron::Facet_iterator Facet_iterator;
+    typedef Polyhedron::Halfedge_around_facet_circulator HF_circulator;
 
 
     Facet_iterator f = poly->facets_begin();
@@ -458,7 +455,7 @@ Scene_polyhedron_item::compute_normals_and_vertices(void)
                if (cur_shading == Flat || cur_shading == FlatPlusEdges)
                {
 
-                    Vector n = compute_facet_normal<Facet,Kernel>(*f);
+                    Vector n = CGAL::Polygon_mesh_processing::compute_face_normal(f, *poly);
                     normals.push_back(n.x());
                     normals.push_back(n.y());
                     normals.push_back(n.z());
@@ -468,7 +465,7 @@ Scene_polyhedron_item::compute_normals_and_vertices(void)
                 else if (cur_shading == Gouraud)
                 {
 
-                    Vector n = compute_vertex_normal<typename Polyhedron::Vertex,Kernel>(*he->vertex());
+                    Vector n = CGAL::Polygon_mesh_processing::compute_vertex_normal(he->vertex(), *poly);
                     normals.push_back(n.x());
                     normals.push_back(n.y());
                     normals.push_back(n.z());
@@ -537,17 +534,13 @@ Scene_polyhedron_item::compute_normals_and_vertices(void)
 void
 Scene_polyhedron_item::compute_colors()
 {
-    color_lines.clear();
-    color_facets.clear();
-    color_lines_selected.clear();
-    color_facets_selected.clear();
+    color_lines.resize(0);
+    color_facets.resize(0);
+    color_lines_selected.resize(0);
+    color_facets_selected.resize(0);
     //Facets
-    typedef typename Polyhedron::Traits	    Kernel;
-    typedef typename Kernel::Point_3	    Point;
-    typedef typename Kernel::Vector_3	    Vector;
-    typedef typename Polyhedron::Facet	    Facet;
-    typedef typename Polyhedron::Facet_iterator Facet_iterator;
-    typedef typename Polyhedron::Halfedge_around_facet_circulator HF_circulator;
+    typedef Polyhedron::Facet_iterator Facet_iterator;
+    typedef Polyhedron::Halfedge_around_facet_circulator HF_circulator;
 
 
 
@@ -638,15 +631,8 @@ Scene_polyhedron_item::compute_colors()
 
 Scene_polyhedron_item::Scene_polyhedron_item()
     : Scene_item(10,4),
-      positions_facets(0),
-      positions_lines(0),
-      color_facets(0),
-      color_facets_selected(0),
-      color_lines(0),
-      color_lines_selected(0),
-      normals(0),
-      poly(new Polyhedron),
       is_Triangle(true),
+      poly(new Polyhedron),
       show_only_feature_edges_m(false),
       facet_picking_m(false),
       erase_next_picked_facet_m(false),
@@ -660,15 +646,8 @@ Scene_polyhedron_item::Scene_polyhedron_item()
 
 Scene_polyhedron_item::Scene_polyhedron_item(Polyhedron* const p)
     : Scene_item(10,4),
-      positions_facets(0),
-      positions_lines(0),
-      color_facets(0),
-      color_facets_selected(0),
-      color_lines(0),
-      color_lines_selected(0),
-      normals(0),
-      poly(p),
       is_Triangle(true),
+      poly(p),
       show_only_feature_edges_m(false),
       facet_picking_m(false),
       erase_next_picked_facet_m(false),
@@ -682,15 +661,8 @@ Scene_polyhedron_item::Scene_polyhedron_item(Polyhedron* const p)
 
 Scene_polyhedron_item::Scene_polyhedron_item(const Polyhedron& p)
     : Scene_item(10,4),
-      positions_facets(0),
-      positions_lines(0),
-      color_facets(0),
-      color_facets_selected(0),
-      color_lines(0),
-      color_lines_selected(0),
-      normals(0),
-      poly(new Polyhedron(p)),
       is_Triangle(true),
+      poly(new Polyhedron(p)),
       show_only_feature_edges_m(false),
       facet_picking_m(false),
       erase_next_picked_facet_m(false),
@@ -726,12 +698,40 @@ init()
             max = (std::max)(max, fit->patch_id());
         }
 
-        colors_.clear();
+        colors_.resize(0);
         compute_color_map(this->color(), max + 1,
                           std::back_inserter(colors_));
-        qFunc.initializeOpenGLFunctions();
     }
 
+  volume=-std::numeric_limits<double>::infinity();
+  area=-std::numeric_limits<double>::infinity();
+  if (poly->is_pure_triangle())
+  {
+    // compute the volume if the polyhedron is closed
+    if (poly->is_closed())
+    {
+      volume=0;
+      Polyhedron::Vertex::Point p(0,0,0);
+      Q_FOREACH(Polyhedron::Face_handle fh, faces(*poly))
+      {
+        volume+=CGAL::volume( p,
+                    fh->halfedge()->vertex()->point(),
+                    fh->halfedge()->next()->vertex()->point(),
+                    fh->halfedge()->prev()->vertex()->point() );
+      }
+    }
+
+    // compute the surface area
+    area=0;
+    Q_FOREACH(Polyhedron::Face_handle fh, faces(*poly))
+    {
+      area+=std::sqrt( CGAL::squared_area(
+              fh->halfedge()->vertex()->point(),
+              fh->halfedge()->next()->vertex()->point(),
+              fh->halfedge()->prev()->vertex()->point() )
+            );
+    }
+  }
 }
 
 
@@ -759,7 +759,7 @@ Scene_polyhedron_item::load(std::istream& in)
 bool
 Scene_polyhedron_item::save(std::ostream& out) const
 {
-    out.precision(13);
+  out.precision(17);
     out << *poly;
     return (bool) out;
 }
@@ -770,16 +770,24 @@ Scene_polyhedron_item::toolTip() const
     if(!poly)
         return QString();
 
-    return QObject::tr("<p>Polyhedron <b>%1</b> (mode: %5, color: %6)</p>"
+  QString str =
+         QObject::tr("<p>Polyhedron <b>%1</b> (mode: %5, color: %6)</p>"
                        "<p>Number of vertices: %2<br />"
                        "Number of edges: %3<br />"
-                       "Number of facets: %4</p>")
+                     "Number of facets: %4")
             .arg(this->name())
             .arg(poly->size_of_vertices())
             .arg(poly->size_of_halfedges()/2)
             .arg(poly->size_of_facets())
             .arg(this->renderingModeName())
             .arg(this->color().name());
+  if (volume!=-std::numeric_limits<double>::infinity())
+    str+=QObject::tr("<br />Volume: %1").arg(volume);
+  if (area!=-std::numeric_limits<double>::infinity())
+    str+=QObject::tr("<br />Area: %1").arg(area);
+  str+="</p>";
+
+  return str;
 }
 
 QMenu* Scene_polyhedron_item::contextMenu()
@@ -789,7 +797,7 @@ QMenu* Scene_polyhedron_item::contextMenu()
     QMenu* menu = Scene_item::contextMenu();
 
     // Use dynamic properties:
-    // http://doc.trolltech.com/lastest/qobject.html#property
+    // http://doc.qt.io/qt-5/qobject.html#property
     bool menuChanged = menu->property(prop_name).toBool();
 
     if(!menuChanged) {
@@ -827,7 +835,7 @@ QMenu* Scene_polyhedron_item::contextMenu()
 void Scene_polyhedron_item::show_only_feature_edges(bool b)
 {
     show_only_feature_edges_m = b;
-    emit itemChanged();
+  Q_EMIT itemChanged();
 }
 
 void Scene_polyhedron_item::enable_facets_picking(bool b)
@@ -853,7 +861,7 @@ void Scene_polyhedron_item::draw(Viewer_interface* viewer) const {
     attrib_buffers(viewer, PROGRAM_WITH_LIGHT);
     program = getShaderProgram(PROGRAM_WITH_LIGHT);
     program->bind();
-    qFunc.glDrawArrays(GL_TRIANGLES, 0, positions_facets.size()/4);
+    viewer->glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(positions_facets.size()/4));
     program->release();
     if(!is_selected)
         vaos[0]->release();
@@ -876,7 +884,7 @@ void Scene_polyhedron_item::draw_edges(Viewer_interface* viewer) const {
     program = getShaderProgram(PROGRAM_WITHOUT_LIGHT);
     program->bind();
     //draw the edges
-    qFunc.glDrawArrays(GL_LINES, 0, positions_lines.size()/4);
+    viewer->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(positions_lines.size()/4));
     program->release();
     if(!is_selected)
         vaos[1]->release();
@@ -891,9 +899,10 @@ Scene_polyhedron_item::draw_points(Viewer_interface* viewer) const {
     program->bind();
     vaos[1]->bind();
     attrib_buffers(viewer, PROGRAM_WITHOUT_LIGHT);
+    program = getShaderProgram(PROGRAM_WITHOUT_LIGHT);
     program->bind();
     //draw the points
-    qFunc.glDrawArrays(GL_POINTS, 0, positions_lines.size()/4);
+    viewer->glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(positions_lines.size()/4));
     // Clean-up
     program->release();
     vaos[1]->release();
@@ -927,7 +936,7 @@ void
 Scene_polyhedron_item::
 changed()
 {
-    emit item_is_about_to_be_changed();
+  Q_EMIT item_is_about_to_be_changed();
     delete_aabb_tree(this);
     init();
     Base::changed();
@@ -940,12 +949,11 @@ void
 Scene_polyhedron_item::
 contextual_changed()
 {
-    //GLint new_shading ;
-   // qFunc.glGetIntegerv(GL_SHADE_MODEL, &new_shading);
     prev_shading = cur_shading;
-    cur_shading = renderingMode();//new_shading;
+    cur_shading = renderingMode();
     if(prev_shading != cur_shading)
-       {
+        if(cur_shading == Flat || cur_shading == FlatPlusEdges ||cur_shading == Gouraud)
+        {
             //Change the normals
             changed();
        }
@@ -958,6 +966,7 @@ Scene_polyhedron_item::selection_changed(bool p_is_selected)
     {
         is_selected = p_is_selected;
         are_buffers_filled = false;
+
     }
 
 }
@@ -1036,7 +1045,7 @@ Scene_polyhedron_item::select(double orig_x,
                             }
                         }
 
-                        emit selected_vertex((void*)(&*nearest_v));
+            Q_EMIT selected_vertex((void*)(&*nearest_v));
                     }
 
                     if(QObject::receivers(SIGNAL(selected_edge(void*))) > 0
@@ -1059,17 +1068,17 @@ Scene_polyhedron_item::select(double orig_x,
                             }
                         }
 
-                        emit selected_halfedge((void*)(&*nearest_h));
-                        emit selected_edge((void*)(std::min)(&*nearest_h, &*nearest_h->opposite()));
+            Q_EMIT selected_halfedge((void*)(&*nearest_h));
+            Q_EMIT selected_edge((void*)(std::min)(&*nearest_h, &*nearest_h->opposite()));
                     }
 
-                    emit selected_facet((void*)(&*selected_fh));
+          Q_EMIT selected_facet((void*)(&*selected_fh));
                     if(erase_next_picked_facet_m) {
                         polyhedron()->erase_facet(selected_fh->halfedge());
                         polyhedron()->normalize_border();
                         //set_erase_next_picked_facet(false);
                         changed();
-                        emit itemChanged();
+            Q_EMIT itemChanged();
                     }
                 }
             }
@@ -1105,6 +1114,9 @@ void Scene_polyhedron_item::update_halfedge_indices()
         hit->id()=id++;
     }
 }
+void Scene_polyhedron_item::invalidate_aabb_tree()
+{
+  delete_aabb_tree(this);
+}
 
-#include "Scene_polyhedron_item.moc"
 

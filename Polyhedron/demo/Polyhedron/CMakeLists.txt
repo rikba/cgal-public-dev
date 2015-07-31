@@ -5,11 +5,9 @@ project( Polyhedron )
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
-cmake_minimum_required(VERSION 2.6.2)
-if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" VERSION_GREATER 2.8.3)
-  cmake_policy(VERSION 2.8.4)
-else()
-  cmake_policy(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.11)
+if(POLICY CMP0043)
+  cmake_policy(SET CMP0043 OLD)
 endif()
 
 # Compatibility with CMake 3.0
@@ -38,13 +36,11 @@ foreach(DEP_PKG AABB_tree STL_Extension GraphicsView Surface_mesher Filtered_ker
 endforeach()
 
 # Include this package's headers first
-include_directories( BEFORE ./ ./include ../../include ./CGAL_demo)
+include_directories( BEFORE ./ ./include ../../include ./CGAL_demo ../../../Advancing_front_surface_reconstruction/include ../../../Polygon_mesh_processing/include ../../../)
 
 add_subdirectory( implicit_functions )
 
 # Find CGAL
-
-
 
 option( POLYHEDRON_QTSCRIPT_DEBUGGER 
   "Activate the use of Qt Script Debugger in Polyhedron_3 demo" OFF)
@@ -57,32 +53,22 @@ set( QT_USE_QTOPENGL  TRUE )
 if( POLYHEDRON_QTSCRIPT_DEBUGGER)
   set( QT_USE_QTSCRIPTTOOLS  TRUE )
 endif()
-find_package(CGAL REQUIRED COMPONENTS Qt5)
+find_package(CGAL COMPONENTS Qt5)
 include( ${CGAL_USE_FILE} )
-find_package(Qt5 COMPONENTS OpenGL Script Xml Svg ScriptTools)
 
-# Find Glew (required)
-if(NOT ANDROID)
-  #find_package(GLEW)
-set(GLEW_FOUND FALSE)
-else()
-  set(GLEW_FOUND FALSE)
-endif()
-  # Find OpenGL
-  find_package(OpenGL)
+find_package(Qt5 QUIET COMPONENTS OpenGL Script Svg Xml ScriptTools)
+
+# Find OpenGL
+find_package(OpenGL)
+
 # Find QGLViewer
 if(Qt5_FOUND)
+
+  add_definitions(-DQT_NO_KEYWORDS)
   include_directories( ${QT_INCLUDE_DIR}/QtScriptTools )
   find_package(QGLViewer )
 
 endif(Qt5_FOUND)
-if(GLEW_FOUND)
-  include_directories ( ${GLEW_INCLUDE_DIR} )
-  add_definitions(-DCGAL_GLEW_ENABLED)
-else(GLEW_FOUND)
-  message(STATUS "NOTICE: GLEW library is not found. Splat rendering will not be available.")
-endif(GLEW_FOUND)
-
 
 find_package(Eigen3 3.1.0) #(requires 3.1.0 or greater)
 if (EIGEN3_FOUND)
@@ -96,21 +82,24 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
   find_package(Boost COMPONENTS thread system)
 
   include_directories ( ${QGLVIEWER_INCLUDE_DIR} )
-  include_directories ( ${GLEW_INCLUDE_DIR} )
-  include_directories ( ${Boost_INCLUDE_DIR} )
 
   qt5_wrap_ui( MainWindowUI_files MainWindow.ui )
   qt5_wrap_ui( FileLoaderDialogUI_files FileLoaderDialog.ui )
   qt5_wrap_ui( Show_point_dialogUI_FILES Show_point_dialog.ui )
   qt5_wrap_ui( remeshingUI_FILES  Remeshing_dialog.ui)
+  qt5_wrap_ui( Mean_curvature_flow_skeleton_pluginUI_FILES  Mean_curvature_flow_skeleton_plugin.ui)
   qt5_wrap_ui( meshingUI_FILES  Meshing_dialog.ui )
   qt5_wrap_ui( cameraUI_FILES   Camera_positions_list.ui )
   qt5_wrap_ui( PreferencesUI_FILES   Preferences.ui )
   qt5_wrap_ui( point_inside_polyhedronUI_FILES Point_inside_polyhedron_widget.ui)
   qt5_wrap_ui( polyhedron_slicerUI_FILES Polyhedron_slicer_widget.ui)
   qt5_wrap_ui( segmentationUI_FILES Mesh_segmentation_widget.ui)
+  qt5_wrap_ui( hole_fillingUI_FILES Hole_filling_widget.ui)
+  qt5_wrap_ui( fairingUI_FILES Fairing_widget.ui)
   qt5_wrap_ui( selectionUI_FILES Selection_widget.ui)
   qt5_wrap_ui( funcUI_FILES Function_dialog.ui )
+  qt5_wrap_ui( shortestPathUI_FILES Shortest_path_widget.ui )
+
   qt5_generate_moc( "MainWindow.h" "${CMAKE_CURRENT_BINARY_DIR}/MainWindow_moc.cpp" )
   qt5_generate_moc( "File_loader_dialog.h" "${CMAKE_CURRENT_BINARY_DIR}/File_loader_dialog_moc.cpp" )
   add_file_dependencies( MainWindow_moc.cpp "${CMAKE_CURRENT_SOURCE_DIR}/MainWindow.h" )
@@ -121,30 +110,10 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
 
   include( ${CMAKE_CURRENT_SOURCE_DIR}/polyhedron_demo_macros.cmake )
 
+
   qt5_add_resources ( RESOURCE_FILES Polyhedron_3.qrc )
 
   qt5_generate_moc( "CGAL_demo/Viewer_interface.h" "${CMAKE_CURRENT_BINARY_DIR}/Viewer_interface_moc.cpp" )
-
-  #qt5_automoc(Scene.cpp
-  #            Scene_item.cpp
-  #            Scene_plane_item.cpp
-  #            Scene_combinatorial_map_item.cpp
-  #            Scene_polygon_soup_item.cpp
-  #            Scene_polyhedron_item.cpp
-  #            Scene_polyhedron_transform_item.cpp
-  #            Scene_polylines_item.cpp
-  #            Scene_textured_polyhedron_item.cpp
-  #            Scene_c2t3_item.cpp
-  #            Scene_nef_polyhedron_item.cpp
-  #            Show_point_dialog.cpp
-  #            Mesher_base.cpp
-  #            Camera_positions_list.cpp
-  #            Scene_points_with_normal_item.cpp
-  #      		  Scene_polyhedron_item_decorator.cpp
-  #      		  Scene_polyhedron_selection_item.cpp
-  #      		  Scene_polyhedron_item_k_ring_selection.cpp
-  #            )
-  #qt5_automoc( Scene_implicit_function_item.cpp )
 
 
   # AUXILIARY LIBRARIES
@@ -159,7 +128,6 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
     Viewer.cpp #Viewer_moc.cpp
     Viewer_interface_moc.cpp
     Scene_item.cpp #Scene_item.moc
-    #Scene_item_with_display_list.cpp
     Polyhedron_demo_plugin_helper.cpp)
     qt5_use_modules(demo_framework OpenGL Gui Widgets Script Xml Svg)
 
@@ -199,14 +167,6 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
   # special
   target_link_libraries(scene_polyhedron_transform_item scene_polyhedron_item)
 
-  if(GLEW_FOUND)
-    qt5_add_resources(gl_splat_rc GlSplat/glsplat.qrc)
-    add_library(gl_splat SHARED
-      GlSplat/GlSplat.cpp GlSplat/Shader.cpp ${gl_splat_rc})
-    qt5_use_modules(gl_splat OpenGL Widgets Gui Xml Svg)
-    target_link_libraries(gl_splat ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTOPENGL_LIBRARY} ${GLEW_LIBRARIES})
-  endif(GLEW_FOUND)
-  
   add_item(scene_combinatorial_map_item Scene_combinatorial_map_item.cpp)# Scene_combinatorial_map_item.moc)
   # special
   target_link_libraries(scene_combinatorial_map_item scene_polyhedron_item)
@@ -221,7 +181,11 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
  
   add_item(scene_polyhedron_selection_item Scene_polyhedron_selection_item.cpp)# Scene_polyhedron_selection_item.moc)
   target_link_libraries(scene_polyhedron_selection_item scene_polyhedron_item_decorator scene_polyhedron_item_k_ring_selection)
- 
+
+  add_item(scene_polyhedron_shortest_path_item Scene_polyhedron_shortest_path_item.cpp)
+  
+  target_link_libraries(scene_polyhedron_shortest_path_item scene_polyhedron_item_decorator scene_polyhedron_item scene_polylines_item)
+
   if(EIGEN3_FOUND )
     add_item(scene_textured_polyhedron_item Scene_textured_polyhedron_item.cpp texture.cpp)# Scene_textured_polyhedron_item.moc)
   endif()
@@ -235,10 +199,6 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
     Scene_nef_rendering.cpp)
   target_link_libraries(scene_nef_polyhedron_item scene_polyhedron_item)
   add_item(scene_points_with_normal_item Scene_points_with_normal_item.cpp)# Scene_points_with_normal_item.moc)
-  if(GLEW_FOUND)
-    target_link_libraries( scene_points_with_normal_item gl_splat ${GLEW_LIBRARIES} )
-    target_link_libraries( demo_framework gl_splat ${GLEW_LIBRARIES} )
-  endif(GLEW_FOUND)
 
   foreach( lib 
       demo_framework
@@ -246,7 +206,7 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
       scene_polyhedron_item
       scene_polygon_soup_item
       scene_nef_polyhedron_item )
-      add_to_cached_list( CGAL_EXECUTABLE_TARGETS ${lib} )
+    add_to_cached_list( CGAL_EXECUTABLE_TARGETS ${lib} )
   endforeach()
 
   add_definitions(-DQT_STATICPLUGIN)
@@ -268,15 +228,13 @@ else()
     add_executable  ( Polyhedron_3
       MainWindow.cpp
       Polyhedron_3.cpp
-      Viewer.cpp
-      Scene.cpp
-    #MainWindow_moc.cpp
       File_loader_dialog_moc.cpp
     # Viewer_moc.cpp
       ${FileLoaderDialogUI_files} ${MainWindowUI_files} ${PreferencesUI_FILES} ${RESOURCE_FILES} )
 endif()
     add_to_cached_list( CGAL_EXECUTABLE_TARGETS Polyhedron_3 )
     qt5_use_modules(Polyhedron_3 Gui OpenGL Xml Svg Widgets Script )
+
     if(EIGEN3_FOUND)
 #      add_executable( Polyhedron_3 Scene_tex_rendering.cpp Scene_tex_polyhedron_operations.cpp )
     endif()
@@ -297,10 +255,6 @@ endif()
   target_link_libraries( Polyhedron_3 ${QT_LIBRARIES} )
   target_link_libraries( Polyhedron_3 demo_framework )
   target_link_libraries( Polyhedron_3 point_dialog )
-
-  if(GLEW_FOUND)
-    target_link_libraries( Polyhedron_3 gl_splat ${GLEW_LIBRARIES} )
-  endif(GLEW_FOUND)
 
   # Link with CGAL
   target_link_libraries( Polyhedron_3 ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} )
@@ -390,6 +344,10 @@ endif()
   polyhedron_demo_plugin(pca_plugin Polyhedron_demo_pca_plugin)
   target_link_libraries(pca_plugin scene_polyhedron_item scene_basic_objects)
 
+  qt5_wrap_ui( advancing_frontUI_FILES Polyhedron_demo_advancing_front_plugin.ui)
+    polyhedron_demo_plugin(advancing_front_plugin Polyhedron_demo_advancing_front_plugin ${advancing_frontUI_FILES})
+    target_link_libraries(advancing_front_plugin scene_polygon_soup_item scene_points_with_normal_item)
+
   if(EIGEN3_FOUND)
     qt5_wrap_ui( scale_spaceUI_FILES Polyhedron_demo_scale_space_reconstruction_plugin.ui)
     polyhedron_demo_plugin(scale_space_reconstruction_plugin Polyhedron_demo_scale_space_reconstruction_plugin ${scale_spaceUI_FILES})
@@ -405,6 +363,14 @@ endif()
     qt5_wrap_ui( normal_estimationUI_FILES Polyhedron_demo_normal_estimation_plugin.ui)
     polyhedron_demo_plugin(normal_estimation_plugin Polyhedron_demo_normal_estimation_plugin ${normal_estimationUI_FILES})
     target_link_libraries(normal_estimation_plugin scene_points_with_normal_item)
+
+    qt5_wrap_ui( vcm_normal_estimationUI_FILES Polyhedron_demo_vcm_normal_estimation_plugin.ui)
+    polyhedron_demo_plugin(vcm_normal_estimation_plugin Polyhedron_demo_vcm_normal_estimation_plugin ${vcm_normal_estimationUI_FILES})
+    target_link_libraries(vcm_normal_estimation_plugin scene_points_with_normal_item)
+
+    qt5_wrap_ui( features_detection_pluginUI_FILES Polyhedron_demo_features_detection_plugin.ui)
+    polyhedron_demo_plugin(features_detection_plugin Polyhedron_demo_features_detection_plugin ${features_detection_pluginUI_FILES})
+    target_link_libraries(features_detection_plugin scene_points_with_normal_item)
     
     polyhedron_demo_plugin(point_set_smoothing_plugin Polyhedron_demo_point_set_smoothing_plugin)
     target_link_libraries(point_set_smoothing_plugin scene_points_with_normal_item)
@@ -417,15 +383,16 @@ endif()
   else(EIGEN3_FOUND)
     message(STATUS "NOTICE: Eigen 3.1 (or greater) was not found. Parameterization plugin will not be available.")
     message(STATUS "NOTICE: Eigen 3.1 (or greater) was not found. Poisson reconstruction plugin will not be available.")
-    message(STATUS "NOTICE: Eigen 3.1 (or greater) was not found. Normal estimation plugin will not be available.")
+    message(STATUS "NOTICE: Eigen 3.1 (or greater) was not found. Normal estimation plugins will not be available.")
     message(STATUS "NOTICE: Eigen 3.1 (or greater) was not found. Smoothing plugin will not be available.")
     message(STATUS "NOTICE: Eigen 3.1 (or greater) was not found. Average spacing plugin will not be available.")
     message(STATUS "NOTICE: Eigen 3.1 (or greater) was not found. Jet fitting plugin will not be available.")
     message(STATUS "NOTICE: Eigen 3.1 (or greater) was not found. Scale space reconstruction plugin will not be available.")
+    message(STATUS "NOTICE: Eigen 3.1 (or greater) was not found. Feature detection plugin will not be available.")
   endif(EIGEN3_FOUND)
 
   polyhedron_demo_plugin(self_intersection_plugin Polyhedron_demo_self_intersection_plugin)
-  target_link_libraries(self_intersection_plugin scene_polyhedron_item)
+  target_link_libraries(self_intersection_plugin scene_polyhedron_item scene_polyhedron_selection_item)
 
   polyhedron_demo_plugin(polyhedron_stitching_plugin Polyhedron_demo_polyhedron_stitching_plugin)
   target_link_libraries(polyhedron_stitching_plugin scene_polyhedron_item scene_polylines_item)
@@ -445,6 +412,13 @@ endif()
   polyhedron_demo_plugin(mesh_segmentation_plugin Polyhedron_demo_mesh_segmentation_plugin ${segmentationUI_FILES})
   target_link_libraries(mesh_segmentation_plugin scene_polyhedron_item)
   
+  polyhedron_demo_plugin(mean_curvature_flow_skeleton_plugin Polyhedron_demo_mean_curvature_flow_skeleton_plugin ${Mean_curvature_flow_skeleton_pluginUI_FILES})
+  target_link_libraries(mean_curvature_flow_skeleton_plugin 
+    scene_polyhedron_item 
+    scene_points_with_normal_item
+    scene_polylines_item
+    demo_framework)
+
   polyhedron_demo_plugin(nef_plugin Polyhedron_demo_nef_plugin)
   target_link_libraries(nef_plugin scene_nef_polyhedron_item)
 
@@ -473,7 +447,7 @@ endif()
   else()
     message(STATUS "NOTICE: The polyhedron edit plugin require Eigen 3.2 (or higher) and will not be available.")
   endif()
-
+  
   polyhedron_demo_plugin(cut_plugin Polyhedron_demo_cut_plugin)
   target_link_libraries(cut_plugin scene_polyhedron_item scene_basic_objects)
   
@@ -485,11 +459,32 @@ endif()
   target_link_libraries(point_set_simplification_plugin scene_points_with_normal_item)
 
   qt5_wrap_ui( ps_outliers_removal_UI_FILES Polyhedron_demo_point_set_outliers_removal_plugin.ui)
+
+  qt5_wrap_ui(point_set_shape_detectionUI_FILES Polyhedron_demo_point_set_shape_detection_plugin.ui)
+  polyhedron_demo_plugin(point_set_shape_detection_plugin Polyhedron_demo_point_set_shape_detection_plugin ${point_set_shape_detectionUI_FILES})
+  target_link_libraries(point_set_shape_detection_plugin scene_polyhedron_item scene_points_with_normal_item)
+
   polyhedron_demo_plugin(point_set_outliers_removal_plugin Polyhedron_demo_point_set_outliers_removal_plugin ${ps_outliers_removal_UI_FILES}) 
   target_link_libraries(point_set_outliers_removal_plugin scene_points_with_normal_item)
+  
+  if(EIGEN3_FOUND AND ${EIGEN3_VERSION} VERSION_GREATER "3.1.90")
+    polyhedron_demo_plugin(hole_filling_plugin Polyhedron_demo_hole_filling_plugin ${hole_fillingUI_FILES})
+    target_link_libraries(hole_filling_plugin scene_polyhedron_item scene_polylines_item)
+
+    polyhedron_demo_plugin(hole_filling_polyline_plugin Polyhedron_demo_hole_filling_polyline_plugin)
+    target_link_libraries(hole_filling_polyline_plugin scene_polyhedron_item scene_polylines_item)
+
+    polyhedron_demo_plugin(fairing_plugin Polyhedron_demo_fairing_plugin ${fairingUI_FILES})
+    target_link_libraries(fairing_plugin scene_polyhedron_selection_item)
+  else()
+    message(STATUS "NOTICE: The hole filling and fairing plugins require Eigen 3.2 (or higher) and will not be available.")
+  endif()
 
   polyhedron_demo_plugin(selection_plugin Polyhedron_demo_selection_plugin ${selectionUI_FILES})
-  target_link_libraries(selection_plugin scene_polyhedron_selection_item scene_points_with_normal_item)
+  target_link_libraries(selection_plugin scene_polyhedron_selection_item scene_points_with_normal_item scene_polylines_item)
+  
+  polyhedron_demo_plugin(shortest_path_plugin Polyhedron_demo_shortest_path_plugin ${shortestPathUI_FILES})
+  target_link_libraries(shortest_path_plugin scene_polyhedron_item scene_polylines_item scene_polyhedron_selection_item scene_polyhedron_shortest_path_item scene_basic_objects)
 #
 # Exporting
 #
@@ -509,18 +504,12 @@ endif()
     NAMESPACE Polyhedron_
     APPEND FILE polyhedron_demo_targets.cmake)
 
-  if(GLEW_FOUND)
-    export(
-      TARGETS
-      gl_splat
-      NAMESPACE Polyhedron_
-      APPEND FILE polyhedron_demo_targets.cmake)
-  endif(GLEW_FOUND)
-
   configure_file(CGAL_polyhedron_demoConfig.cmake.in  CGAL_polyhedron_demoConfig.cmake)
 
   if(ANDROID)
-    include(/home/mgimeno/Android/qt-android-cmake/AddQtAndroidApk.cmake)
+
+
+include(/home/mgimeno/Android/qt-android-cmake/AddQtAndroidApk.cmake)
     add_qt_android_apk(
                         Polyhedron_3_apk Polyhedron_3
                         NAME "Polyhedron_3"

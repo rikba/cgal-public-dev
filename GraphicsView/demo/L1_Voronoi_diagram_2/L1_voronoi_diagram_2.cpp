@@ -94,7 +94,7 @@ private:
 public:
   MainWindow();
 
-public slots:
+public Q_SLOTS:
 
   void processInput(CGAL::Object o);
 
@@ -114,7 +114,7 @@ public slots:
 
   void open(QString fileName);
 
-signals:
+Q_SIGNALS:
   void changed();
 };
 
@@ -207,13 +207,13 @@ MainWindow::processInput(CGAL::Object o)
     m_sites.push_back(p);
     calculate_envelope();
   }
-  emit(changed());
+  Q_EMIT( changed());
 }
 
 
 /* 
  *  Qt Automatic Connections
- *  http://doc.trolltech.com/4.4/designer-using-a-component.html#automatic-connections
+ *  http://doc.qt.io/qt-5/designer-using-a-ui-file.html#automatic-connections
  * 
  *  setupUi(this) generates connections to the slots named
  *  "on_<action_name>_<signal_name>"
@@ -233,7 +233,7 @@ MainWindow::on_actionClear_triggered()
 {
   m_sites.clear();
   calculate_envelope();
-  emit(changed());
+  Q_EMIT( changed());
 }
 
 
@@ -246,7 +246,6 @@ MainWindow::on_actionInsertRandomPoints_triggered()
   CGAL::Random_points_in_iso_rectangle_2<Point_2> pg((isor.min)(), (isor.max)());
   bool ok = false;
 
-  #if QT_VERSION >= 0x050000
   const int number_of_points = 
     QInputDialog::getInt(this, 
                              tr("Number of random points"),
@@ -256,18 +255,6 @@ MainWindow::on_actionInsertRandomPoints_triggered()
 			     (std::numeric_limits<int>::max)(),
 			     1,
 			     &ok);
-  #else
-  const int number_of_points = 
-    QInputDialog::getInteger(this, 
-                             tr("Number of random points"),
-                             tr("Enter number of random points"),
-			     100,
-			     0,
-			     (std::numeric_limits<int>::max)(),
-			     1,
-			     &ok);
-  #endif
-
 
   if(!ok) {
     return;
@@ -281,7 +268,7 @@ MainWindow::on_actionInsertRandomPoints_triggered()
   calculate_envelope();
   // default cursor
   QApplication::restoreOverrideCursor();
-  emit(changed());
+  Q_EMIT( changed());
 }
 
 
@@ -316,7 +303,7 @@ MainWindow::open(QString fileName)
   QApplication::restoreOverrideCursor();
   this->addToRecentFiles(fileName);
   actionRecenter->trigger();
-  emit(changed());
+  Q_EMIT( changed());
 }
 
 void
@@ -399,9 +386,8 @@ int main(int argc, char **argv)
   app.setOrganizationName("GeometryFactory");
   app.setApplicationName("L1 Voronoi diagram_2 demo");
 
-  // Import resources from libCGAL (Qt4 or Qt5).
-  // See http://doc.trolltech.com/4.4/qdir.html#Q_INIT_RESOURCE
-  CGAL_QT_INIT_RESOURCES;//New for Qt5 version !
+  // Import resources from libCGAL (Qt5).
+  CGAL_QT_INIT_RESOURCES;
 
   MainWindow mainWindow;
   mainWindow.show();

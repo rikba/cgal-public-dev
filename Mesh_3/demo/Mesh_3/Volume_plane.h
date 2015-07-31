@@ -1,11 +1,6 @@
 #ifndef CGAL_VOLUME_PLANE_H
 #define CGAL_VOLUME_PLANE_H
 
-
-#if SCENE_SEGMENTED_IMAGE_GL_BUFFERS_AVAILABLE
-  #include <GL/glew.h>
-#endif 
-
 #include <CGAL_demo/Scene_item.h>
 
 #include <vector>
@@ -37,7 +32,7 @@ class Length_constraint : public qglviewer::WorldConstraint {
 public:
   Length_constraint(double max_) : max_(max_) { }
 
-  void constrainTranslation(qglviewer::Vec& t, qglviewer::Frame* frame) {
+  void constrainTranslation(qglviewer::Vec& t, qglviewer::Frame* const frame) {
     WorldConstraint::constrainTranslation(t, frame);
     qglviewer::Vec pos = frame->position();
     double start = pos[Dim];
@@ -79,7 +74,7 @@ public:
 
   unsigned int cube() {return currentCube; }
 
-  void draw(QGLViewer* viewer)const;
+  void draw(Viewer* viewer)const;
 
   unsigned int aDim() const { return adim_; }
   unsigned int bDim() const { return bdim_; }
@@ -266,7 +261,7 @@ Volume_plane<T>::~Volume_plane() {
 }
 
 template<typename T>
-void Volume_plane<T>::draw(QGLViewer *viewer) const {
+void Volume_plane<T>::draw(Viewer* viewer) const {
   updateCurrentCube();
 
 
@@ -298,7 +293,7 @@ void Volume_plane<T>::draw(QGLViewer *viewer) const {
   program_bordures.bind();
   rectBuffer.create();
   rectBuffer.bind();
-  rectBuffer.allocate(v_rec.data(), v_rec.size()*sizeof(float));
+  rectBuffer.allocate(v_rec.data(), static_cast<int>(v_rec.size()*sizeof(float)));
   program_bordures.setAttributeBuffer("vertex",GL_FLOAT,0,3);
   program_bordures.enableAttributeArray("vertex");
   float current_color[4];
@@ -306,7 +301,7 @@ void Volume_plane<T>::draw(QGLViewer *viewer) const {
   QColor color;
   color.setRgbF(current_color[0], current_color[1], current_color[2]);
   program_bordures.setUniformValue("color",color);
-  glDrawArrays(GL_LINE_LOOP, 0, v_rec.size()/3);
+  glDrawArrays(GL_LINE_LOOP, 0, static_cast<GLsizei>(v_rec.size()/3));
   rectBuffer.release();
   program_bordures.release();
   glLineWidth(1.0f);
@@ -369,7 +364,7 @@ void Volume_plane<T>::init() {
   assert((vertices.size( ) / 3) < (unsigned int)maxi);
   vVBO.create();
   vVBO.bind();
-  vVBO.allocate(vertices.data(),sizeof(float) * vertices.size());
+  vVBO.allocate(vertices.data(),static_cast<int>(sizeof(float) * vertices.size()));
   vVBO.release();
   printGlError(__LINE__);
 
@@ -413,14 +408,14 @@ void Volume_plane<T>::init() {
     unsigned int left_over = (i + slice) > indices.size()  ? std::distance(indices.begin() + i, indices.end()) : slice;
     ebo.create();
     ebo.bind();
-    ebo.allocate(&indices[i],sizeof(unsigned int) * left_over);
+    ebo.allocate(&indices[i],static_cast<int>(sizeof(unsigned int) * left_over));
     ebo.release();
     ebos.push_back(std::make_pair(ebo, left_over));
   }
 
   cbuffer.create();
   cbuffer.bind();
-  cbuffer.allocate(colors_.data(),colors_.size()*sizeof(float));
+  cbuffer.allocate(colors_.data(),static_cast<int>(colors_.size()*sizeof(float)));
   cbuffer.release();
 
   printGlError(__LINE__);

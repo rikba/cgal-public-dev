@@ -1,24 +1,23 @@
-cmake_minimum_required(VERSION 2.4.5)
-
 project (Periodic_2_Triangulation_2_demo)
 
-set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
-
-if ( COMMAND cmake_policy )
-  cmake_policy( SET CMP0003 NEW )
+cmake_minimum_required(VERSION 2.8.11)
+if(POLICY CMP0043)
+  cmake_policy(SET CMP0043 OLD)
 endif()
 
-find_package(CGAL REQUIRED COMPONENTS Qt5 REQUIRED)
+find_package(CGAL COMPONENTS Qt5)
 
 include(${CGAL_USE_FILE})
 
 
 
-find_package(Qt5 COMPONENTS Xml Script OpenGL)
+find_package(Qt5 QUIET COMPONENTS Xml Script OpenGL Svg)
 include_directories (BEFORE ../../../include)
 include_directories (BEFORE ./include)
 
 if ( CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND )
+
+add_definitions(-DQT_NO_KEYWORDS)
 
 
 #--------------------------------
@@ -47,7 +46,7 @@ add_executable  ( Periodic_2_Delaunay_triangulation_2
   ${DT_UI_FILES} ${DT_RESOURCE_FILES} 
   ${headers} ${QT_headers} ${P2T2_headers})
 
-qt5_use_modules( Periodic_2_Delaunay_triangulation_2 Xml Script OpenGL)
+qt5_use_modules( Periodic_2_Delaunay_triangulation_2 Xml Script OpenGL Svg)
 
 add_to_cached_list( CGAL_EXECUTABLE_TARGETS Periodic_2_Delaunay_triangulation_2 )
 

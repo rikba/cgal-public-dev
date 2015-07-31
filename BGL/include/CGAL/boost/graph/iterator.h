@@ -58,14 +58,14 @@ struct Edge {
 };
 
 template <typename G>
-struct OppositeEdge {
+struct Opposite_edge {
   const G* g; 
 
-  OppositeEdge()
+  Opposite_edge()
     : g(NULL)
   {}
 
-  OppositeEdge(const G& g)
+  Opposite_edge(const G& g)
     : g(&g)
   {}
 
@@ -79,14 +79,14 @@ struct OppositeEdge {
 };
 
 template <typename G>
-struct OppositeHalfedge {
+struct Opposite_halfedge {
   const G* g; 
 
-  OppositeHalfedge()
+  Opposite_halfedge()
     : g(NULL)
   {}
 
-  OppositeHalfedge(const G& g)
+  Opposite_halfedge(const G& g)
     : g(&g)
   {}
 
@@ -161,7 +161,26 @@ struct Face {
     return face(h,*g);
   }
 };
+template <typename G>
+struct Opposite_face {
+  const G* g; 
 
+  Opposite_face()
+    : g(NULL)
+  {}
+
+  Opposite_face(const G& g)
+    : g(&g)
+  {}
+
+  typedef typename boost::graph_traits<G>::face_descriptor result_type;
+  typedef typename boost::graph_traits<G>::halfedge_descriptor argument_type;
+
+  result_type operator()(argument_type h) const
+  {
+    return face(opposite(h,*g),*g);
+  }
+};
 } // namespace internal
 /// \endcond
 
@@ -488,7 +507,8 @@ class Halfedge_around_source_circulator
 #endif
 {
 private:
-  internal::OppositeHalfedge<Graph> opp;
+  internal::Opposite_halfedge<Graph> opp;
+
 #ifndef DOXYGEN_RUNNING
   typedef typename boost::graph_traits<Graph>::halfedge_descriptor halfedge_descriptor;
   typedef typename boost::graph_traits<Graph>::vertex_descriptor vertex_descriptor;
@@ -866,7 +886,7 @@ class Face_around_face_iterator
 #endif
 {
   typedef typename boost::graph_traits<Graph>::halfedge_descriptor halfedge_descriptor;
-  internal::Face<Graph> fct;
+  internal::Opposite_face<Graph> fct;
 public:
 
   Face_around_face_iterator()
@@ -1051,6 +1071,44 @@ private:
 }; 
 
 
+template <typename Graph>
+class Opposite_edge_around_face_iterator
+#ifndef DOXYGEN_RUNNING
+  : public boost::iterator_adaptor<
+            Opposite_edge_around_face_iterator<Graph>                       // Derived
+             , Halfedge_around_face_iterator<Graph>                // Base
+             , typename boost::graph_traits<Graph>::edge_descriptor  // Value
+             , std::bidirectional_iterator_tag                       // CategoryOrTraversal
+             , typename boost::graph_traits<Graph>::edge_descriptor  // Reference
+             >
+#endif
+{
+  typedef typename boost::graph_traits<Graph>::halfedge_descriptor halfedge_descriptor;
+  internal::Opposite_edge<Graph> fct;
+public:
+
+  Opposite_edge_around_face_iterator()
+  {}
+
+  Opposite_edge_around_face_iterator(halfedge_descriptor h, const Graph& g, int n = 0)
+    : Opposite_edge_around_face_iterator::iterator_adaptor_(Halfedge_around_face_iterator<Graph>(h,g,(h==halfedge_descriptor())?1:n)), fct(g)
+  {}
+private:
+  friend class boost::iterator_core_access;
+  typename  boost::graph_traits<Graph>::edge_descriptor dereference() const { return fct(*this->base_reference()); }
+}; 
+
+template<typename Graph>
+Iterator_range<Opposite_edge_around_face_iterator<Graph> >
+opposite_edges_around_face(typename boost::graph_traits<Graph>::halfedge_descriptor h, const Graph& g)
+{
+  typedef Opposite_edge_around_face_iterator<Graph> I;
+  return make_range(I(h,g), I(h,g,1));
+}
+
+
+
+
 /**
  * \ingroup PkgBGLIterators
  * A bidirectional circulator  with value type `boost::graph_traits<Graph>::%vertex_descriptor` over all vertices adjacent to the same vertex.
@@ -1217,7 +1275,7 @@ class Out_edge_iterator
 {
   typedef typename boost::graph_traits<Graph>::halfedge_descriptor halfedge_descriptor;
 private:
-  internal::OppositeEdge<Graph> opp;
+  internal::Opposite_edge<Graph> opp;
 public:
   Out_edge_iterator()
   {}

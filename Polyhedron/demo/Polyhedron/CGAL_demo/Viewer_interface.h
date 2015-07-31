@@ -4,7 +4,8 @@
 #include <QGLViewer/qglviewer.h>
 #include <QWidget>
 #include <QPoint>
-
+#include <QOpenGLFunctions>
+#include <CGAL/Qt/CreateOpenGLContext.h>
 // forward declarations
 class QWidget;
 class Scene_draw_interface;
@@ -13,11 +14,12 @@ class QKeyEvent;
 
 #include "../Viewer_config.h" // for VIEWER_EXPORT
 
-class VIEWER_EXPORT Viewer_interface : public QGLViewer {
+class VIEWER_EXPORT Viewer_interface : public QGLViewer, public QOpenGLFunctions{
 
   Q_OBJECT
 
 public:
+
   mutable int is_two_sides;
   mutable std::vector<QOpenGLShaderProgram*> program_list;
   Viewer_interface(QWidget* parent) : QGLViewer(parent) {}
@@ -32,13 +34,13 @@ public:
 
   virtual bool inFastDrawing() const = 0;
 
-signals:
+Q_SIGNALS:
   void selected(int);
   void requestContextMenu(QPoint global_pos);
   void selectedPoint(double, double, double);
   void selectionRay(double, double, double, double, double, double);
 
-public slots:
+public Q_SLOTS:
   virtual void setAntiAliasing(bool b) = 0;
   virtual void setTwoSides(bool b) = 0;
 

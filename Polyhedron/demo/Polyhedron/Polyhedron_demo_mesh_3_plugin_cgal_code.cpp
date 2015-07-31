@@ -42,12 +42,7 @@ typedef Tr::Point Point_3;
 #include <QGLViewer/manipulatedFrame.h>
 #include <QGLViewer/qglviewer.h>
 
-namespace {
-void CGALglcolor(QColor c)
-{
-    //::glColor4d(c.red()/255.0, c.green()/255.0, c.blue()/255.0, c.alpha()/255.0);
-}
-}
+
 
 class Q_DECL_EXPORT Scene_c3t3_item : public Scene_item
 {
@@ -56,7 +51,7 @@ public:
     typedef qglviewer::ManipulatedFrame ManipulatedFrame;
 
     Scene_c3t3_item(const C3t3& c3t3)
-        : c3t3_(c3t3), frame(new ManipulatedFrame()), last_known_scene(NULL), Scene_item(7,3)
+        : Scene_item(7,3), c3t3_(c3t3), frame(new ManipulatedFrame()), last_known_scene(NULL)
     {
         positions_lines.resize(0);
         positions_poly.resize(0);
@@ -64,7 +59,6 @@ public:
         color_poly.resize(0);
         color_grid.resize(0);
         normals.resize(0);
-        qFunc.initializeOpenGLFunctions();
         //Generates an integer which will be used as ID for each buffer
     }
 
@@ -157,7 +151,7 @@ public:
 
     // Indicate if rendering mode is supported
     bool supportsRenderingMode(RenderingMode m) const {
-        return (m != Gouraud && m!=PointsPlusNormals && m!=Splatting); // CHECK THIS!
+        return (m != Gouraud && m!=PointsPlusNormals); // CHECK THIS!
     }
 
     void draw(Viewer_interface* viewer) const {
@@ -168,7 +162,7 @@ public:
         program = getShaderProgram(PROGRAM_WITH_LIGHT);
         attrib_buffers(viewer, PROGRAM_WITH_LIGHT);
         program->bind();
-        qFunc.glDrawArrays(GL_TRIANGLES, 0, positions_poly.size()/3);
+        viewer->glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(positions_poly.size()/3));
         program->release();
         vaos[0]->release();
 
@@ -186,7 +180,7 @@ public:
         for(int i=0; i<16; i++)
             f_mat.data()[i]=frame->matrix()[i];
         program->setUniformValue("f_matrix",f_mat);
-        qFunc.glDrawArrays(GL_LINES, 0, positions_grid.size()/3);
+        viewer->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(positions_grid.size()/3));
         program->release();
         vaos[2]->release();
 
@@ -194,7 +188,7 @@ public:
         program = getShaderProgram(PROGRAM_WITHOUT_LIGHT);
         attrib_buffers(viewer, PROGRAM_WITHOUT_LIGHT);
         program->bind();
-        qFunc.glDrawArrays(GL_LINES, 0, positions_lines.size()/3);
+        viewer->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(positions_lines.size()/3));
         program->release();
         vaos[1]->release();
 
@@ -208,7 +202,7 @@ public:
         program = getShaderProgram(PROGRAM_WITHOUT_LIGHT);
         attrib_buffers(viewer, PROGRAM_WITHOUT_LIGHT);
         program->bind();
-        qFunc.glDrawArrays(GL_POINTS, 0, positions_lines.size()/3);
+        viewer->glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(positions_lines.size()/3));
        vaos[1]->release();
        program->release();
 
@@ -220,7 +214,7 @@ public:
        for(int i=0; i<16; i++)
            f_mat.data()[i]=frame->matrix()[i];
        program->setUniformValue("f_matrix",f_mat);
-       qFunc.glDrawArrays(GL_LINES, 0, positions_grid.size()/3);
+       viewer->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(positions_grid.size()/3));
        program->release();
        vaos[2]->release();
     }
@@ -228,10 +222,7 @@ private:
     void draw_triangle(const Kernel::Point_3& pa,
                        const Kernel::Point_3& pb,
                        const Kernel::Point_3& pc, bool is_cut) {
-        // workaround for Qt-4.2.
-#if QT_VERSION < 0x040300
-#  define darker dark
-#endif
+
 #undef darker
         Kernel::Vector_3 n = cross_product(pb - pa, pc - pa);
         n = n / CGAL::sqrt(n*n);
@@ -278,10 +269,7 @@ else
     void draw_triangle_edges(const Kernel::Point_3& pa,
                        const Kernel::Point_3& pb,
                        const Kernel::Point_3& pc) {
-        // workaround for Qt-4.2.
-#if QT_VERSION < 0x040300
-#  define darker dark
-#endif
+
 #undef darker
         Kernel::Vector_3 n = cross_product(pb - pa, pc - pa);
         n = n / CGAL::sqrt(n*n);
@@ -330,7 +318,7 @@ else
         return diag * 0.7;
     }
 
-public slots:
+public Q_SLOTS:
     void export_facets_in_complex()
     {
         std::stringstream off_sstream;
@@ -369,7 +357,7 @@ public:
         QMenu* menu = Scene_item::contextMenu();
 
         // Use dynamic properties:
-        // http://doc.trolltech.com/lastest/qobject.html#property
+        // http://doc.qt.io/qt-5/qobject.html#property
         bool menuChanged = menu->property(prop_name).toBool();
 
         if(!menuChanged) {
@@ -386,23 +374,6 @@ public:
     void set_scene(Scene_interface* scene){ last_known_scene=scene; }
 
 private:
-
-    struct light_info
-    {
-        //position
-        GLfloat position[4];
-
-        //ambient
-        GLfloat ambient[4];
-
-        //diffuse
-        GLfloat diffuse[4];
-
-        //specular
-        GLfloat specular[4];
-        GLfloat spec_power;
-
-    };
     C3t3 c3t3_;
     qglviewer::ManipulatedFrame* frame;
     Scene_interface* last_known_scene;
@@ -418,6 +389,7 @@ private:
 
     mutable QOpenGLShaderProgram *program;
 
+    using Scene_item::initialize_buffers;
     void initialize_buffers(Viewer_interface *viewer)const
     {
         //vao containing the data for the facets
@@ -427,19 +399,22 @@ private:
 
             vaos[0]->bind();
             buffers[0].bind();
-            buffers[0].allocate(positions_poly.data(), positions_poly.size()*sizeof(float));
+            buffers[0].allocate(positions_poly.data(),
+                                static_cast<int>(positions_poly.size()*sizeof(float)));
             program->enableAttributeArray("vertex");
             program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
             buffers[0].release();
 
             buffers[1].bind();
-            buffers[1].allocate(normals.data(), normals.size()*sizeof(float));
+            buffers[1].allocate(normals.data(),
+                                static_cast<int>(normals.size()*sizeof(float)));
             program->enableAttributeArray("normals");
             program->setAttributeBuffer("normals",GL_FLOAT,0,3);
             buffers[1].release();
 
             buffers[2].bind();
-            buffers[2].allocate(color_poly.data(), color_poly.size()*sizeof(float));
+            buffers[2].allocate(color_poly.data(),
+                                static_cast<int>(color_poly.size()*sizeof(float)));
             program->enableAttributeArray("colors");
             program->setAttributeBuffer("colors",GL_FLOAT,0,3);
             buffers[2].release();
@@ -455,13 +430,15 @@ private:
 
             vaos[1]->bind();
             buffers[3].bind();
-            buffers[3].allocate(positions_lines.data(), positions_lines.size()*sizeof(float));
+            buffers[3].allocate(positions_lines.data(),
+                                static_cast<int>(positions_lines.size()*sizeof(float)));
             program->enableAttributeArray("vertex");
             program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
             buffers[3].release();
 
             buffers[4].bind();
-            buffers[4].allocate(color_lines.data(), color_lines.size()*sizeof(float));
+            buffers[4].allocate(color_lines.data(),
+                                static_cast<int>(color_lines.size()*sizeof(float)));
             program->enableAttributeArray("colors");
             program->setAttributeBuffer("colors",GL_FLOAT,0,3);
             buffers[4].release();
@@ -477,13 +454,15 @@ private:
 
             vaos[2]->bind();
             buffers[5].bind();
-            buffers[5].allocate(positions_grid.data(), positions_grid.size()*sizeof(float));
+            buffers[5].allocate(positions_grid.data(),
+                                static_cast<int>(positions_grid.size()*sizeof(float)));
             program->enableAttributeArray("vertex");
             program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
             buffers[5].release();
 
             buffers[6].bind();
-            buffers[6].allocate(color_grid.data(), color_grid.size()*sizeof(float));
+            buffers[6].allocate(color_grid.data(),
+                                static_cast<int>(color_grid.size()*sizeof(float)));
             program->enableAttributeArray("colors");
             program->setAttributeBuffer("colors",GL_FLOAT,0,3);
             buffers[6].release();

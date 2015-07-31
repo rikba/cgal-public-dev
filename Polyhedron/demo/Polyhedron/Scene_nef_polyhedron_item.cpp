@@ -1,4 +1,3 @@
-#include <CGAL/check_gl_error.h>
 #include "Scene_nef_polyhedron_item.h"
 #include "Scene_polyhedron_item.h"
 #include "Nef_type.h"
@@ -22,9 +21,9 @@
 typedef Nef_polyhedron::Traits Traits;
 typedef Nef_polyhedron::Halffacet Facet;
 typedef CGAL::Triangulation_2_filtered_projection_traits_3<Traits>   P_traits;
-typedef typename Nef_polyhedron::Halfedge_const_handle Halfedge_handle;
+typedef Nef_polyhedron::Halfedge_const_handle Halfedge_handle;
 struct Face_info {
-    typename Nef_polyhedron::Halfedge_const_handle e[3];
+    Nef_polyhedron::Halfedge_const_handle e[3];
     bool is_external;
 };
 typedef CGAL::Triangulation_vertex_base_with_info_2<Halfedge_handle,
@@ -39,20 +38,7 @@ TDS,
 Itag>             CDTbase;
 typedef CGAL::Constrained_triangulation_plus_2<CDTbase>              CDT;
 
-struct light_info
-{
-    //position
-    GLfloat position[4];
 
-    //ambient
-    GLfloat ambient[4];
-
-    //diffuse
-    GLfloat diffuse[4];
-
-    //specular
-    GLfloat specular[4];
-};
 struct DPoint {
     DPoint(GLfloat x, GLfloat y, GLfloat z)
     {
@@ -64,54 +50,24 @@ struct DPoint {
 };
 Scene_nef_polyhedron_item::Scene_nef_polyhedron_item()
     : Scene_item(7,3),
-      positions_facets(0),
-      positions_lines(0),
-      color_lines(0),
-      color_facets(0),
-      color_points(0),
-      normals(0),
-      positions_points(0),
       nef_poly(new Nef_polyhedron)
 {
     is_selected = true;
-    qFunc.initializeOpenGLFunctions();
 }
 
 Scene_nef_polyhedron_item::Scene_nef_polyhedron_item(Nef_polyhedron* const p)
     : Scene_item(7,3),
-      positions_facets(0),
-      positions_lines(0),
-      color_lines(0),
-      color_facets(0),
-      color_points(0),
-      normals(0),
-      positions_points(0),
       nef_poly(p)
 {
     is_selected = true;
-    qFunc.initializeOpenGLFunctions();
 }
 
 Scene_nef_polyhedron_item::Scene_nef_polyhedron_item(const Nef_polyhedron& p)
     : Scene_item(7,3),
-      positions_facets(0),
-      positions_lines(0),
-      normals(0),
-      color_lines(0),
-      color_facets(0),
-      color_points(0),
-      positions_points(0),
       nef_poly(new Nef_polyhedron(p))
 {
      is_selected = true;
-     qFunc.initializeOpenGLFunctions();
 }
-
-// Scene_nef_polyhedron_item::Scene_nef_polyhedron_item(const Scene_nef_polyhedron_item& item)
-//   : Scene_item_with_display_list(item),
-//     nef_poly(new Nef_polyhedron(*item.nef_poly))
-// {
-// }
 
 Scene_nef_polyhedron_item::~Scene_nef_polyhedron_item()
 {
@@ -157,6 +113,7 @@ void Scene_nef_polyhedron_item::initialize_buffers(Viewer_interface *viewer) con
         vaos[1]->bind();
         buffers[3].bind();
         buffers[3].allocate(positions_lines.data(), positions_lines.size()*sizeof(float));
+
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[3].release();
@@ -200,12 +157,13 @@ void Scene_nef_polyhedron_item::initialize_buffers(Viewer_interface *viewer) con
 void Scene_nef_polyhedron_item::compute_normals_and_vertices(void)
 {
      int count = 0;
-    positions_facets.clear();
-    positions_points.clear();
-    color_lines.clear();
-    color_facets.clear();
-    color_points.clear();
-    normals.clear();
+    positions_facets.resize(0);
+    positions_points.resize(0);
+    color_lines.resize(0);
+    color_facets.resize(0);
+    color_points.resize(0);
+    normals.resize(0);
+    positions_lines.resize(0);
     //The Facets
     {
         for(Nef_polyhedron::Halffacet_const_iterator
@@ -230,12 +188,12 @@ void Scene_nef_polyhedron_item::compute_normals_and_vertices(void)
                     Nef_polyhedron::SHalfedge_const_handle h = fc;
                     Nef_polyhedron::SHalfedge_around_facet_const_circulator hc(h), he(hc);
 
-                    typename CDT::Vertex_handle previous, first;
+                    CDT::Vertex_handle previous, first;
 
                     do {
                         Nef_polyhedron::SVertex_const_handle v = hc->source();
                         const Nef_polyhedron::Point_3& point = v->source()->point();
-                        typename CDT::Vertex_handle vh = cdt.insert(point);
+                        CDT::Vertex_handle vh = cdt.insert(point);
                         if(first == 0) {
                             first = vh;
                         }
@@ -249,7 +207,7 @@ void Scene_nef_polyhedron_item::compute_normals_and_vertices(void)
                     cdt.insert_constraint(previous, first);
 
                     // sets mark is_external
-                    for(typename CDT::All_faces_iterator
+                    for(CDT::All_faces_iterator
                         fit = cdt.all_faces_begin(),
                         end = cdt.all_faces_end();
                         fit != end; ++fit)
@@ -258,11 +216,11 @@ void Scene_nef_polyhedron_item::compute_normals_and_vertices(void)
 
                     }
                     //check if the facet is external or internal
-                    std::queue<typename CDT::Face_handle> face_queue;
+                    std::queue<CDT::Face_handle> face_queue;
                     face_queue.push(cdt.infinite_vertex()->face());
 
                     while(! face_queue.empty() ) {
-                        typename CDT::Face_handle fh = face_queue.front();
+                        CDT::Face_handle fh = face_queue.front();
                         face_queue.pop();
                         if(fh->info().is_external) continue;
                         fh->info().is_external = true;
@@ -277,7 +235,7 @@ void Scene_nef_polyhedron_item::compute_normals_and_vertices(void)
                     //iterates on the internal faces to add the vertices to the positions
                     //and the normals to the appropriate vectors
 
-                    for(typename CDT::Finite_faces_iterator
+                    for(CDT::Finite_faces_iterator
                         ffit = cdt.finite_faces_begin(),
                         end = cdt.finite_faces_end();
                         ffit != end; ++ffit)
@@ -491,23 +449,24 @@ Scene_nef_polyhedron_item::toolTip() const
 }
 
 void
-Scene_nef_polyhedron_item::direct_draw() const {
- /*   gl_render_nef_facets(nef_poly);
+Scene_nef_polyhedron_item::direct_draw(Viewer_interface* viewer) const {
+    /*gl_render_nef_facets(nef_poly);
 
     GLboolean lighting;
-    qFunc.glGetBooleanv(GL_LIGHTING, &lighting);
-    qFunc.glDisable(GL_LIGHTING);
+    viewer->glGetBooleanv(GL_LIGHTING, &lighting);
+    viewer->glDisable(GL_LIGHTING);
 
     GLfloat point_size;
-    qFunc.glGetFloatv(GL_POINT_SIZE, &point_size);
-    qFunc.glPointSize(10.f);
+    viewer->glGetFloatv(GL_POINT_SIZE, &point_size);
+    viewer->glPointSize(10.f);
 
     gl_render_nef_vertices(nef_poly);
 
     if(lighting) {
-        qFunc.glEnable(GL_LIGHTING);
+        viewer->glEnable(GL_LIGHTING);
     }
-    qFunc.glPointSize(point_size);*/
+    viewer->glPointSize(point_size);*/
+
 }
 void Scene_nef_polyhedron_item::draw(Viewer_interface* viewer) const
 {
@@ -520,15 +479,15 @@ void Scene_nef_polyhedron_item::draw(Viewer_interface* viewer) const
     program=getShaderProgram(PROGRAM_WITH_LIGHT);
     attrib_buffers(viewer,PROGRAM_WITH_LIGHT);
     program->bind();
-    qFunc.glDrawArrays(GL_TRIANGLES, 0, positions_facets.size()/3);
+    viewer->glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(positions_facets.size()/3));
     vaos[0]->release();
     program->release();
     GLfloat point_size;
-   // qFunc.glGetFloatv(GL_POINT_SIZE, &point_size);
-   // qFunc.glPointSize(10.f);
+//    viewer->glGetFloatv(GL_POINT_SIZE, &point_size);
+//    viewer->glPointSize(10.f);
 
     draw_points(viewer);
-   // qFunc.glPointSize(point_size);
+  //  viewer->glPointSize(point_size);
 
 }
 void Scene_nef_polyhedron_item::draw_edges(Viewer_interface* viewer) const
@@ -541,17 +500,18 @@ void Scene_nef_polyhedron_item::draw_edges(Viewer_interface* viewer) const
     program = getShaderProgram(PROGRAM_WITHOUT_LIGHT);
     attrib_buffers(viewer ,PROGRAM_WITHOUT_LIGHT);
     program->bind();
-    qFunc.glDrawArrays(GL_LINES,0,positions_lines.size()/3);
+    viewer->glDrawArrays(GL_LINES,0,static_cast<GLsizei>(positions_lines.size()/3));
     vaos[1]->release();
     program->release();
     if(renderingMode() == PointsPlusNormals)
     {
         GLfloat point_size;
-        //qFunc.glGetFloatv(GL_POINT_SIZE, &point_size);
-        //qFunc.glPointSize(10.f);
+        //viewer->glGetFloatv(GL_POINT_SIZE, &point_size);
+        //viewer->glPointSize(10.f);
 
         draw_points(viewer);
-        //qFunc.glPointSize(point_size);
+        //viewer->glPointSize(point_size);
+
     }
 }
 void Scene_nef_polyhedron_item::draw_points(Viewer_interface* viewer) const
@@ -563,7 +523,7 @@ void Scene_nef_polyhedron_item::draw_points(Viewer_interface* viewer) const
     program=getShaderProgram(PROGRAM_WITHOUT_LIGHT);
     attrib_buffers(viewer ,PROGRAM_WITHOUT_LIGHT);
     program->bind();
-    qFunc.glDrawArrays(GL_POINTS,0,positions_points.size()/3);
+    viewer->glDrawArrays(GL_POINTS,0,static_cast<GLsizei>(positions_points.size()/3));
     vaos[2]->release();
     program->release();
 
@@ -779,4 +739,3 @@ Scene_nef_polyhedron_item::selection_changed(bool p_is_selected)
     }
 
 }
-#include "Scene_nef_polyhedron_item.moc"

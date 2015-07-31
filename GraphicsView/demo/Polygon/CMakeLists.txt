@@ -3,22 +3,22 @@
 
 project (GraphicsView)
 
-cmake_minimum_required(VERSION 2.6.2)
-if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" VERSION_GREATER 2.8.3)
-  cmake_policy(VERSION 2.8.4)
-else()
-  cmake_policy(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.11)
+if(POLICY CMP0043)
+  cmake_policy(SET CMP0043 OLD)
 endif()
 
-find_package(CGAL REQUIRED COMPONENTS Qt5 Core)
+find_package(CGAL COMPONENTS Qt5 Core)
 
 include(${CGAL_USE_FILE})
 
-find_package(Qt5 COMPONENTS Xml Script OpenGL)
+find_package(Qt5 QUIET COMPONENTS Xml Script OpenGL Svg)
 
 include_directories (BEFORE ../../include)
 
 if ( CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND )
+
+  add_definitions(-DQT_NO_KEYWORDS)
 
   if( CGAL_Core_FOUND)
     add_definitions(-DCGAL_USE_CORE)
@@ -42,7 +42,7 @@ if ( CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND )
   # The executable itself.
   add_executable  ( Polygon_2 Polygon_2.cpp Polygon_2.moc ${DT_UI_FILES} ${DT_RESOURCE_FILES} )
 
-  qt5_use_modules(Polygon_2 Xml Script OpenGL)
+  qt5_use_modules(Polygon_2 Xml Script OpenGL Svg)
 
   add_to_cached_list( CGAL_EXECUTABLE_TARGETS Polygon_2 )
 

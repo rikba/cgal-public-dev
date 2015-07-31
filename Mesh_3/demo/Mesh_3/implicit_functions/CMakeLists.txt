@@ -2,11 +2,9 @@
 
 project( Mesh_3_implicit_functions )
 
-cmake_minimum_required(VERSION 2.6.2)
-if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" VERSION_GREATER 2.8.3)
-  cmake_policy(VERSION 2.8.4)
-else()
-  cmake_policy(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.11)
+if(POLICY CMP0043)
+  cmake_policy(SET CMP0043 OLD)
 endif()
 
 # Let plugins be compiled in the same directory as the executable.
@@ -16,11 +14,11 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 include_directories( BEFORE ${Mesh_3_implicit_functions_BINARY_DIR} ../include )
 
 # Find CGAL and CGAL Qt5
-find_package(CGAL REQUIRED COMPONENTS Qt5)
+find_package(CGAL COMPONENTS Qt5)
 include( ${CGAL_USE_FILE} )
 
 # Find Qt5 itself
-find_package(Qt5 COMPONENTS Xml Script OpenGL)
+find_package(Qt5 QUIET COMPONENTS Xml Script OpenGL)
 
 
 if(CGAL_Qt5_FOUND AND Qt5_FOUND)

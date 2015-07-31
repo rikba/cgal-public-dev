@@ -29,7 +29,6 @@
 #include <QOpenGLVertexArrayObject>
 #include <QGLBuffer>
 #include <QOpenGLShaderProgram>
-
 class Viewer : public QGLViewer, QOpenGLFunctions_3_3_Core
 {
   Q_OBJECT
@@ -53,15 +52,7 @@ class Viewer : public QGLViewer, QOpenGLFunctions_3_3_Core
 
 
 public:
-  Viewer(QWidget* parent)
-    : QGLViewer(parent), wireframe(false), flatShading(true),
-      edges(true), vertices(true), m_displayListCreated(false)
-  {
-    QGLFormat newFormat = this->format();
-    newFormat.setSampleBuffers(true);
-    newFormat.setSamples(16);
-    this->setFormat(newFormat);
-  }
+  Viewer(QWidget* parent);
   ~Viewer()
   {
       buffers[0].destroy();
@@ -92,12 +83,14 @@ public:
 
   virtual QString helpString() const;
 
-public slots :
+public Q_SLOTS:
 
   void sceneChanged();
 
 
 private:
+
+  bool are_buffers_initialized;
   //Shaders elements
 
   int vertexLocation[3];

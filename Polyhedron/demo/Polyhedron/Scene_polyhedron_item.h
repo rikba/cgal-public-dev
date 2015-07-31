@@ -44,7 +44,7 @@ public:
     QMenu* contextMenu();
 
     // Indicate if rendering mode is supported
-    virtual bool supportsRenderingMode(RenderingMode m) const { return (m!=PointsPlusNormals && m!=Splatting); }
+    virtual bool supportsRenderingMode(RenderingMode m) const { return (m!=PointsPlusNormals); }
     // Points/Wireframe/Flat/Gouraud OpenGL drawing in a display list
     void draw() const {}
     virtual void draw(Viewer_interface*) const;
@@ -63,7 +63,7 @@ public:
     std::vector<QColor>& color_vector() {return colors_;}
     void set_color_vector_read_only(bool on_off) {plugin_has_set_color_vector_m=on_off;}
 
-public slots:
+public Q_SLOTS:
     virtual void changed();
     virtual void contextual_changed();
     virtual void selection_changed(bool);
@@ -81,8 +81,9 @@ public slots:
     void update_vertex_indices();
     void update_facet_indices();
     void update_halfedge_indices();
+    void invalidate_aabb_tree();
 
-signals:
+Q_SIGNALS:
     void selected_vertex(void*);
     void selected_facet(void*);
     void selected_edge(void*);
@@ -99,8 +100,8 @@ private:
 private:
     typedef Scene_item Base;
     typedef std::vector<QColor> Color_vector;
-    typedef typename Polyhedron::Facet_iterator Facet_iterator;
-    
+    typedef Polyhedron::Facet_iterator Facet_iterator;
+
     Color_vector colors_;
 
     bool show_only_feature_edges_m;
@@ -108,6 +109,7 @@ private:
     bool erase_next_picked_facet_m;
     //the following variable is used to indicate if the color vector must not be automatically updated.
     bool plugin_has_set_color_vector_m;
+
 
     std::vector<float> positions_lines;
     std::vector<float> positions_facets;
@@ -119,12 +121,14 @@ private:
 
     mutable QOpenGLShaderProgram *program;
 
+    using Scene_item::initialize_buffers;
     void initialize_buffers(Viewer_interface *viewer = 0) const;
     void compute_normals_and_vertices(void);
     void compute_colors();
     void triangulate_facet(Facet_iterator );
     void triangulate_facet_color(Facet_iterator );
     void is_Triangulated();
+    double volume, area;
 
 }; // end class Scene_polyhedron_item
 

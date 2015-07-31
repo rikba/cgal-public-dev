@@ -7,6 +7,7 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 
+
 // forward declarations
 class QWidget;
 class Scene;
@@ -16,6 +17,7 @@ struct axis_data
     std::vector<float> *normals;
     std::vector<float> *colors;
 };
+
 class Viewer : public QGLViewer{
 
   Q_OBJECT

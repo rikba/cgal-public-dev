@@ -63,14 +63,9 @@ MainWindow::MainWindow (QWidget * parent):CGAL::Qt::DemosMainWindow (parent),
 /*  volumeList->setColumnWidth(0,85);
   volumeList->setColumnWidth(1,35);
   volumeList->setColumnWidth(2,35);*/
-  
-//New for Qt5 version !
-#if QT_VERSION >= 0x050000
- volumeList->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-#else
- volumeList->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
-#endif
 
+  volumeList->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+ 
   volumeList->setSelectionMode(QAbstractItemView::NoSelection);
   //volumeList->setSelectionBehavior(QAbstractItemView::SelectRows);
   volumeListDock->setWidget(volumeList);
@@ -302,7 +297,7 @@ void MainWindow::load_off (const QString & fileName, bool clear)
   else
     statusBar ()->showMessage (QString ("Add off file") + fileName,
                                DELAY_STATUSMSG);
-  emit (sceneChanged ());
+  Q_EMIT (sceneChanged ());
 }
 
 void MainWindow::load_3DTDS (const QString & fileName, bool clear)
@@ -336,7 +331,7 @@ void MainWindow::load_3DTDS (const QString & fileName, bool clear)
   init_all_new_volumes();
 
   QApplication::restoreOverrideCursor ();
-  emit (sceneChanged ());
+  Q_EMIT (sceneChanged ());
 }
 
 Dart_handle MainWindow::make_iso_cuboid(const Point_3 basepoint, LCC::FT lg)
@@ -370,7 +365,7 @@ Dart_handle MainWindow::on_actionCreate_cube_triggered ()
 
   statusBar ()->showMessage (QString ("Cube created"),DELAY_STATUSMSG);
 
-  emit (sceneChanged ());
+  Q_EMIT (sceneChanged ());
 
   return d;
 }
@@ -393,7 +388,7 @@ void MainWindow::on_actionCreate3Cubes_triggered ()
   statusBar ()->showMessage (QString ("3 cubes were created"),
                              DELAY_STATUSMSG);
 
-  emit (sceneChanged ());
+  Q_EMIT (sceneChanged ());
 }
 
 void MainWindow::on_actionCreate2Volumes_triggered ()
@@ -419,7 +414,7 @@ void MainWindow::on_actionCreate2Volumes_triggered ()
   statusBar ()->showMessage (QString ("2 volumes were created"),
                              DELAY_STATUSMSG);
 
-  emit (sceneChanged());
+  Q_EMIT (sceneChanged());
 }
 
 void MainWindow::on_actionCreate_mesh_triggered ()
@@ -456,7 +451,7 @@ void MainWindow::onCreateMeshOk()
   statusBar ()->showMessage (QString ("Mesh created"),DELAY_STATUSMSG);
 
   QApplication::restoreOverrideCursor ();
-  emit (sceneChanged ());
+  Q_EMIT (sceneChanged ());
 }
 
 void MainWindow::on_actionSubdivide_triggered ()
@@ -477,7 +472,7 @@ void MainWindow::on_actionSubdivide_triggered ()
 #endif
 
   QApplication::restoreOverrideCursor ();
-  emit (sceneChanged ());
+  Q_EMIT (sceneChanged ());
   statusBar ()->showMessage (QString ("Objects were subdivided"),
                              DELAY_STATUSMSG);
 }
@@ -500,7 +495,7 @@ void MainWindow::on_actionSubdivide_pqq_triggered ()
 #endif
 
   QApplication::restoreOverrideCursor ();
-  emit (sceneChanged ());
+  Q_EMIT (sceneChanged ());
   statusBar ()->showMessage (QString ("Objects were subdivided"),
                              DELAY_STATUSMSG);
 }
@@ -510,7 +505,7 @@ void MainWindow::on_actionClear_triggered()
 {
   clear_all();
   statusBar ()->showMessage (QString ("Scene cleared"), DELAY_STATUSMSG);
-  emit (sceneChanged ());
+  Q_EMIT (sceneChanged ());
 }
 
 void MainWindow::on_actionCompute_Voronoi_3D_triggered ()
@@ -609,7 +604,7 @@ void MainWindow::on_actionCompute_Voronoi_3D_triggered ()
 
   init_all_new_volumes();
   QApplication::restoreOverrideCursor ();
-  emit (sceneChanged ());
+  Q_EMIT (sceneChanged ());
   statusBar ()->showMessage (QString ("Voronoi 3D of points in ") + fileName,
                              DELAY_STATUSMSG);
 }
@@ -648,7 +643,7 @@ void MainWindow::on_actionDual_3_triggered ()
 
   statusBar ()->showMessage (QString ("Dual_3 computed"), DELAY_STATUSMSG);
   QApplication::restoreOverrideCursor ();
-  emit (sceneChanged ());
+  Q_EMIT (sceneChanged ());
 }
 
 void MainWindow::on_actionClose_volume_triggered()
@@ -665,7 +660,7 @@ void MainWindow::on_actionClose_volume_triggered()
     init_all_new_volumes();
     statusBar ()->showMessage (QString ("All volume(s) closed"),
                                DELAY_STATUSMSG);
-    emit (sceneChanged ());
+    Q_EMIT (sceneChanged ());
   }
   else
     statusBar ()->showMessage
@@ -698,7 +693,7 @@ void MainWindow::on_actionSew3_same_facets_triggered()
     statusBar()->showMessage
         (QString ("Same facets of visible and filled volume(s) are 3-sewn"),
          DELAY_STATUSMSG);
-    emit (sceneChanged ());
+    Q_EMIT (sceneChanged ());
   }
   else
     statusBar()->showMessage (QString ("No facets 3-sewn"), DELAY_STATUSMSG);
@@ -746,7 +741,7 @@ void MainWindow::on_actionUnsew3_all_triggered()
     statusBar()->showMessage
         (QString ("Darts between visible and filled volume(s) are 3-unsewn"),
          DELAY_STATUSMSG);
-    emit (sceneChanged ());
+    Q_EMIT (sceneChanged ());
   }
   else
     statusBar()->showMessage (QString ("No dart 3-unsewn"), DELAY_STATUSMSG);
@@ -782,7 +777,7 @@ void MainWindow::on_actionRemove_filled_volumes_triggered()
 
   recreate_whole_volume_list();
   QApplication::restoreOverrideCursor ();
-  emit(sceneChanged());
+  Q_EMIT( sceneChanged());
 
   statusBar()->showMessage
       (QString::number(count)+QString("Visible and filled volume(s) removed"),
@@ -816,7 +811,7 @@ void MainWindow::on_actionTriangulate_all_facets_triggered()
 #endif
 
   QApplication::restoreOverrideCursor ();
-  emit (sceneChanged ());
+  Q_EMIT (sceneChanged ());
   statusBar()->showMessage
       (QString ("Facets of visible and filled volume(s) triangulated"),
        DELAY_STATUSMSG);
@@ -862,7 +857,7 @@ void MainWindow::on_actionMerge_all_volumes_triggered()
   recreate_whole_volume_list();
 
   QApplication::restoreOverrideCursor ();
-  emit (sceneChanged ());
+  Q_EMIT (sceneChanged ());
   statusBar()->showMessage
       (QString ("Visible and filled volume(s) merged"), DELAY_STATUSMSG);
 }
@@ -1000,7 +995,7 @@ void MainWindow::onCellChanged(int row, int col)
           (volumeList->item(row,1)->flags()|Qt::ItemIsEnabled);
   }
 
-  emit(sceneChanged());
+  Q_EMIT( sceneChanged());
 }
 
 void MainWindow::onHeaderClicked(int col)
@@ -1063,7 +1058,7 @@ void MainWindow::onHeaderClicked(int col)
     }
 
     connectVolumeListHandlers();
-    emit(sceneChanged());
+    Q_EMIT( sceneChanged());
   }
 }
 
@@ -1129,7 +1124,7 @@ void MainWindow::on_actionExtend_filled_volumes_triggered()
     }
 
     update_volume_list_all_ckeckstates();
-    emit(sceneChanged());
+    Q_EMIT( sceneChanged());
   }
 
   connectVolumeListHandlers();
@@ -1184,7 +1179,7 @@ void MainWindow::on_actionExtend_hidden_volumes_triggered()
     }
 
     update_volume_list_all_ckeckstates();
-    emit(sceneChanged());
+    Q_EMIT( sceneChanged());
   }
 
   connectVolumeListHandlers();
@@ -1221,7 +1216,7 @@ void MainWindow::onMengerCancel()
   update_operations_entries(true);
   statusBar()->showMessage (QString ("Menger sponge creation canceled"),
                             DELAY_STATUSMSG);
-  emit(sceneChanged());
+  Q_EMIT( sceneChanged());
 }
 
 void MainWindow::onMengerOk()
@@ -1361,7 +1356,7 @@ void MainWindow::onMengerInc()
                            arg(this->mengerLevel-1).arg(this->mengerLevel),
                            DELAY_STATUSMSG);
 
-  emit(sceneChanged());
+  Q_EMIT( sceneChanged());
 }
 
 void MainWindow::split_edge_in_three(Dart_handle dh)
@@ -1793,7 +1788,7 @@ void MainWindow::onMengerDec()
                            DELAY_STATUSMSG);
 
   QApplication::restoreOverrideCursor ();
-  emit(sceneChanged());
+  Q_EMIT( sceneChanged());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -1837,7 +1832,7 @@ void MainWindow::on_actionCreate_Sierpinski_Carpet_triggered ()
 
   statusBar ()->showMessage (QString ("Square created"),DELAY_STATUSMSG);
 
-  emit (sceneChanged ());
+  Q_EMIT (sceneChanged ());
 
   sierpinskiCarpetSurfaces.push_back(d);
   update_operations_entries(false);
@@ -1861,7 +1856,7 @@ void MainWindow::onSierpinskiCarpetCancel()
   sierpinskiCarpetSurfaces.clear();
   update_operations_entries(true);
   QApplication::restoreOverrideCursor ();
-  emit(sceneChanged());
+  Q_EMIT( sceneChanged());
 }
 
 void MainWindow::onSierpinskiCarpetOk()
@@ -1936,7 +1931,7 @@ void MainWindow::onSierpinskiCarpetComputeGeometry(bool newValue)
   computeGeometry = false;
   dialogsierpinskicarpet.computeGeometry->setEnabled(false);
 
-  emit(sceneChanged());
+  Q_EMIT( sceneChanged());
 }*/
 
 void MainWindow::onSierpinskiCarpetInc()
@@ -2068,7 +2063,7 @@ void MainWindow::onSierpinskiCarpetInc()
                            DELAY_STATUSMSG);
 
   QApplication::restoreOverrideCursor ();
-  emit(sceneChanged());
+  Q_EMIT( sceneChanged());
 }
 
 void MainWindow::sierpinski_carpet_update_geometry()
@@ -2611,7 +2606,7 @@ void MainWindow::onSierpinskiCarpetDec()
                            arg(this->sierpinskiCarpetLevel+1).
                            arg(this->sierpinskiCarpetLevel),
                            DELAY_STATUSMSG);
-  emit(sceneChanged());
+  Q_EMIT( sceneChanged());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -2644,7 +2639,7 @@ void MainWindow::on_actionCreate_Sierpinski_Triangle_triggered ()
 
   statusBar ()->showMessage (QString ("Triangle created"),DELAY_STATUSMSG);
 
-  emit (sceneChanged ());
+  Q_EMIT (sceneChanged ());
 
   sierpinskiTriangleSurfaces.push_back(d);
   update_operations_entries(false);
@@ -2666,7 +2661,7 @@ void MainWindow::onSierpinskiTriangleCancel()
   recreate_whole_volume_list();
   sierpinskiTriangleSurfaces.clear();
   update_operations_entries(true);
-  emit(sceneChanged());
+  Q_EMIT( sceneChanged());
 }
 
 void MainWindow::onSierpinskiTriangleOk()
@@ -2787,7 +2782,7 @@ void MainWindow::onSierpinskiTriangleInc()
                            DELAY_STATUSMSG);
   QApplication::restoreOverrideCursor ();
 
-  emit(sceneChanged());
+  Q_EMIT( sceneChanged());
 }
 
 void MainWindow::sierpinski_triangle_split_edge_in_two(Dart_handle dh)
@@ -2992,7 +2987,7 @@ void MainWindow::onSierpinskiTriangleDec()
                            DELAY_STATUSMSG);
   QApplication::restoreOverrideCursor ();
 
-  emit(sceneChanged());
+  Q_EMIT( sceneChanged());
 }
 
 #undef DELAY_STATUSMSG

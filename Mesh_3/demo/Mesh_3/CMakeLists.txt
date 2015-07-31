@@ -8,11 +8,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
 
-cmake_minimum_required(VERSION 2.6.2)
-if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" VERSION_GREATER 2.8.3)
-  cmake_policy(VERSION 2.8.4)
-else()
-  cmake_policy(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.11)
+if(POLICY CMP0043)
+  cmake_policy(SET CMP0043 OLD)
 endif()
 
 # Compatibility with CMake 3.0
@@ -21,6 +19,7 @@ if(POLICY CMP0042)
   # http://www.cmake.org/cmake/help/v3.0/policy/CMP0042.html
   cmake_policy(SET CMP0042 OLD)
 endif()
+
 
 # Creates a new CMake option, turned ON by default
 option(ACTIVATE_MSVC_PRECOMPILED_HEADERS
@@ -75,7 +74,6 @@ option(ACTIVATE_CONCURRENT_MESH_3
 # Find CGAL and CGAL Qt5
 find_package(CGAL COMPONENTS Qt5 ImageIO)
 include( ${CGAL_USE_FILE} )
-
 # And add -DCGAL_CONCURRENT_MESH_3 if that option is ON
 if( ACTIVATE_CONCURRENT_MESH_3 )
   add_definitions( -DCGAL_CONCURRENT_MESH_3 )
@@ -94,20 +92,22 @@ if( TBB_FOUND )
 endif()
 
 # Find Qt5 itself
-find_package(Qt5 COMPONENTS Xml Script OpenGL)
+find_package(Qt5 QUIET COMPONENTS Xml Script OpenGL)
 
 # Find OpenGL
 find_package(OpenGL)
-
-# Find GLEW (for OpenGL-1.5 and OpenGL extensions)
-find_package(GLEW)
 
 # Find everybodies darling
 find_package(Boost COMPONENTS thread system)
 
 # Find QGLViewer
+
 if(Qt5_FOUND)
-  find_package(QGLViewer )
+
+ add_definitions(-DQT_NO_KEYWORDS)
+ add_definitions(-DSCENE_SEGMENTED_IMAGE_GL_BUFFERS_AVAILABLE)
+
+ find_package(QGLViewer )
 endif(Qt5_FOUND)
 
 
@@ -115,14 +115,6 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND AND Boost_F
 
   # Add directory containing implicit function plugin source files
   add_subdirectory("implicit_functions")
-
-  if(GLEW_FOUND)
-    include_directories ( ${GLEW_INCLUDE_DIR} )
-    add_definitions(-DSCENE_SEGMENTED_IMAGE_GL_BUFFERS_AVAILABLE)
-  else(GLEW_FOUND)
-    message(STATUS "NOTICE: GLEW library is not found. 3D images rendering will not be available.")
-  endif(GLEW_FOUND)
-
 
   include_directories ( ${QGLVIEWER_INCLUDE_DIR} )
 
@@ -156,15 +148,6 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND AND Boost_F
 
   qt5_add_resources ( RESOURCE_FILES Mesh_3.qrc )
 
-  #qt4_automoc( Scene_polyhedron_item.cpp )
-  #qt4_automoc( Scene_polygon_soup.cpp )
-  #qt4_automoc( Scene_segmented_image_item.cpp )
-  #qt4_automoc( Scene_c3t3_item.cpp )
-  #qt4_automoc( Scene_implicit_function_item.cpp )
-  #qt4_automoc( Optimizer_thread.cpp )
-  #qt4_automoc( Meshing_thread.cpp )
-  #qt4_automoc( Volume_plane_intersection.cpp )
-
   # put plugins (which are shared libraries) at the same location as
   # executable files
   set(LIBRARY_OUTPUT_PATH ${RUNTIME_OUTPUT_PATH})
@@ -176,7 +159,7 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND AND Boost_F
   set(VIEWER_LIB "${MESH_3_LIB_PREFIX}viewer")
   add_library(${VIEWER_LIB} SHARED
     ${DEMO_SRC_DIR}/Viewer.cpp Viewer_moc.cpp)
-  qt5_use_modules(${VIEWER_LIB} Xml Script OpenGL)
+  qt5_use_modules(${VIEWER_LIB} Xml Script OpenGL Svg)
   target_link_libraries(${VIEWER_LIB} ${QGLVIEWER_LIBRARIES} ${QT_LIBRARIES} ${OPENGL_LIBRARIES})
   set_target_properties(${VIEWER_LIB} PROPERTIES DEFINE_SYMBOL viewer_EXPORTS)
 
@@ -186,33 +169,29 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND AND Boost_F
     Scene_item_moc.cpp
     ${DEMO_SRC_DIR}/Scene_item_with_display_list.cpp
     ${DEMO_SRC_DIR}/Plugin_helper.cpp)
-  qt5_use_modules(${SCENE_ITEM_LIB} Xml Script OpenGL)
+  qt5_use_modules(${SCENE_ITEM_LIB} Xml Script OpenGL Svg)
   set_target_properties(${SCENE_ITEM_LIB} PROPERTIES DEFINE_SYMBOL scene_item_EXPORTS)
   target_link_libraries(${SCENE_ITEM_LIB} ${QT_LIBRARIES} ${OPENGL_LIBRARIES})
 
   set(SCENE_SEGMENTED_IMAGE_ITEM_LIB "${MESH_3_LIB_PREFIX}scene_segmented_image_item")
   add_library(${SCENE_SEGMENTED_IMAGE_ITEM_LIB} SHARED
     Scene_segmented_image_item.cpp)# Scene_segmented_image_item.moc)
-  qt5_use_modules(${SCENE_SEGMENTED_IMAGE_ITEM_LIB} Xml Script OpenGL)
-  target_link_libraries(${SCENE_SEGMENTED_IMAGE_ITEM_LIB} ${SCENE_ITEM_LIB} ${CGAL_LIBRARIES} ${TBB_LIBRARIES})
+  qt5_use_modules(${SCENE_SEGMENTED_IMAGE_ITEM_LIB} Xml Script OpenGL Svg)
+  target_link_libraries(${SCENE_SEGMENTED_IMAGE_ITEM_LIB} ${SCENE_ITEM_LIB} ${QGLVIEWER_LIBRARIES} ${CGAL_LIBRARIES} ${TBB_LIBRARIES})
   set_target_properties(${SCENE_SEGMENTED_IMAGE_ITEM_LIB} PROPERTIES DEFINE_SYMBOL scene_segmented_image_item_EXPORTS)
-
-  if(GLEW_FOUND)
-    target_link_libraries(${SCENE_SEGMENTED_IMAGE_ITEM_LIB} ${GLEW_LIBRARIES})
-  endif()
 
   set(SCENE_POLYHEDRON_ITEM_LIB "${MESH_3_LIB_PREFIX}scene_polyhedron_item")
   add_library(${SCENE_POLYHEDRON_ITEM_LIB} SHARED
     Scene_polyhedron_item.cpp )#Scene_polyhedron_item.moc)
-  qt5_use_modules(${SCENE_POLYHEDRON_ITEM_LIB} Xml Script OpenGL)
-  target_link_libraries(${SCENE_POLYHEDRON_ITEM_LIB} ${SCENE_ITEM_LIB} ${CGAL_LIBRARIES} ${TBB_LIBRARIES})
+  qt5_use_modules(${SCENE_POLYHEDRON_ITEM_LIB} Xml Script OpenGL Svg)
+  target_link_libraries(${SCENE_POLYHEDRON_ITEM_LIB} ${SCENE_ITEM_LIB}  ${QGLVIEWER_LIBRARIES} ${CGAL_LIBRARIES} ${TBB_LIBRARIES})
   set_target_properties(${SCENE_POLYHEDRON_ITEM_LIB} PROPERTIES DEFINE_SYMBOL scene_polyhedron_item_EXPORTS)
 
   set(POLYGON_SOUP_LIB "${MESH_3_LIB_PREFIX}polygon_soup")
   add_library(${POLYGON_SOUP_LIB} SHARED
     Scene_polygon_soup.cpp )#Scene_polygon_soup.moc)
-  qt5_use_modules(${POLYGON_SOUP_LIB} Xml Script OpenGL)
-  target_link_libraries(${POLYGON_SOUP_LIB} ${SCENE_ITEM_LIB} ${CGAL_LIBRARIES} ${TBB_LIBRARIES})
+  qt5_use_modules(${POLYGON_SOUP_LIB} Xml Script OpenGL Svg)
+  target_link_libraries(${POLYGON_SOUP_LIB} ${SCENE_ITEM_LIB}  ${QGLVIEWER_LIBRARIES} ${CGAL_LIBRARIES} ${TBB_LIBRARIES})
   set_target_properties(${POLYGON_SOUP_LIB} PROPERTIES DEFINE_SYMBOL polygon_soup_EXPORTS)
 
   set(SCENE_C3T3_ITEM_LIB "${MESH_3_LIB_PREFIX}scene_c3t3_item")
@@ -221,14 +200,14 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND AND Boost_F
  # LIST(APPEND SCENE_C3T3_ITEM_LIB_SOURCE_FILES Scene_c3t3_item.moc)
   add_library(${SCENE_C3T3_ITEM_LIB} SHARED
     ${SCENE_C3T3_ITEM_LIB_SOURCE_FILES})
-  qt5_use_modules(${SCENE_C3T3_ITEM_LIB} Xml Script OpenGL)
+  qt5_use_modules(${SCENE_C3T3_ITEM_LIB} Xml Script OpenGL Svg)
   target_link_libraries(${SCENE_C3T3_ITEM_LIB} ${SCENE_ITEM_LIB} ${QGLVIEWER_LIBRARIES} ${QT_LIBRARIES} ${CGAL_LIBRARIES} ${Boost_LIBRARIES} ${TBB_LIBRARIES})
   set_target_properties(${SCENE_C3T3_ITEM_LIB} PROPERTIES DEFINE_SYMBOL scene_c3t3_item_EXPORTS)
 
   set(SCENE_IMPLICIT_FUNCTION_ITEM_LIB "${MESH_3_LIB_PREFIX}scene_implicit_function_item")
   add_library(${SCENE_IMPLICIT_FUNCTION_ITEM_LIB} SHARED
     Scene_implicit_function_item.cpp Color_ramp.cpp)#Scene_implicit_function_item.moc)
-  qt5_use_modules(${SCENE_IMPLICIT_FUNCTION_ITEM_LIB} Xml Script OpenGL)
+  qt5_use_modules(${SCENE_IMPLICIT_FUNCTION_ITEM_LIB} Xml Script OpenGL Svg)
   target_link_libraries(${SCENE_IMPLICIT_FUNCTION_ITEM_LIB} ${SCENE_ITEM_LIB} ${QGLVIEWER_LIBRARIES} ${QT_LIBRARIES} ${TBB_LIBRARIES})
   set_target_properties(${SCENE_IMPLICIT_FUNCTION_ITEM_LIB} PROPERTIES DEFINE_SYMBOL scene_implicit_function_item_EXPORTS)
 
@@ -244,7 +223,7 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND AND Boost_F
     #ADD_MSVC_PRECOMPILED_HEADER("StdAfx.h" "StdAfx.cpp" MESH_3_SOURCE_FILES)
     LIST(APPEND MESH_3_SOURCE_FILES ${UI_FILES} ${RESOURCE_FILES})
     add_executable( Mesh_3 ${MESH_3_SOURCE_FILES} )
-    qt5_use_modules(Mesh_3 Xml Script OpenGL)
+    qt5_use_modules(Mesh_3 Xml Script OpenGL Svg)
     add_to_cached_list( CGAL_EXECUTABLE_TARGETS Mesh_3 )
 
   # Link with Qt libraries
@@ -283,7 +262,7 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND AND Boost_F
     add_file_dependencies( ${plugin_implementation_base_name}.moc "${CMAKE_CURRENT_SOURCE_DIR}/${plugin_implementation_base_name}.cpp" )
 
     add_library(${plugin_name} MODULE ${option} ${plugin_implementation_base_name}.moc ${plugin_implementation_base_name}.cpp ${other_sources})
-    qt5_use_modules(${plugin_name} Xml Script OpenGL)
+    qt5_use_modules(${plugin_name} Xml Script OpenGL Svg)
     add_to_cached_list( CGAL_EXECUTABLE_TARGETS ${plugin_name} )
     # Link with Qt
     target_link_libraries( ${plugin_name} ${QT_LIBRARIES} )
@@ -297,22 +276,16 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND AND Boost_F
   polyhedron_demo_plugin(${IO_IMAGE_PLUGIN_LIB} Io_image_plugin ${imgUI_FILES})
   target_link_libraries(${IO_IMAGE_PLUGIN_LIB} ${SCENE_SEGMENTED_IMAGE_ITEM_LIB})
 
-  if(GLEW_FOUND)
-    target_link_libraries(${IO_IMAGE_PLUGIN_LIB} ${GLEW_LIBRARIES})
-  endif()
-
   set(IO_OFF_PLUGIN_LIB "${MESH_3_LIB_PREFIX}io_off_plugin")
   polyhedron_demo_plugin(${IO_OFF_PLUGIN_LIB} Io_off_plugin)
   target_link_libraries(${IO_OFF_PLUGIN_LIB} ${SCENE_POLYHEDRON_ITEM_LIB} ${POLYGON_SOUP_LIB})
 
-  if(GLEW_FOUND)
+  if(Qt5_FOUND)
     set(VOLUME_PLANES_PLUGIN_LIB "${MESH_3_LIB_PREFIX}volume_planes_plugin")
     polyhedron_demo_plugin(${VOLUME_PLANES_PLUGIN_LIB} Volume_planes_plugin
                            ${VOLUME_MOC_OUTFILES}
-                           Volume_plane_intersection.cpp)                      
+                           Volume_plane_intersection.cpp)
     target_link_libraries(${VOLUME_PLANES_PLUGIN_LIB} ${SCENE_SEGMENTED_IMAGE_ITEM_LIB} ${VIEWER_LIB})
-  else()
-    message(STATUS "NOTICE: The Volume_plane plugin requires GLEW and will not be compiled.")
   endif()
 
   set(IO_C3T3_PLUGIN_LIB "${MESH_3_LIB_PREFIX}io_c3t3_plugin")
@@ -338,7 +311,7 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND AND Boost_F
     Meshing_thread.cpp)
   ADD_MSVC_PRECOMPILED_HEADER("StdAfx.h" "StdAfx.cpp" MESH_3_PLUGIN_SOURCE_FILES)
   LIST(REMOVE_AT MESH_3_PLUGIN_SOURCE_FILES 0) # Remove Mesh_3_plugin.cpp since it's added by polyhedron_demo_plugin
-  LIST(APPEND MESH_3_PLUGIN_SOURCE_FILES "Scene_c3t3_item.cpp" ${meshingUI_FILES})
+  LIST(APPEND MESH_3_PLUGIN_SOURCE_FILES  ${meshingUI_FILES})
   polyhedron_demo_plugin(${MESH_3_PLUGIN_LIB} Mesh_3_plugin ${MESH_3_PLUGIN_SOURCE_FILES})
 
 #  set(MESH_3_PLUGIN_LIB "${MESH_3_LIB_PREFIX}mesh_3_plugin") 
@@ -367,7 +340,7 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND AND Boost_F
     Optimizer_thread.cpp)
   ADD_MSVC_PRECOMPILED_HEADER("StdAfx.h" "StdAfx.cpp" MESH_3_OPTIMIZATION_PLUGIN_SOURCE_FILES)
   LIST(REMOVE_AT MESH_3_OPTIMIZATION_PLUGIN_SOURCE_FILES 0) # Remove Mesh_3_optimization_plugin.cpp since it's added by polyhedron_demo_plugin
-  LIST(APPEND MESH_3_OPTIMIZATION_PLUGIN_SOURCE_FILES "Scene_c3t3_item.cpp" ${optimUI_FILES})
+  LIST(APPEND MESH_3_OPTIMIZATION_PLUGIN_SOURCE_FILES ${optimUI_FILES})
   polyhedron_demo_plugin(${MESH_3_OPTIMIZATION_PLUGIN_LIB} Mesh_3_optimization_plugin ${MESH_3_OPTIMIZATION_PLUGIN_SOURCE_FILES})
 
   target_link_libraries(${MESH_3_OPTIMIZATION_PLUGIN_LIB}

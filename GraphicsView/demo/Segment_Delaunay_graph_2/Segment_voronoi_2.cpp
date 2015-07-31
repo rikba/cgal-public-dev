@@ -17,11 +17,8 @@
 #include <QInputDialog>
 #include <QDragEnterEvent>
 #include <QDropEvent>
-
-#if QT_VERSION >= 0x050000
 #include <QMessageBox>
 #include <QGraphicsLineItem>
-#endif
 
 // GraphicsView items and event filters (input classes)
 #include <CGAL/Qt/GraphicsViewPolylineInput.h>
@@ -82,13 +79,13 @@ private:
         std::cout << "duplicate point: " << p << std::endl; 
       }
     }
-    emit(changed());
+    Q_EMIT( changed());
   }
 
-protected slots:
+protected Q_SLOTS:
  virtual void open(QString);
 
-public slots:
+public Q_SLOTS:
 
   void processInput(CGAL::Object o);
 
@@ -109,7 +106,7 @@ public slots:
   void saveConstraints(QString);
 
 
-signals:
+Q_SIGNALS:
   void changed();
 };
 
@@ -209,13 +206,13 @@ MainWindow::processInput(CGAL::Object o)
   }
 
 
-  emit(changed());
+  Q_EMIT( changed());
 }
 
 
 /* 
  *  Qt Automatic Connections
- *  http://doc.trolltech.com/4.4/designer-using-a-component.html#automatic-connections
+ *  http://doc.qt.io/qt-5/designer-using-a-ui-file.html#automatic-connections
  * 
  *  setupUi(this) generates connections to the slots named
  *  "on_<action_name>_<signal_name>"
@@ -236,7 +233,7 @@ void
 MainWindow::on_actionClear_triggered()
 {
   svd.clear();
-  emit(changed());
+  Q_EMIT( changed());
 }
 
 
@@ -288,7 +285,7 @@ MainWindow::loadPolygonConstraints(QString fileName)
   }
   
   
-  emit(changed());
+  Q_EMIT( changed());
   actionRecenter->trigger();
 }
 
@@ -330,7 +327,7 @@ MainWindow::loadEdgConstraints(QString fileName)
   statusBar()->showMessage(QString("Insertion took %1 seconds").arg(tim.time()), 2000);
   // default cursor
   QApplication::restoreOverrideCursor();
-  emit(changed());
+  Q_EMIT( changed());
   actionRecenter->trigger();
 }
 
@@ -380,9 +377,8 @@ int main(int argc, char **argv)
   app.setOrganizationName("GeometryFactory");
   app.setApplicationName("Segment Voronoi 2 demo");
 
-  // Import resources from libCGAL (Qt4 or Qt5).
-  // See http://doc.trolltech.com/4.4/qdir.html#Q_INIT_RESOURCE
-  CGAL_QT_INIT_RESOURCES;//New for Qt5 version !
+  // Import resources from libCGAL (Qt5).
+  CGAL_QT_INIT_RESOURCES;
 
   MainWindow mainWindow;
   mainWindow.show();

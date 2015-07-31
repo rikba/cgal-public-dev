@@ -58,7 +58,7 @@ private:
 public:
   MainWindow();
 
-public slots:
+public Q_SLOTS:
 
   void processInput(CGAL::Object o);
   
@@ -74,7 +74,7 @@ public slots:
 
   virtual void open(QString fileName);
 
-signals:
+Q_SIGNALS:
   void changed();
 };
 
@@ -144,14 +144,14 @@ MainWindow::processInput(CGAL::Object o)
   std::pair<Point_2, double> center_and_sr;
   if(CGAL::assign(center_and_sr, o)){
     ag.insert(Apollonius_site_2(center_and_sr.first, sqrt(center_and_sr.second)));
-    emit(changed());
+    Q_EMIT( changed());
   }
 }
 
 
 /* 
  *  Qt Automatic Connections
- *  http://doc.trolltech.com/4.4/designer-using-a-component.html#automatic-connections
+ *  http://doc.qt.io/qt-5/designer-using-a-ui-file.html#automatic-connections
  * 
  *  setupUi(this) generates connections to the slots named
  *  "on_<action_name>_<signal_name>"
@@ -162,7 +162,7 @@ void
 MainWindow::on_actionClear_triggered()
 {
   ag.clear();
-  emit(changed());
+  Q_EMIT( changed());
 }
 
 
@@ -177,8 +177,6 @@ MainWindow::on_actionInsertRandomPoints_triggered()
   CGAL::Random_points_in_iso_rectangle_2<Point_2> pg((isor.min)(), (isor.max)());
   bool ok = false;
 
-  //New for Qt5 version !
-  #if QT_VERSION >= 0x050000
   const int number_of_points = 
     QInputDialog::getInt(this, 
                              tr("Number of random points"),
@@ -188,17 +186,6 @@ MainWindow::on_actionInsertRandomPoints_triggered()
 							(std::numeric_limits<int>::max)(),
 							1,
 							&ok);
-  #else
-  const int number_of_points =
-	 QInputDialog::getInteger(this,
-							  tr("Number of random points"),
-							  tr("Enter number of random points"),
-							  100,
-							  0,
-							 (std::numeric_limits<int>::max)(),
-							 1,
-							 &ok);
-  #endif
 
   if(!ok) {
     return;
@@ -218,7 +205,7 @@ MainWindow::on_actionInsertRandomPoints_triggered()
       ag.insert(points.begin(), points.end());
   // default cursor
   QApplication::restoreOverrideCursor();
-  emit(changed());
+  Q_EMIT( changed());
 }
 
 
@@ -252,7 +239,7 @@ MainWindow::open(QString fileName)
   QApplication::restoreOverrideCursor();
   this->addToRecentFiles(fileName);
   actionRecenter->trigger();
-  emit(changed());
+  Q_EMIT( changed());
     
 }
 
@@ -296,9 +283,9 @@ int main(int argc, char **argv)
   app.setOrganizationName("GeometryFactory");
   app.setApplicationName("Apollonius_graph_2 demo");
 
-  // Import resources from libCGAL (Qt4 or Qt5).
-  // See http://doc.trolltech.com/4.4/qdir.html#Q_INIT_RESOURCE
-  CGAL_QT_INIT_RESOURCES;   //New for Qt5 version !
+  // Import resources from libCGAL (Qt5).
+  // See http://doc.qt.io/qt-5/qdir.html#Q_INIT_RESOURCE
+  CGAL_QT_INIT_RESOURCES;
   Q_INIT_RESOURCE(Apollonius_graph_2);
 
   MainWindow mainWindow;

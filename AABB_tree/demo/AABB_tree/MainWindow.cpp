@@ -172,16 +172,9 @@ void MainWindow::on_actionInside_points_triggered()
 {
 	bool ok;
 	
-        //New for Qt5 version !
- 	#if QT_VERSION >= 0x050000 
 	const unsigned int nb_points = (unsigned)
 		QInputDialog::getInt(NULL, "#Points",
 		"#Points:",10000,1,100000000,9,&ok);
-        #else
-	const unsigned int nb_points = (unsigned)
-		QInputDialog::getInteger(NULL, "#Points",
-		"#Points:",10000,1,100000000,9,&ok);
-        #endif
 
 	if(!ok)
 		return;
@@ -196,16 +189,9 @@ void MainWindow::on_actionPoints_in_interval_triggered()
 {
 	bool ok;
 	
-	//New for Qt5 version !
- 	#if QT_VERSION >= 0x050000 
 	const unsigned int nb_points = (unsigned)
-		QInputDialog::getInt(NULL, "#Points",
+                QInputDialog::getInt(NULL, "#Points",
 		"#Points:",10000,1,100000000,9,&ok);
-        #else
-	const unsigned int nb_points = (unsigned)
-		QInputDialog::getInteger(NULL, "#Points",
-		"#Points:",10000,1,100000000,9,&ok);
-        #endif
 
 	if(!ok)
 		return;
@@ -231,16 +217,9 @@ void MainWindow::on_actionBoundary_segments_triggered()
 {
 	bool ok;
 	
-	//New for Qt5 version !
- 	#if QT_VERSION >= 0x050000 
 	const unsigned int nb_slices = (unsigned)
 		QInputDialog::getInt(NULL, "#Slices",
 		"Slices:",100,1,1000000,8,&ok);
-        #else
-	const unsigned int nb_slices = (unsigned)
-		QInputDialog::getInteger(NULL, "#Slices",
-		"Slices:",100,1,1000000,8,&ok);
-        #endif
 
 	if(!ok)
 		return;
@@ -255,16 +234,9 @@ void MainWindow::on_actionBoundary_points_triggered()
 {
 	bool ok;
 
-	//New for Qt5 version !
- 	#if QT_VERSION >= 0x050000 
 	const unsigned int nb_points = (unsigned)
 		QInputDialog::getInt(NULL, "#Points",
 		"Points:",1000,1,10000000,8,&ok);
-        #else
-	const unsigned int nb_points = (unsigned)
-		QInputDialog::getInteger(NULL, "#Points",
-		"Points:",1000,1,10000000,8,&ok);
-        #endif
 
 	if(!ok)
 		return;
@@ -279,16 +251,9 @@ void MainWindow::on_actionEdge_points_triggered()
 {
 	bool ok;
 
-	//New for Qt5 version !
- 	#if QT_VERSION >= 0x050000 
 	const unsigned int nb_points = (unsigned)
 		QInputDialog::getInt(NULL, "#Points",
 		"Points:",1000,1,10000000,8,&ok);
-        #else
-	const unsigned int nb_points = (unsigned)
-		QInputDialog::getInteger(NULL, "#Points",
-		"Points:",1000,1,10000000,8,&ok);
-        #endif
 
 	if(!ok)
 		return;

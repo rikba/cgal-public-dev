@@ -9,12 +9,11 @@
 
 #include <CGAL/boost/graph/graph_traits_Polyhedron_3.h>
 #include <CGAL/boost/graph/properties_Polyhedron_3.h>
-#include <CGAL/internal/Operations_on_polyhedra/compute_normal.h>
+#include <CGAL/Polygon_mesh_processing/compute_normal.h>
 
 #include <iostream>
 #include <fstream>
 
-#include <CGAL/glu.h>
 #include <QGLViewer/manipulatedFrame.h>
 #include <QGLViewer/qglviewer.h>
 #include <QGLViewer/camera.h>
@@ -102,7 +101,7 @@ public:
     frame_initial_center = calculate_initial_center();
     bbox = calculate_initial_bbox();
 
-    bool oldState = frame->blockSignals(true); // do not let it emit modified, which will cause a deformation
+    bool oldState = frame->blockSignals(true); // do not let it Q_EMIT modified, which will cause a deformation
                                   // but we are just adjusting the center so it does not require a deformation
     frame->setOrientation(qglviewer::Quaternion());
     frame->setPosition(frame_initial_center);
@@ -230,7 +229,7 @@ public:
 protected:
   void timerEvent(QTimerEvent *event);
 
-public slots:
+public Q_SLOTS:
   void changed();
   void selected(const std::set<Polyhedron::Vertex_handle>& m)
   {
@@ -249,7 +248,7 @@ public slots:
       }
       any_changes |= changed;
     }
-    if(any_changes) { emit itemChanged(); }
+    if(any_changes) { Q_EMIT itemChanged(); }
   }
 
   void select(float orig_x,
@@ -291,6 +290,7 @@ private:
   mutable QOpenGLShaderProgram bbox_program;
 
   mutable QOpenGLBuffer *in_bu;
+  using Scene_item::initialize_buffers;
   void initialize_buffers(Viewer_interface *viewer) const;
   void compute_normals_and_vertices(void);
   void compute_bbox(const Scene_interface::Bbox&);
@@ -396,9 +396,7 @@ public:
 
     active_group = --ctrl_vertex_frame_map.end();
 
-   // connect(new_frame, SIGNAL(modified()), this, SLOT(deform()));  // OK we are deforming via timer,
-    // but it makes demo more responsive if we also add this signal
-    emit itemChanged();
+    Q_EMIT itemChanged();
 
     print_message("A new empty group of control vertices is created.");
   }
@@ -593,7 +591,7 @@ public:
       (vertices(*polyhedron()).first, vertices(*polyhedron()).second,
       polyhedron()->size_of_vertices(), Is_selected(deform_mesh), visitor);
 
-    if(visitor.any_inserted) { emit itemChanged(); }
+    if(visitor.any_inserted) { Q_EMIT itemChanged(); }
     return visitor.minimum_visitor.minimum;
   }
 protected:
@@ -688,16 +686,14 @@ protected:
     BOOST_FOREACH(vertex_descriptor vd, deform_mesh.roi_vertices())
     {
       std::size_t id = vd->id();
-      const Polyhedron::Traits::Vector_3& n =
-        compute_vertex_normal<Polyhedron::Vertex, Polyhedron::Traits>(*vd);
+      const Polyhedron::Traits::Vector_3& n = 
+        CGAL::Polygon_mesh_processing::compute_vertex_normal(vd, deform_mesh.halfedge_graph());
       normals[id*3] = n.x();
       normals[id*3+1] = n.y();
       normals[id*3+2] = n.z();
 
     }
   }
-protected:
-  //GLUquadric* quadric; // for drawing spheres
 }; // end class Scene_edit_polyhedron_item
 
 #endif // SCENE_EDIT_POLYHEDRON_ITEM_H

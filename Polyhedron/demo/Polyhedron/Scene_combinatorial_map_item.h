@@ -18,6 +18,7 @@ class QMenu;
 class QAction;
 class Scene_interface;
 class Scene_polyhedron_item;
+class Viewer_interface;
 
 class SCENE_COMBINATORIAL_MAP_ITEM_EXPORT Scene_combinatorial_map_item
         : public Scene_item
@@ -38,7 +39,7 @@ public:
     QString toolTip() const;
 
     // Indicate if rendering mode is supported
-    virtual bool supportsRenderingMode(RenderingMode m) const { return (m != Gouraud && m!=PointsPlusNormals && m!=Splatting); } // CHECK THIS!
+    virtual bool supportsRenderingMode(RenderingMode m) const { return (m != Gouraud && m!=PointsPlusNormals); } // CHECK THIS!
     //Event handling
     virtual bool keyPressEvent(QKeyEvent*);
     // OpenGL drawing in a display list
@@ -81,13 +82,11 @@ private:
 
     GLuint vao;
     QOpenGLBuffer buffer[5];
-    void initialize_buffers();
+    void initialize_buffers(Viewer_interface*);
     void compile_shaders(void);
     void compute_normals_and_vertices(void);
-    void uniform_attrib(Viewer_interface*, int) const;
-    void compute_colors();
 
-public slots:
+public Q_SLOTS:
     void set_next_volume();
     void export_current_volume_as_polyhedron() const;
     void export_union_as_polyhedron() const;

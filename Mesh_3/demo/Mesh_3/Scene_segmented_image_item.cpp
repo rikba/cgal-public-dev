@@ -580,7 +580,7 @@ void Scene_segmented_image_item::compile_shaders()
     }
 }
 
-void Scene_segmented_image_item::attrib_buffers(QGLViewer* viewer) const
+void Scene_segmented_image_item::attrib_buffers(Viewer* viewer) const
 {
     QMatrix4x4 mvpMatrix;
     QMatrix4x4 mvMatrix;
@@ -597,7 +597,7 @@ void Scene_segmented_image_item::attrib_buffers(QGLViewer* viewer) const
     }
     QVector4D	position(0.0f,0.0f,1.0f,1.0f );
     GLboolean isTwoSide;
-    glGetBooleanv(GL_LIGHT_MODEL_TWO_SIDE,&isTwoSide);
+    viewer->glGetBooleanv(GL_LIGHT_MODEL_TWO_SIDE,&isTwoSide);
     // define material
      QVector4D	ambient;
      QVector4D	diffuse;
@@ -656,7 +656,7 @@ Scene_segmented_image_item::bbox() const
 }
 
 void
-Scene_segmented_image_item::draw(QGLViewer* viewer) const
+Scene_segmented_image_item::draw(Viewer* viewer) const
 {
   if(m_image)
   {
@@ -717,57 +717,57 @@ Scene_segmented_image_item::initialize_buffers()
 
   draw_Bbox(bbox(), v_box);
   std::vector<float> nul_vec(0);
-  for(int i=0; i<v_box->size(); i++)
+  for(std::size_t i=0; i<v_box->size(); i++)
       nul_vec.push_back(0.0);
 
   rendering_program.bind();
   vao[0].bind();
   m_vbo[0].bind();
-  m_vbo[0].allocate(helper.vertices(), helper.vertex_size());
+  m_vbo[0].allocate(helper.vertices(), static_cast<int>(helper.vertex_size()));
   poly_vertexLocation[0] = rendering_program.attributeLocation("vertex");
   rendering_program.enableAttributeArray(poly_vertexLocation[0]);
   rendering_program.setAttributeBuffer(poly_vertexLocation[0],GL_FLOAT,0,3);
   m_vbo[0].release();
 
   m_vbo[1].bind();
-  m_vbo[1].allocate(helper.normals(), helper.normal_size());
+  m_vbo[1].allocate(helper.normals(), static_cast<int>(helper.normal_size()));
   normalsLocation[0] = rendering_program.attributeLocation("normal");
   rendering_program.enableAttributeArray(normalsLocation[0]);
   rendering_program.setAttributeBuffer(normalsLocation[0],GL_FLOAT,0,3);
   m_vbo[1].release();
 
   m_vbo[2].bind();
-  m_vbo[2].allocate(helper.colors(), helper.color_size());
+  m_vbo[2].allocate(helper.colors(), static_cast<int>(helper.color_size()));
   colorLocation[0] = rendering_program.attributeLocation("inColor");
   rendering_program.enableAttributeArray(colorLocation[0]);
   rendering_program.setAttributeBuffer(colorLocation[0],GL_FLOAT,0,3);
   m_vbo[2].release();
 
   m_ibo->bind();
-  m_ibo->allocate(helper.quads(), helper.quad_size());
+  m_ibo->allocate(helper.quads(), static_cast<int>(helper.quad_size()));
   vao[0].release();
 
   color.resize(0);
-  for(int i=0; i<helper.color_size()/sizeof(GLuint); i++)
+  for(std::size_t i=0; i<helper.color_size()/sizeof(GLuint); i++)
       color.push_back(0.0);
 
   vao[1].bind();
   m_vbo[3].bind();
-  m_vbo[3].allocate(v_box->data(), v_box->size()*sizeof(float));
+  m_vbo[3].allocate(v_box->data(), static_cast<int>(v_box->size()*sizeof(float)));
   poly_vertexLocation[0] = rendering_program.attributeLocation("vertex");
   rendering_program.enableAttributeArray(poly_vertexLocation[0]);
   rendering_program.setAttributeBuffer(poly_vertexLocation[0],GL_FLOAT,0,3);
   m_vbo[3].release();
 
   m_vbo[4].bind();
-  m_vbo[3].allocate(nul_vec.data(), nul_vec.size()*sizeof(float));
+  m_vbo[3].allocate(nul_vec.data(), static_cast<int>(nul_vec.size()*sizeof(float)));
   normalsLocation[0] = rendering_program.attributeLocation("normal");
   rendering_program.enableAttributeArray(normalsLocation[0]);
   rendering_program.setAttributeBuffer(normalsLocation[0],GL_FLOAT,0,3);
   m_vbo[4].release();
 
   m_vbo[5].bind();
-  m_vbo[5].allocate(nul_vec.data(), nul_vec.size()*sizeof(float));
+  m_vbo[5].allocate(nul_vec.data(), static_cast<int>(nul_vec.size()*sizeof(float)));
   colorLocation[0] = rendering_program.attributeLocation("inColor");
   rendering_program.enableAttributeArray(colorLocation[0]);
   rendering_program.setAttributeBuffer(colorLocation[0],GL_FLOAT,0,3);
@@ -782,18 +782,17 @@ Scene_segmented_image_item::initialize_buffers()
 
 
 void
-Scene_segmented_image_item::draw_gl(QGLViewer *viewer) const
+Scene_segmented_image_item::draw_gl(Viewer* viewer) const
 {
-
   attrib_buffers(viewer);
   rendering_program.bind();
   vao[0].bind();
-  glDrawElements(GL_TRIANGLES, m_ibo->size()/sizeof(GLuint), GL_UNSIGNED_INT, 0);
+  viewer->glDrawElements(GL_TRIANGLES, m_ibo->size()/sizeof(GLuint), GL_UNSIGNED_INT, 0);
   vao[0].release();
 
   vao[1].bind();
-  glLineWidth(3);
-  glDrawArrays(GL_LINES, 0, v_box->size()/3);
+  viewer->glLineWidth(3);
+  viewer->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(v_box->size()/3));
   vao[1].release();
   rendering_program.release();
 }
@@ -915,5 +914,4 @@ void Scene_segmented_image_item::draw_Bbox(Bbox bbox, std::vector<float> *vertic
 
 }
 
-#include "Scene_segmented_image_item.moc"
 

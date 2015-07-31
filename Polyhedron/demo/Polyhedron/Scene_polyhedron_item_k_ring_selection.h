@@ -66,7 +66,7 @@ public:
     connect(poly_item, SIGNAL(selected_edge(void*)), this, SLOT(edge_has_been_selected(void*)));
   }
 
-public slots:
+public Q_SLOTS:
   // slots are called by signals of polyhedron_item
   void vertex_has_been_selected(void* void_ptr) 
   {
@@ -84,7 +84,7 @@ public slots:
     process_selection( edge(static_cast<Polyhedron::Halfedge*>(void_ptr)->opposite()->opposite(), *poly_item->polyhedron()) );
   }
 
-signals:
+Q_SIGNALS:
   void selected(const std::set<Polyhedron::Vertex_handle>&);
   void selected(const std::set<Polyhedron::Facet_handle>&);
   void selected(const std::set<edge_descriptor>&);
@@ -95,7 +95,7 @@ protected:
   template<class HandleType>
   void process_selection(HandleType clicked) {
     const std::set<HandleType>& selection = extract_k_ring(clicked, k_ring);
-    emit selected(selection);
+    Q_EMIT selected(selection);
   }
 
   template <class Handle>

@@ -5,6 +5,7 @@
 
 #include <CGAL/property_map.h>
 #include <CGAL/Min_sphere_of_spheres_d.h>
+#include <CGAL/Min_sphere_of_points_d_traits_3.h>
 #include <CGAL/Min_sphere_of_spheres_d_traits_3.h>
 
 #include <UI_point_3.h>
@@ -13,7 +14,6 @@
 #include <deque>
 
 //#ifdef CGAL_GLEW_ENABLED
-//# include <GL/glew.h>
 //#else
 # include <CGAL/gl.h>
 //#endif
@@ -281,24 +281,7 @@ public:
     }
   }
 */
-  // Draw oriented points with radius using OpenGL calls.
-  // Preconditions: must be used inbetween calls to GlSplat library
-  /*void gl_draw_splats() const
-  {
-    // TODO add support for selection
-    ::glBegin(GL_POINTS);
-    for (const_iterator it = begin(); it != end(); it++)
-    {
-      const UI_point& p = *it;
-      ::glNormal3dv(&p.normal().x());
-#ifdef CGAL_GLEW_ENABLED
-      ::glMultiTexCoord1d(GL_TEXTURE2, p.radius());
-#endif
-      ::glVertex3dv(&p.x());
-    }
-    ::glEnd();
-  }
-*/
+
   bool are_radii_uptodate() const { return m_radii_are_uptodate; }
   void set_radii_uptodate(bool /*on*/) { m_radii_are_uptodate = false; }
 
@@ -342,17 +325,11 @@ private:
     m_barycenter = CGAL::ORIGIN + v / norm;
 
     // Computes bounding sphere
-    typedef CGAL::Min_sphere_of_spheres_d_traits_3<Gt,FT> Traits;
+    typedef CGAL::Min_sphere_of_points_d_traits_3<Gt,FT> Traits;
     typedef CGAL::Min_sphere_of_spheres_d<Traits> Min_sphere;
-    typedef typename Traits::Sphere Traits_sphere;
-    //
-    // Represents points by a set of spheres with 0 radius
-    std::vector<Traits_sphere> spheres;
-    for (Point_const_iterator it = begin(); it != end(); it++)
-      spheres.push_back(Traits_sphere(*it,0));
-    //
-    // Computes min sphere
-    Min_sphere ms(spheres.begin(),spheres.end());
+
+    Min_sphere ms(begin(),end());
+
     typename Min_sphere::Cartesian_const_iterator coord = ms.center_cartesian_begin();
     FT cx = *coord++;
     FT cy = *coord++;

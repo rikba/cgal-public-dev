@@ -7,11 +7,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
 
-cmake_minimum_required(VERSION 2.6.2)
-if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" VERSION_GREATER 2.8.3)
-  cmake_policy(VERSION 2.8.4)
-else()
-  cmake_policy(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.11)
+if(POLICY CMP0043)
+  cmake_policy(SET CMP0043 OLD)
 endif()
 
 set(PACKAGE_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
@@ -38,14 +36,16 @@ set( QT_USE_QTXML    TRUE )
 set( QT_USE_QTMAIN   TRUE )
 
 find_package(CGAL COMPONENTS ImageIO Qt5)
-if ( CGAL_FOUND AND CGAL_Qt5_FOUND)
+if ( CGAL_FOUND AND CGAL_Qt5_FOUND AND CGAL_ImageIO_FOUND)
+
+  add_definitions(-DQT_NO_KEYWORDS)
   include( ${CGAL_USE_FILE} )
 
-  find_package(Qt5 COMPONENTS OpenGL Xml )
+  find_package(Qt5 QUIET COMPONENTS OpenGL Xml )
   find_package(QGLViewer )
   find_package(OpenGL    )
   
-  if ( QGLVIEWER_FOUND )
+  if ( QGLVIEWER_FOUND AND Qt5_FOUND)
 
         
     include_directories( ${QGLVIEWER_INCLUDE_DIR} )
@@ -101,13 +101,13 @@ if ( CGAL_FOUND AND CGAL_Qt5_FOUND)
     
     target_link_libraries( ${prj} ${QT_LIBRARIES} ${QGLVIEWER_LIBRARIES} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} )
     
-  else( QGLVIEWER_FOUND)
+  else( QGLVIEWER_FOUND AND Qt5_FOUND)
     message(STATUS "NOTICE: This demo needs libQGLViewer, and will not be compiled.")
-  endif( QGLVIEWER_FOUND)
-else(CGAL_FOUND AND CGAL_Qt5_FOUND)
+  endif( QGLVIEWER_FOUND AND Qt5_FOUND)
+else(CGAL_FOUND AND CGAL_Qt5_FOUND AND CGAL_ImageIO_FOUND)
   if(RUNNING_CGAL_AUTO_TEST)
     # Just to avoid a warning from CMake if that variable is set on the command line...
   endif()
 
   message(STATUS "NOTICE: This demo needs Qt5, and will not be compiled.")
-endif(CGAL_FOUND AND CGAL_Qt5_FOUND)
+endif(CGAL_FOUND AND CGAL_Qt5_FOUND AND CGAL_ImageIO_FOUND)

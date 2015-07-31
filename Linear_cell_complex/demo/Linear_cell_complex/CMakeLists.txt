@@ -9,11 +9,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
 
-cmake_minimum_required(VERSION 2.6.2)
-if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" VERSION_GREATER 2.8.3)
-  cmake_policy(VERSION 2.8.4)
-else()
-  cmake_policy(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.11)
+if(POLICY CMP0043)
+  cmake_policy(SET CMP0043 OLD)
 endif()
 
 ## To add expensive tests
@@ -32,10 +30,10 @@ endif()
 add_definitions(-DCGAL_PROFILE_LCC_DEMO)
 
 ##################
-find_package(CGAL REQUIRED COMPONENTS Qt5)
+find_package(CGAL COMPONENTS Qt5)
 include(${CGAL_USE_FILE})
 
-find_package(Qt5 COMPONENTS Xml Script OpenGL)
+find_package(Qt5 QUIET COMPONENTS Xml Script OpenGL Svg)
 
 find_package(OpenGL)
 find_package(QGLViewer)
@@ -47,6 +45,8 @@ if ( NOT (CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND AND
     "and Qt5, and will not be compiled.")
 
 else()
+
+add_definitions(-DQT_NO_KEYWORDS)
 
 include_directories(${QGLVIEWER_INCLUDE_DIR})
 include_directories(BEFORE . ../../include/)
@@ -65,7 +65,7 @@ add_executable(Linear_cell_complex_3_demo
   Linear_cell_complex_pqq_subdivision.cpp
   ${uis} ${RESOURCE_FILES} )
 
-qt5_use_modules(Linear_cell_complex_3_demo Xml Script OpenGL)
+qt5_use_modules(Linear_cell_complex_3_demo Xml Script OpenGL Svg)
 add_to_cached_list(CGAL_EXECUTABLE_TARGETS Linear_cell_complex_3_demo)
 
 target_link_libraries(Linear_cell_complex_3_demo ${CGAL_LIBRARIES}

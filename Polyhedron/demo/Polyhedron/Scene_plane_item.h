@@ -25,16 +25,13 @@ public:
   typedef qglviewer::ManipulatedFrame ManipulatedFrame;
 
   Scene_plane_item(const Scene_interface* scene_interface) 
-    : scene(scene_interface),
+      :Scene_item(2,2),
+      scene(scene_interface),
       manipulable(false),
       can_clone(true),
-      positions_lines(0),
-      positions_quad(0),
-      frame(new ManipulatedFrame()),
-      Scene_item(2,2)
+      frame(new ManipulatedFrame())
   {
     setNormal(0., 0., 1.);
-    qFunc.initializeOpenGLFunctions();
     //Generates an integer which will be used as ID for each buffer
     changed();
   }
@@ -118,11 +115,11 @@ private:
     return diag * 0.7;
   }
 
-public slots:
-   virtual void changed()
+public Q_SLOTS:
+  virtual void changed()
   {
-compute_normals_and_vertices();
-are_buffers_filled = false;
+      compute_normals_and_vertices();
+      are_buffers_filled = false;
   }
 
   void setPosition(float x, float y, float z) {
@@ -160,6 +157,7 @@ private:
   mutable bool smooth_shading;
   mutable QOpenGLShaderProgram *program;
 
+  using Scene_item::initialize_buffers;
   void initialize_buffers(Viewer_interface*)const;
   void compute_normals_and_vertices(void);
 };

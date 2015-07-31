@@ -3,7 +3,11 @@
 #include <CGAL/squared_distance_3.h>
 #include <CGAL/Exact_spherical_kernel_3.h>
 #include <vector>
-
+#include <CGAL/Qt/CreateOpenGLContext.h>
+Viewer::Viewer(QWidget* parent )
+  : QGLViewer(CGAL::Qt::createOpenGLContext(),parent)
+{
+}
 
 void Viewer::compile_shaders()
 {
@@ -106,7 +110,8 @@ void Viewer::initialize_buffers()
     vao[0].bind();
     //points of the sphere
     buffers[0].bind();
-    buffers[0].allocate(pos_sphere.data(), pos_sphere.size()*sizeof(float));
+    buffers[0].allocate(pos_sphere.data(),
+                        static_cast<int>(pos_sphere.size()*sizeof(float)));
     vertexLocation[0] = rendering_program.attributeLocation("vertex");
     rendering_program.bind();
     rendering_program.enableAttributeArray(vertexLocation[0]);
@@ -114,7 +119,8 @@ void Viewer::initialize_buffers()
     buffers[0].release();
     //normals of the sphere
     buffers[1].bind();
-    buffers[1].allocate(normals.data(), normals.size()*sizeof(float));
+    buffers[1].allocate(normals.data(),
+                        static_cast<int>(normals.size()*sizeof(float)));
     normalsLocation[0] = rendering_program.attributeLocation("normal");
     rendering_program.bind();
     rendering_program.enableAttributeArray(normalsLocation[0]);
@@ -122,7 +128,8 @@ void Viewer::initialize_buffers()
     buffers[1].release();
     //center of the sphere
     buffers[2].bind();
-    buffers[2].allocate(trivial_center.data(), trivial_center.size()*sizeof(float));
+    buffers[2].allocate(trivial_center.data(),
+                        static_cast<int>(trivial_center.size()*sizeof(float)));
     trivialCenterLocation = rendering_program.attributeLocation("center");
     rendering_program.bind();
     rendering_program.enableAttributeArray(trivialCenterLocation);
@@ -135,7 +142,8 @@ void Viewer::initialize_buffers()
     //The circles
     vao[1].bind();
     buffers[3].bind();
-    buffers[3].allocate(pos_lines.data(), pos_lines.size()*sizeof(float));
+    buffers[3].allocate(pos_lines.data(),
+                        static_cast<int>(pos_lines.size()*sizeof(float)));
     vertexLocation[2] = rendering_program.attributeLocation("vertex");
     rendering_program.bind();
     rendering_program.enableAttributeArray(vertexLocation[2]);
@@ -144,7 +152,8 @@ void Viewer::initialize_buffers()
 
     //normals
     buffers[4].bind();
-    buffers[4].allocate(normals_lines.data(), normals_lines.size()*sizeof(float));
+    buffers[4].allocate(normals_lines.data(),
+                        static_cast<int>(normals_lines.size()*sizeof(float)));
     normalsLocation[1] = rendering_program.attributeLocation("normal");
     rendering_program.bind();
     rendering_program.enableAttributeArray(normalsLocation[1]);
@@ -152,7 +161,8 @@ void Viewer::initialize_buffers()
     buffers[4].release();
     //center
     buffers[5].bind();
-    buffers[5].allocate(trivial_center.data(), trivial_center.size()*sizeof(float));
+    buffers[5].allocate(trivial_center.data(),
+                        static_cast<int>(trivial_center.size()*sizeof(float)));
     trivialCenterLocation = rendering_program.attributeLocation("center");
     rendering_program.bind();
     rendering_program.enableAttributeArray(trivialCenterLocation);
@@ -168,7 +178,8 @@ void Viewer::initialize_buffers()
     vao[2].bind();
     //points of the sphere
     buffers[6].bind();
-    buffers[6].allocate(pos_sphere_inter.data(), pos_sphere_inter.size()*sizeof(float));
+    buffers[6].allocate(pos_sphere_inter.data(),
+                        static_cast<int>(pos_sphere_inter.size()*sizeof(float)));
     vertexLocation[2] = rendering_program.attributeLocation("vertex");
     rendering_program.bind();
     rendering_program.enableAttributeArray(vertexLocation[2]);
@@ -176,7 +187,8 @@ void Viewer::initialize_buffers()
     buffers[6].release();
     //normals of the sphere
     buffers[7].bind();
-    buffers[7].allocate(normals_inter.data(), normals_inter.size()*sizeof(float));
+    buffers[7].allocate(normals_inter.data(),
+                        static_cast<int>(normals_inter.size()*sizeof(float)));
     normalsLocation[2] = rendering_program.attributeLocation("normal");
     rendering_program.bind();
     rendering_program.enableAttributeArray(normalsLocation[2]);
@@ -184,7 +196,8 @@ void Viewer::initialize_buffers()
     buffers[7].release();
     //center of the sphere
     buffers[8].bind();
-    buffers[8].allocate(pos_points.data(), pos_points.size()*sizeof(float));
+    buffers[8].allocate(pos_points.data(),
+                        static_cast<int>(pos_points.size()*sizeof(float)));
     centerLocation = rendering_program.attributeLocation("center");
     rendering_program.bind();
     rendering_program.enableAttributeArray(centerLocation);
@@ -206,7 +219,7 @@ void Viewer::compute_elements()
         pos_sphere.resize(0);
         trivial_center.resize(0);
         int rings=3,sectors=6;
-        float T, P, R = 0.999;
+        float T, P, R = 0.999f;
         float x[4],y[4],z[4];
 
 
@@ -391,7 +404,7 @@ void Viewer::compute_elements()
     {
         pos_sphere_inter.resize(0);
         int rings=3,sectors=3;
-        float T, P, R = 0.005;
+        float T, P, R = 0.005f;
         float x[4],y[4],z[4];
 
 
@@ -597,10 +610,10 @@ void Viewer::compute_elements()
             //prevent great circles
             while (p.x()==0 && p.y()==0 && p.z()==0) {  p=*++gen; }
 
-            const typename EPIC::Point_3 origin(0,0,0);
-            const typename EPIC::Plane_3 plane(p, p-origin);
-            typename EPIC::Vector_3 base1=plane.base1();
-            typename EPIC::Vector_3 base2=plane.base2();
+            const EPIC::Point_3 origin(0,0,0);
+            const EPIC::Plane_3 plane(p, p-origin);
+            EPIC::Vector_3 base1=plane.base1();
+            EPIC::Vector_3 base2=plane.base2();
             base1=base1/CGAL::sqrt(base1.squared_length());
             base2=base2/CGAL::sqrt(base2.squared_length());
             const double radius=CGAL::sqrt( CGAL::to_double( 1 - CGAL::squared_distance(origin,p) ) );
@@ -608,8 +621,8 @@ void Viewer::compute_elements()
             const double step=2 * CGAL_PI / nb_pt_per_circle;
 
             for (double theta = 0; theta < 2 * CGAL_PI-step ; theta += step) {
-                const typename EPIC::Point_3 a=p + ( radius*cos(theta)*base1 + radius*sin(theta)*base2 );
-                const typename EPIC::Point_3 b=p + ( radius*cos(theta+step)*base1 + radius*sin(theta+step)*base2 );
+                const EPIC::Point_3 a=p + ( radius*cos(theta)*base1 + radius*sin(theta)*base2 );
+                const EPIC::Point_3 b=p + ( radius*cos(theta+step)*base1 + radius*sin(theta+step)*base2 );
                 pos_lines.push_back(a.x());pos_lines.push_back(a.y());pos_lines.push_back(a.z());
                 normals_lines.push_back(a.x());normals_lines.push_back(a.y());normals_lines.push_back(a.z());
                 pos_lines.push_back(b.x());pos_lines.push_back(b.y());pos_lines.push_back(b.z());
@@ -695,7 +708,7 @@ void Viewer::draw()
     rendering_program.bind();
     color.setRgbF(1.0f, 1.0f, 1.0f);
     rendering_program.setUniformValue(colorLocation, color);
-    glDrawArraysInstanced(GL_TRIANGLES, 0, pos_sphere.size()/3, 1);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, static_cast<GLsizei>(pos_sphere.size()/3), 1);
     rendering_program.release();
     vao[0].release();
 
@@ -705,7 +718,7 @@ void Viewer::draw()
     rendering_program.bind();
     color.setRgbF(0.0f, 1.0f, 0.0f);
     rendering_program.setUniformValue(colorLocation, color);
-    glDrawArraysInstanced(GL_TRIANGLES, 0, pos_sphere_inter.size()/3, pos_points.size()/3);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, static_cast<GLsizei>(pos_sphere_inter.size()/3), static_cast<GLsizei>(pos_points.size()/3));
     rendering_program.release();
     vao[2].release();
 
@@ -716,7 +729,7 @@ void Viewer::draw()
     rendering_program.bind();
     color.setRgbF(1.0f, 0.0f, 0.0f);
     rendering_program.setUniformValue(colorLocation, color);
-    glDrawArrays(GL_LINES, 0, pos_lines.size()/3);
+    glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(pos_lines.size()/3));
     rendering_program.release();
     vao[1].release();
 

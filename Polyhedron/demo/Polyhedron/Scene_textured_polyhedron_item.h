@@ -1,6 +1,5 @@
 #ifndef SCENE_TEXTURED_POLYHEDRON_ITEM_H
 #define SCENE_TEXTURED_POLYHEDRON_ITEM_H
-//#include <GL/glew.h>
 #include "Scene_textured_polyhedron_item_config.h"
 #include "Scene_item.h"
 #include "Viewer_interface.h"
@@ -29,7 +28,7 @@ public:
   virtual QString toolTip() const;
 
   // Indicate if rendering mode is supported
-  virtual bool supportsRenderingMode(RenderingMode m) const { return m != Splatting; }
+  virtual bool supportsRenderingMode(RenderingMode) const { return true; }
   // Points/Wireframe/Flat/Gouraud OpenGL drawing in a display list
    void draw() const {}
   virtual void draw(Viewer_interface*) const;
@@ -59,10 +58,12 @@ private:
   std::vector<float> textures_map_lines;
 
 
-  GLuint textureId;
+  mutable GLuint textureId;
   mutable QOpenGLShaderProgram* program;
 
   bool smooth_shading;
+
+  using Scene_item::initialize_buffers;
   void initialize_buffers(Viewer_interface *viewer) const;
   void compute_normals_and_vertices(void);
 

@@ -43,12 +43,13 @@ public:
     : name_("unamed"),
       color_(defaultColor),
       visible_(true),
+      are_buffers_filled(false),
       rendering_mode(FlatPlusEdges),
       defaultContextMenu(0),
       buffersSize(20),
-      vaosSize(10),
-      are_buffers_filled(false)
+      vaosSize(10)
   {
+      nbVaos = 0;
       for(int i=0; i<vaosSize; i++)
       {
           addVaos(i);
@@ -66,11 +67,11 @@ public:
     : name_("unamed"),
       color_(defaultColor),
       visible_(true),
+      are_buffers_filled(false),
       rendering_mode(FlatPlusEdges),
       defaultContextMenu(0),
       buffersSize(buffers_size),
-      vaosSize(vaos_size),
-      are_buffers_filled(false)
+      vaosSize(vaos_size)
   {
       areVaosCreated = false;
       nbVaos = 0;
@@ -106,9 +107,6 @@ public:
   // Points OpenGL drawing
   virtual void draw_points() const { draw(); }
   virtual void draw_points(Viewer_interface*) const { draw_points(); }
-  // Splats OpenGL drawing
-  virtual void draw_splats() const {}
-  virtual void draw_splats(Viewer_interface*) const {draw_splats();}
   virtual void selection_changed(bool);
 
   // Functions for displaying meta-data of the item
@@ -139,7 +137,8 @@ public:
   // Event handling
   virtual bool keyPressEvent(QKeyEvent*){return false;}
   mutable QMap<int, QOpenGLShaderProgram*> shader_programs;
-public slots:
+
+public Q_SLOTS:
   // Call that once you have finished changing something in the item
   // (either the properties or internal data)
   virtual void changed();
@@ -184,10 +183,6 @@ public slots:
     setRenderingMode(PointsPlusNormals);
   }
   
-  void setSplattingMode(){
-    setRenderingMode(Splatting);
-  }
-  
   virtual void itemAboutToBeDestroyed(Scene_item*);
 
   virtual void select(double orig_x,
@@ -197,7 +192,7 @@ public slots:
                       double dir_y,
                       double dir_z);
 
-signals:
+Q_SIGNALS:
   void itemChanged();
   void aboutToBeDestroyed();
 
@@ -211,11 +206,9 @@ protected:
   RenderingMode rendering_mode;
   QMenu* defaultContextMenu;
 
-  int prev_shading;
-  int cur_shading;
+  RenderingMode prev_shading;
+  RenderingMode cur_shading;
 
-
-  mutable QOpenGLFunctions qFunc;
   int buffersSize;
   int vaosSize;
   mutable std::vector<QOpenGLBuffer> buffers;

@@ -7,7 +7,7 @@
 #include "Scene_polyhedron_item.h"
 #include "Polyhedron_type.h"
 
-#include <CGAL/triangulate_polyhedron.h>
+#include <CGAL/Polygon_mesh_processing/triangulate_faces.h>
 
 class Polyhedron_demo_triangulate_facets_plugin : 
   public QObject,
@@ -15,10 +15,7 @@ class Polyhedron_demo_triangulate_facets_plugin :
 {
   Q_OBJECT
   Q_INTERFACES(Polyhedron_demo_plugin_interface)
-
-  #if QT_VERSION >= 0x050000
-  Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")//New for Qt5 version !
-  #endif
+  Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")
 
 public:
   // To silent a warning -Woverloaded-virtual
@@ -57,7 +54,7 @@ public:
   }
 
 
-public slots:
+public Q_SLOTS:
   void untriangulate() {
     const Scene_interface::Item_id index = scene->mainSelectionIndex();
   
@@ -81,13 +78,14 @@ public slots:
         if(!eit_copy->is_border()) {
           Polyhedron::Facet_handle fh1 = eit_copy->facet();
           Polyhedron::Facet_handle fh2 = eit_copy->opposite()->facet();
-          typedef Polyhedron::Facet Facet;
           if( fh1 != fh2 &&  
               !eit_copy->vertex()->is_bivalent() && 
               !eit_copy->opposite()->vertex()->is_bivalent())
           {
-            Kernel::Vector_3 v1 = compute_facet_normal<Facet, Kernel>(*fh1);
-            Kernel::Vector_3 v2 = compute_facet_normal<Facet, Kernel>(*fh2);
+            Kernel::Vector_3 v1 =
+              CGAL::Polygon_mesh_processing::compute_face_normal(fh1, *pMesh);
+            Kernel::Vector_3 v2 =
+              CGAL::Polygon_mesh_processing::compute_face_normal(fh2, *pMesh);
             if(v1 * v2 > 0.99) {
               std::cerr << "join\n";
               // pMesh->is_valid(true);
@@ -122,7 +120,7 @@ public slots:
 
       QApplication::setOverrideCursor(Qt::WaitCursor);
 
-      CGAL::triangulate_polyhedron(*pMesh);
+      CGAL::Polygon_mesh_processing::triangulate_faces(*pMesh);
 
       CGAL_assertion_code(pMesh->normalize_border());
       CGAL_assertion(pMesh->is_valid(false, 3));
@@ -140,9 +138,5 @@ private:
   QAction* actionUnTriangulateFacets;  
   Messages_interface* messages;
 };
-
-#if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(Polyhedron_demo_triangulate_facets_plugin, Polyhedron_demo_triangulate_facets_plugin)
-#endif
 
 #include "Polyhedron_demo_triangulate_facets_plugin.moc"

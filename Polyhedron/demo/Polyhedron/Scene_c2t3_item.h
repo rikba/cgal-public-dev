@@ -8,7 +8,6 @@
 #include <qgl.h>
 #include <QtCore/qglobal.h>
 #include <CGAL/gl.h>
-#include <CGAL/glu.h>
 
 class SCENE_C2T3_ITEM_EXPORT Scene_c2t3_item : public Scene_item
 {
@@ -73,7 +72,7 @@ public:
 
   // Indicate if rendering mode is supported
   bool supportsRenderingMode(RenderingMode m) const {
-    return (m != Gouraud && m!=PointsPlusNormals && m!=Splatting); // CHECK THIS!
+    return (m != Gouraud && m!=PointsPlusNormals); // CHECK THIS!
   }
 
 /*  void draw() const {
@@ -91,10 +90,6 @@ public:
       draw_triangle(pa, pb, pc);
     }
     ::glEnd();
-    
-    GLenum gl_error = ::glGetError();
-    if(gl_error != GL_NO_ERROR)
-      std::cerr << "GL error: " << gluErrorString(gl_error) << std::endl;
   }
 
 private:

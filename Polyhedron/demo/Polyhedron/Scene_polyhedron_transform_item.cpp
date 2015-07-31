@@ -3,23 +3,15 @@
 #include "Polyhedron_type.h"
 
 Scene_polyhedron_transform_item::Scene_polyhedron_transform_item(const qglviewer::Vec& pos,const Scene_polyhedron_item* poly_item_,const Scene_interface*):
+    Scene_item(1,1),
     poly_item(poly_item_),
     manipulable(false),
     frame(new ManipulatedFrame()),
-    positions_lines(0),
     poly(poly_item->polyhedron()),
-    center_(pos),
-    Scene_item(1,1)
+    center_(pos)
+
 {
     frame->setPosition(pos);
-    qFunc.initializeOpenGLFunctions();
-}
-
-Scene_polyhedron_transform_item::~Scene_polyhedron_transform_item()
-{
-
-    delete frame;
-    emit killed();
 }
 
 void Scene_polyhedron_transform_item::initialize_buffers(Viewer_interface *viewer =0) const
@@ -31,7 +23,8 @@ void Scene_polyhedron_transform_item::initialize_buffers(Viewer_interface *viewe
 
         vaos[0]->bind();
         buffers[0].bind();
-        buffers[0].allocate(positions_lines.data(), positions_lines.size()*sizeof(float));
+        buffers[0].allocate(positions_lines.data(),
+                            static_cast<int>(positions_lines.size()*sizeof(float)));
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[0].release();
@@ -46,7 +39,7 @@ void Scene_polyhedron_transform_item::initialize_buffers(Viewer_interface *viewe
 
 void Scene_polyhedron_transform_item::compute_elements()
 {
-     positions_lines.clear();
+     positions_lines.resize(0);
     typedef Kernel::Point_3		Point;
     typedef Polyhedron::Edge_const_iterator	Edge_iterator;
 
@@ -83,7 +76,7 @@ void Scene_polyhedron_transform_item::draw_edges(Viewer_interface* viewer) const
         f_matrix.data()[i] = (float)frame->matrix()[i];
     }
     program->setUniformValue("f_matrix", f_matrix);
-    qFunc.glDrawArrays(GL_LINES, 0, positions_lines.size()/3);
+    viewer->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(positions_lines.size()/3));
     vaos[0]->release();
     program->release();
 
@@ -97,7 +90,7 @@ QString Scene_polyhedron_transform_item::toolTip() const {
 }
 bool Scene_polyhedron_transform_item::keyPressEvent(QKeyEvent* e){
     if (e->key()==Qt::Key_S){
-        emit stop();
+    Q_EMIT stop();
         return true;
     }
     return false;
@@ -122,5 +115,4 @@ void Scene_polyhedron_transform_item::changed()
     compute_elements();
     are_buffers_filled = false;
 }
-#include "Scene_polyhedron_transform_item.moc"
 

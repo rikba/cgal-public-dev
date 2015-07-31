@@ -23,10 +23,7 @@ class Polyhedron_demo_point_set_outliers_removal_plugin :
 {
   Q_OBJECT
   Q_INTERFACES(Polyhedron_demo_plugin_interface)
-
-  #if QT_VERSION >= 0x050000
-  Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")//New for Qt5 version !
-  #endif
+  Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")
 
 private:
   QAction* actionOutlierRemoval;
@@ -48,7 +45,7 @@ public:
     return QList<QAction*>() << actionOutlierRemoval;
   }
 
-public slots:
+public Q_SLOTS:
   void on_actionOutlierRemoval_triggered();
 
 }; // end Polyhedron_demo_point_set_outliers_removal_plugin
@@ -106,7 +103,7 @@ void Polyhedron_demo_point_set_outliers_removal_plugin::on_actionOutlierRemoval_
                                     << std::endl;
 
     // Selects points to delete
-    points->select(points->begin(), points->end(), false);
+    points->select(points->begin(), first_point_to_remove, false);
     points->select(first_point_to_remove, points->end(), true);
 
     // Updates scene
@@ -115,9 +112,5 @@ void Polyhedron_demo_point_set_outliers_removal_plugin::on_actionOutlierRemoval_
     QApplication::restoreOverrideCursor();
   }
 }
-
-#if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(Polyhedron_demo_point_set_outliers_removal_plugin, Polyhedron_demo_point_set_outliers_removal_plugin)
-#endif
 
 #include "Polyhedron_demo_point_set_outliers_removal_plugin.moc"

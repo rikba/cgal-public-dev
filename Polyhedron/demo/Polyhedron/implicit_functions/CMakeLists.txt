@@ -2,11 +2,9 @@
 
 project( Mesh_3_implicit_functions )
 
-cmake_minimum_required(VERSION 2.6.2)
-if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" VERSION_GREATER 2.8.3)
-  cmake_policy(VERSION 2.8.4)
-else()
-  cmake_policy(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.11)
+if(POLICY CMP0043)
+  cmake_policy(SET CMP0043 OLD)
 endif()
 
 # Let plugins be compiled in the same directory as the executable.
@@ -24,8 +22,7 @@ set( QT_USE_QTXML    TRUE )
 set( QT_USE_QTMAIN   TRUE )
 set( QT_USE_QTSCRIPT  TRUE )
 set( QT_USE_QTOPENGL  TRUE )
-find_package(Qt5 COMPONENTS Xml Script OpenGL ScriptTools Svg)
-
+find_package(Qt5 QUIET COMPONENTS Xml Script OpenGL ScriptTools )
 
 if(CGAL_Qt5_FOUND AND Qt5_FOUND)
   # put plugins (which are shared libraries) at the same location as

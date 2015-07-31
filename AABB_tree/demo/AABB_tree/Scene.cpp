@@ -18,7 +18,8 @@
 #include <CGAL/Subdivision_method_3.h>
 
 #include <QOpenGLShader>
-#include <QMessageBox>
+#include <QDebug>
+#include "Viewer.h"
 
 // constants
 const int slow_distance_grid_size = 100;
@@ -46,8 +47,8 @@ Scene::Scene()
     m_blue_ramp.build_blue();
     m_max_distance_function = (FT)0.0;
     texture = new Texture(m_grid_size,m_grid_size);
+    are_buffers_initialized = false;
 
-    pos_points.resize(0);
 }
 
 Scene::~Scene()
@@ -63,6 +64,11 @@ Scene::~Scene()
 
 void Scene::compile_shaders()
 {
+
+    if(! buffers[0].create() || !buffers[1].create() || !buffers[2].create() || !buffers[3].create() || !buffers[4].create() || !buffers[5].create() || !buffers[6].create() || !buffers[7].create())
+    {
+        std::cerr<<"VBO Creation FAILED"<<std::endl;
+    }
 
     for(int i=0; i< buffer_size; i++)
       if(! buffers[i].create())
@@ -192,7 +198,8 @@ void Scene::initialize_buffers()
     //Points
     vao[0].bind();
     buffers[0].bind();
-    buffers[0].allocate(pos_points.data(), pos_points.size()*sizeof(float));
+    buffers[0].allocate(pos_points.data(),
+                        static_cast<int>(pos_points.size()*sizeof(float)));
     points_vertexLocation = rendering_program.attributeLocation("vertex");
     rendering_program.bind();
     rendering_program.enableAttributeArray(points_vertexLocation);
@@ -204,7 +211,8 @@ void Scene::initialize_buffers()
     //Lines
     vao[1].bind();
     buffers[1].bind();
-    buffers[1].allocate(pos_lines.data(), pos_lines.size()*sizeof(float));
+    buffers[1].allocate(pos_lines.data(),
+                        static_cast<int>(pos_lines.size()*sizeof(float)));
     lines_vertexLocation = rendering_program.attributeLocation("vertex");
     rendering_program.bind();
     rendering_program.setAttributeBuffer(lines_vertexLocation,GL_FLOAT,0,3);
@@ -215,7 +223,8 @@ void Scene::initialize_buffers()
     //Polyhedron's edges
     vao[2].bind();
     buffers[2].bind();
-    buffers[2].allocate(pos_poly.data(), pos_poly.size()*sizeof(float));
+    buffers[2].allocate(pos_poly.data(),
+                        static_cast<int>(pos_poly.size()*sizeof(float)));
     poly_vertexLocation = rendering_program.attributeLocation("vertex");
     rendering_program.bind();
     rendering_program.setAttributeBuffer(poly_vertexLocation,GL_FLOAT,0,3);
@@ -226,7 +235,8 @@ void Scene::initialize_buffers()
     //cutting segments
     vao[3].bind();
     buffers[3].bind();
-    buffers[3].allocate(pos_cut_segments.data(), pos_cut_segments.size()*sizeof(float));
+    buffers[3].allocate(pos_cut_segments.data(),
+                        static_cast<int>(pos_cut_segments.size()*sizeof(float)));
     poly_vertexLocation = rendering_program.attributeLocation("vertex");
     rendering_program.bind();
     rendering_program.setAttributeBuffer(poly_vertexLocation,GL_FLOAT,0,3);
@@ -237,7 +247,7 @@ void Scene::initialize_buffers()
     //cutting plane
     vao[4].bind();
     buffers[4].bind();
-    buffers[4].allocate(pos_plane.data(), pos_plane.size()*sizeof(float));
+    buffers[4].allocate(pos_plane.data(), static_cast<int>(pos_plane.size()*sizeof(float)));
     poly_vertexLocation = rendering_program.attributeLocation("vertex");
     rendering_program.bind();
     rendering_program.setAttributeBuffer(poly_vertexLocation,GL_FLOAT,0,3);
@@ -249,7 +259,7 @@ void Scene::initialize_buffers()
     //grid
     vao[5].bind();
     buffers[5].bind();
-    buffers[5].allocate(pos_grid.data(), pos_grid.size()*sizeof(float));
+    buffers[5].allocate(pos_grid.data(), static_cast<int>(pos_grid.size()*sizeof(float)));
     poly_vertexLocation = rendering_program.attributeLocation("vertex");
     rendering_program.bind();
     rendering_program.setAttributeBuffer(poly_vertexLocation,GL_FLOAT,0,3);
@@ -260,7 +270,7 @@ void Scene::initialize_buffers()
     //cutting plane
     vao[6].bind();
     buffers[6].bind();
-    buffers[6].allocate(pos_plane.data(), pos_plane.size()*sizeof(float));
+    buffers[6].allocate(pos_plane.data(), static_cast<int>(pos_plane.size()*sizeof(float)));
     poly_vertexLocation = tex_rendering_program.attributeLocation("vertex");
     tex_rendering_program.bind();
     tex_rendering_program.setAttributeBuffer(poly_vertexLocation,GL_FLOAT,0,3);
@@ -269,7 +279,7 @@ void Scene::initialize_buffers()
     tex_rendering_program.release();
 
     buffers[7].bind();
-    buffers[7].allocate(tex_map.data(), tex_map.size()*sizeof(float));
+    buffers[7].allocate(tex_map.data(), static_cast<int>(tex_map.size()*sizeof(float)));
     tex_Location = tex_rendering_program.attributeLocation("tex_coord");
     tex_rendering_program.bind();
     tex_rendering_program.setAttributeBuffer(tex_Location,GL_FLOAT,0,2);
@@ -294,6 +304,7 @@ void Scene::initialize_buffers()
     vao[6].release();
 
     are_buffers_initialized = true;
+
 }
 
 void Scene::compute_elements(int mode)
@@ -339,7 +350,7 @@ void Scene::compute_elements(int mode)
     }
     //The Polygon's edges
     {
-        typename Polyhedron::Edge_iterator he;
+        Polyhedron::Edge_iterator he;
         for(he = m_pPolyhedron->edges_begin();
             he != m_pPolyhedron->edges_end();
             he++)
@@ -382,23 +393,23 @@ void Scene::compute_elements(int mode)
         pos_plane[15]= diag;    pos_plane[16]= -diag; pos_plane[17]= 0.;
 
         //UV Mapping
-        tex_map.push_back(-0.11);
-        tex_map.push_back(-0.11);
+        tex_map.push_back(-0.11f);
+        tex_map.push_back(-0.11f);
 
-        tex_map.push_back(-0.11);
-        tex_map.push_back(1.11);
+        tex_map.push_back(-0.11f);
+        tex_map.push_back(1.11f);
 
-        tex_map.push_back(1.11);
-        tex_map.push_back(1.11);
+        tex_map.push_back(1.11f);
+        tex_map.push_back(1.11f);
 
-        tex_map.push_back(-0.11);
-        tex_map.push_back(-0.11);
+        tex_map.push_back(-0.11f);
+        tex_map.push_back(-0.11f);
 
-        tex_map.push_back(1.11);
-        tex_map.push_back(1.11);
+        tex_map.push_back(1.11f);
+        tex_map.push_back(1.11f);
 
-        tex_map.push_back(1.11);
-        tex_map.push_back(-0.11);
+        tex_map.push_back(1.11f);
+        tex_map.push_back(-0.11f);
 
     }
     //The grid
@@ -530,8 +541,8 @@ void Scene::changed()
         compute_elements(_UNSIGNED);
     else
         compute_elements(_SIGNED);
-
     are_buffers_initialized = false;
+
 }
 void Scene::frame_changed()
 {
@@ -615,16 +626,13 @@ void Scene::update_bbox()
 }
 
 void Scene::draw(QGLViewer* viewer)
-{
-    /////////////////////
+{       
     if(!are_buffers_initialized)
-    {
         initialize_buffers();
-    }
     QColor color;
     QMatrix4x4 fMatrix;
     fMatrix.setToIdentity();
-    if(m_view_polyhedron)
+    if(m_view_polyhedron && pos_poly.size()>0)
     {
         vao[2].bind();
         attrib_buffers(viewer);
@@ -632,11 +640,11 @@ void Scene::draw(QGLViewer* viewer)
         color.setRgbF(0.0,0.0,0.0);
         rendering_program.setUniformValue(colorLocation, color);
         rendering_program.setUniformValue(fLocation, fMatrix);
-        gl->glDrawArrays(GL_LINES, 0, pos_poly.size()/3);
+        gl->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(pos_poly.size()/3));
         rendering_program.release();
         vao[2].release();
     }
-    if(m_view_points)
+    if(m_view_points && pos_points.size()>0)
     {
         //::glPointSize(2.0f);
         vao[0].bind();
@@ -645,12 +653,12 @@ void Scene::draw(QGLViewer* viewer)
         color.setRgbF(0.7,0.0,0.0);
         rendering_program.setUniformValue(colorLocation, color);
         rendering_program.setUniformValue(fLocation, fMatrix);
-        gl->glDrawArrays(GL_POINTS, 0, pos_points.size()/3);
+        gl->glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(pos_points.size()/3));
         rendering_program.release();
         vao[0].release();
     }
 
-    if(m_view_segments)
+    if(m_view_segments && pos_lines.size()>0)
     {
         vao[1].bind();
         attrib_buffers(viewer);
@@ -658,11 +666,11 @@ void Scene::draw(QGLViewer* viewer)
         color.setRgbF(0.0,0.7,0.0);
         rendering_program.setUniformValue(colorLocation, color);
         rendering_program.setUniformValue(fLocation, fMatrix);
-        gl->glDrawArrays(GL_LINES, 0, pos_lines.size()/3);
+        gl->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(pos_lines.size()/3));
         rendering_program.release();
         vao[1].release();
     }
-    if (m_view_plane)
+    if (m_view_plane && pos_plane.size()>0)
     {
         if(!boule)
         {
@@ -700,7 +708,7 @@ void Scene::draw(QGLViewer* viewer)
             attrib_buffers(viewer);
             tex_rendering_program.bind();
             tex_rendering_program.setUniformValue(tex_fLocation, fMatrix);
-            gl->glDrawArrays(GL_TRIANGLES, 0, pos_plane.size()/3);
+            gl->glDrawArrays(GL_TRIANGLES, 0,static_cast<GLsizei>(pos_plane.size()/3));
             tex_rendering_program.release();
             vao[6].release();
             break;
@@ -716,8 +724,8 @@ void Scene::draw(QGLViewer* viewer)
             color.setRgbF(1.0,0.0,0.0);
             rendering_program.setUniformValue(colorLocation, color);
             rendering_program.setUniformValue(fLocation, fMatrix);
-            gl->glDrawArrays(GL_LINES, 0, pos_cut_segments.size()/3);
-            gl->glLineWidth(1.0f);
+            gl->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(pos_cut_segments.size()/3));
+            ::glLineWidth(1.0f);
             rendering_program.release();
             vao[3].release();
             //grid
@@ -729,7 +737,7 @@ void Scene::draw(QGLViewer* viewer)
             color.setRgbF(.6f, .6f, .6f);
             rendering_program.setUniformValue(colorLocation, color);
             rendering_program.setUniformValue(fLocation, fMatrix);
-            gl->glDrawArrays(GL_LINES, 0, pos_grid.size()/3);
+            gl->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(pos_grid.size()/3));
             rendering_program.release();
             vao[5].release();
 
@@ -744,8 +752,8 @@ void Scene::draw(QGLViewer* viewer)
             color.setRgbF(.6f, .85f, 1.f, .65f);
             rendering_program.setUniformValue(colorLocation, color);
             rendering_program.setUniformValue(fLocation, fMatrix);
-            gl->glDrawArrays(GL_TRIANGLES, 0, pos_plane.size()/3);
-            gl->glDisable(GL_BLEND);
+            gl->glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(pos_plane.size()/3));
+            ::glDisable(GL_BLEND);
             rendering_program.release();
             vao[4].release();
 
@@ -1355,4 +1363,19 @@ void Scene::deactivate_cutting_plane()
 {
     disconnect(m_frame, SIGNAL(modified()), this, SLOT(cutting_plane()));
     m_view_plane = false;
+}
+void Scene::initGL(Viewer* /* viewer */)
+{
+    //qDebug()<<"context from scene is valid :"<<context->isValid();
+    //gl = 0;
+    //gl = viewer->context()->versionFunctions<QOpenGLFunctions_3_3_Core>();
+    gl = new QOpenGLFunctions();
+
+    //if (!gl) {
+    //    qFatal("Could not obtain required OpenGL context version");
+    //    exit(1);
+    //}
+    gl->initializeOpenGLFunctions();
+    gl->glGenTextures(1, &textureId);
+    compile_shaders();
 }

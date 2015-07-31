@@ -3,11 +3,9 @@
 
 project (Alpha_shapes_2_demo)
 
-cmake_minimum_required(VERSION 2.6.2)
-if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" VERSION_GREATER 2.8.3)
-  cmake_policy(VERSION 2.8.4)
-else()
-  cmake_policy(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.11)
+if(POLICY CMP0043)
+  cmake_policy(SET CMP0043 OLD)
 endif()
 
 find_package(CGAL COMPONENTS Qt5)
@@ -20,7 +18,7 @@ include_directories (BEFORE ../../include)
 include_directories (BEFORE ./include)
 
 if ( CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND )
-
+add_definitions(-DQT_NO_KEYWORDS)
 
 #--------------------------------
 # The "Delaunay" demo: Alpha_shapes_2

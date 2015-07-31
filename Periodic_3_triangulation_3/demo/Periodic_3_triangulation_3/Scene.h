@@ -75,14 +75,13 @@ public:
   }
 
   ~Scene() {
-    gluDeleteQuadric(pQuadric);
     for(int i=0; i<24; i++)
         buffers[i].destroy();
     for(int i=0; i<12; i++)
         vao[i].destroy();
   }
 
-public slots:
+public Q_SLOTS:
   void init();
   void draw();
   void changed();
@@ -214,7 +213,7 @@ public slots:
    return true;
   }
 
-signals:
+Q_SIGNALS:
   void message(const QString & message, int timeout = 0 );
   void loaded_points(const QString &n);
 
@@ -287,6 +286,7 @@ private:
       std::vector<float> transfo3_square;
       std::vector<float> transfo4_square;
 
+      bool are_buffers_initialized;
       QOpenGLBuffer buffers[24];
       QOpenGLVertexArrayObject vao[12];
       QOpenGLShaderProgram rendering_program;
@@ -307,7 +307,6 @@ private:
   QString materials[6];
   QTimer* timer;
   GLuint l_triangulation, l_domain;
-  GLUquadricObj* pQuadric;
 
   bool flying_ball;
   bool dlocate, dconflict;

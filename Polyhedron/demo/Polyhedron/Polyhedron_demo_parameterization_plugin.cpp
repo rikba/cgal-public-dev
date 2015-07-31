@@ -29,10 +29,7 @@ class Polyhedron_demo_parameterization_plugin :
 {
   Q_OBJECT
   Q_INTERFACES(Polyhedron_demo_plugin_interface)
-
-  #if QT_VERSION >= 0x050000
-  Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")//New for Qt5 version !
-  #endif
+  Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")
 
 public:
   // used by Polyhedron_demo_plugin_helper
@@ -45,7 +42,7 @@ public:
     return qobject_cast<Scene_polyhedron_item*>(scene->item(scene->mainSelectionIndex()));
   }
 
-public slots:
+public Q_SLOTS:
   void on_actionMVC_triggered();
   void on_actionDCP_triggered();
 
@@ -148,9 +145,5 @@ void Polyhedron_demo_parameterization_plugin::on_actionDCP_triggered()
   std::cerr << "DCP...";
   parameterize(PARAM_DCP);
 }
-
-#if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(Polyhedron_demo_parameterization_plugin, Polyhedron_demo_parameterization_plugin)
-#endif
 
 #include "Polyhedron_demo_parameterization_plugin.moc"

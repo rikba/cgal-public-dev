@@ -50,6 +50,8 @@ public:
     GLubyte* getData(){return data; }
 
 };
+
+class Viewer;
 class Scene : public QObject
 {
     Q_OBJECT
@@ -81,9 +83,11 @@ public:
     void update_bbox();
     Bbox bbox() { return m_bbox; }
     ManipulatedFrame* manipulatedFrame() const { return m_frame; }
+    void initGL(Viewer *viewer);
 
 private:
     // member data
+    QOpenGLFunctions *gl;
     Bbox m_bbox;
     Polyhedron *m_pPolyhedron;
     std::list<Point> m_points;
@@ -135,7 +139,6 @@ private:
     void sign_distance_function(const Tree& tree);
 
     //Shaders elements
-    QOpenGLFunctions *gl;
     int poly_vertexLocation;
     int tex_Location;
     int points_vertexLocation;
@@ -168,6 +171,7 @@ private:
     void initialize_buffers();
     void compute_elements(int mode);
     void attrib_buffers(QGLViewer*);
+    void compile_shaders();
     void compute_texture(int, int, Color_ramp, Color_ramp);
     void initialize_textures(int mode);
 
@@ -248,13 +252,11 @@ public:
     void activate_cutting_plane();
     void deactivate_cutting_plane();
     void setGL(QOpenGLFunctions *);
-    void compile_shaders();
 public slots:
     // cutting plane
     void cutting_plane();
     void changed();
     void frame_changed();
-
 }; // end class Scene
 
 #endif // SCENE_H

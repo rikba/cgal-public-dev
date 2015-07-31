@@ -7,6 +7,7 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QOpenGLShaderProgram>
+#include <CGAL/Qt/CreateOpenGLContext.h>
 
 
 class Viewer : public QGLViewer, QOpenGLFunctions_3_3_Core {
@@ -21,7 +22,7 @@ class Viewer : public QGLViewer, QOpenGLFunctions_3_3_Core {
   int nr_of_facets;
 public:
   Viewer(QWidget* parent)
-    : QGLViewer(parent)
+    : QGLViewer(CGAL::Qt::createOpenGLContext(), parent)
   {}
   ~Viewer()
   {
@@ -59,7 +60,7 @@ private:
       int mvpLocation[3];
       int colorLocation[3];
 
-
+      bool are_buffers_initialized;
       std::vector<float> pos_points;
       std::vector<float> pos_lines;
       std::vector<float> pos_8lines2D;

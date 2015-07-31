@@ -7,7 +7,7 @@
 
 #include <QGLViewer/qglviewer.h>
 #include <QPoint>
-#include <QOpenGLFunctions>
+
 
 // forward declarations
 class QWidget;
@@ -17,8 +17,7 @@ class QKeyEvent;
 
 class Viewer_impl;
 
-class VIEWER_EXPORT Viewer : public Viewer_interface{
-
+class VIEWER_EXPORT Viewer : public Viewer_interface {
   Q_OBJECT
 
 public:
@@ -36,7 +35,7 @@ public:
   bool antiAliasing() const;
   bool inFastDrawing() const;
 
-public slots:
+public Q_SLOTS:
   void setAntiAliasing(bool b);
   void setTwoSides(bool b);
 

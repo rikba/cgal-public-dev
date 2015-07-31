@@ -1,6 +1,5 @@
 #include "Scene_plane_item.h"
 
-#include "Scene_plane_item.moc"
 
 
 void Scene_plane_item::initialize_buffers(Viewer_interface *viewer) const
@@ -10,7 +9,8 @@ void Scene_plane_item::initialize_buffers(Viewer_interface *viewer) const
     vaos[0]->bind();
 
     buffers[0].bind();
-    buffers[0].allocate(positions_quad.data(), positions_quad.size()*sizeof(float));
+    buffers[0].allocate(positions_quad.data(),
+                        static_cast<int>(positions_quad.size()*sizeof(float)));
     program->enableAttributeArray("vertex");
     program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
     buffers[0].release();
@@ -19,7 +19,8 @@ void Scene_plane_item::initialize_buffers(Viewer_interface *viewer) const
 
     vaos[1]->bind();
     buffers[1].bind();
-    buffers[1].allocate(positions_lines.data(), positions_lines.size()*sizeof(float));
+    buffers[1].allocate(positions_lines.data(),
+                        static_cast<int>(positions_lines.size()*sizeof(float)));
     program->enableAttributeArray("vertex");
     program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
     buffers[1].release();
@@ -32,8 +33,8 @@ void Scene_plane_item::initialize_buffers(Viewer_interface *viewer) const
 
 void Scene_plane_item::compute_normals_and_vertices(void)
 {
-    positions_quad.clear();
-    positions_lines.clear();
+    positions_quad.resize(0);
+    positions_lines.resize(0);
 
     const double diag = scene_diag();
     //The quad
@@ -104,7 +105,7 @@ void Scene_plane_item::draw(Viewer_interface* viewer)const
     program->bind();
     program->setUniformValue("f_matrix", f_matrix);
     program->setAttributeValue("colors",this->color());
-    qFunc.glDrawArrays(GL_TRIANGLES, 0, positions_quad.size()/3);
+    viewer->glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(positions_quad.size()/3));
     program->release();
     vaos[0]->release();
 
@@ -124,7 +125,7 @@ void Scene_plane_item::draw_edges(Viewer_interface* viewer)const
     program->bind();
     program->setUniformValue("f_matrix", f_matrix);
     program->setAttributeValue("colors",QVector3D(0,0,0));
-    qFunc.glDrawArrays(GL_LINES, 0, positions_lines.size()/3);
+    viewer->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(positions_lines.size()/3));
     program->release();
     vaos[1]->release();
 }

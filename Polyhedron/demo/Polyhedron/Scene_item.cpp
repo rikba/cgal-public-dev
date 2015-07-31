@@ -20,7 +20,7 @@ Scene_item::~Scene_item() {
 
 void Scene_item::itemAboutToBeDestroyed(Scene_item* item) {
     if(this == item)
-        emit aboutToBeDestroyed();
+    Q_EMIT aboutToBeDestroyed();
 }
 
 
@@ -39,8 +39,6 @@ QString modeName(RenderingMode mode) {
         return QObject::tr("Gouraud");
     case PointsPlusNormals:
         return QObject::tr("pts+normals");
-    case Splatting:
-        return QObject::tr("splats");
     default:
         Q_ASSERT(false);
         return QObject::tr("unknown");
@@ -62,8 +60,6 @@ const char* slotName(RenderingMode mode) {
         return SLOT(setGouraudMode());
     case PointsPlusNormals:
         return SLOT(setPointsPlusNormalsMode());
-    case Splatting:
-        return SLOT(setSplattingMode());
     default:
         Q_ASSERT(false);
         return "";
@@ -105,7 +101,7 @@ QMenu* Scene_item::contextMenu()
 }
 
 void Scene_item::changed() {
-    // emit itemChanged();
+  // Q_EMIT itemChanged();
 }
 
 void Scene_item::selection_changed(bool) {
@@ -141,7 +137,8 @@ void Scene_item::attrib_buffers(Viewer_interface* viewer, int program_name) cons
     for (int i=0; i<16; ++i)
         mv_mat.data()[i] = GLfloat(d_mat[i]);
 
-    //qFunc.glGetIntegerv(GL_LIGHT_MODEL_TWO_SIDE, &is_both_sides);
+
+    //viewer->glGetIntegerv(GL_LIGHT_MODEL_TWO_SIDE, &is_both_sides);
 
     QVector4D position(0.0f,0.0f,1.0f, 1.0f );
     QVector4D ambient(0.4f, 0.4f, 0.4f, 0.4f);
@@ -376,7 +373,7 @@ QOpenGLShaderProgram* Scene_item::getShaderProgram(int name, Viewer_interface * 
         break;
     default:
         std::cerr<<"ERROR : Program not found."<<std::endl;
+        return 0;
     }
 }
-#include "Scene_item.moc"
 

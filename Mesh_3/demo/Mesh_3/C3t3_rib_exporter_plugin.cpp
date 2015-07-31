@@ -34,10 +34,7 @@ class C3t3_rib_exporter_plugin :
 {
   Q_OBJECT
   Q_INTERFACES(Plugin_interface)
-
-  #if QT_VERSION >= 0x050000
-   Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")//New for Qt5 version !
-  #endif
+  Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")
 
 public:
   C3t3_rib_exporter_plugin();
@@ -49,7 +46,7 @@ public:
     return QList<QAction*>() << actionCreateRib;
   }
   
-public slots:
+public Q_SLOTS:
   void create_rib();
   void height_changed(int i);
   void width_changed(int i);
@@ -645,19 +642,17 @@ void
 C3t3_rib_exporter_plugin::
 write_turn_background_light(bool turn_on, std::ofstream& out)
 {
-  switch (turn_on)
+  if (!turn_on)
   {
-    case false:
-      out << "Illuminate 1 1" << std::endl;
-      if ( ! parameters_.is_preview ) { out << "Illuminate 2 1" << std::endl; }
-      out << "Illuminate 99 0" << std::endl;
-      break;
-      
-    case true:
-      out << "Illuminate 1 0" << std::endl;
-      if ( ! parameters_.is_preview ) { out << "Illuminate 2 0" << std::endl; }
-      out << "Illuminate 99 1" << std::endl;
-      break;
+    out << "Illuminate 1 1" << std::endl;
+    if ( ! parameters_.is_preview ) { out << "Illuminate 2 1" << std::endl; }
+    out << "Illuminate 99 0" << std::endl;
+  }
+  else
+  {
+    out << "Illuminate 1 0" << std::endl;
+    if ( ! parameters_.is_preview ) { out << "Illuminate 2 0" << std::endl; }
+    out << "Illuminate 99 1" << std::endl;
   }
 }
 
@@ -717,10 +712,8 @@ write_facets(const C3t3& c3t3, const Plane& plane, std::ofstream& out)
 
 void
 C3t3_rib_exporter_plugin::
-write_surface_cells(const C3t3& c3t3, const Plane& plane, std::ofstream& out)
+write_surface_cells(const C3t3& c3t3, const Plane& /* plane */, std::ofstream& out)
 {
-  typedef Kernel::Oriented_side Side;
-
   for ( C3t3::Cells_in_complex_iterator it_cell = c3t3.cells_in_complex_begin(),
        end = c3t3.cells_in_complex_end() ; it_cell != end ; ++it_cell )
   {
@@ -791,6 +784,8 @@ write_surface_cells(const C3t3& c3t3, const Plane& plane, std::ofstream& out)
       QColor edgecolor = facecolor.darker(150);
       
       /*
+      typedef Kernel::Oriented_side Side;
+
       // Transparency on the negative side of the plane
       const Side s0 = plane.oriented_side(c->vertex(0)->point());
       const Side s1 = plane.oriented_side(c->vertex(1)->point());
@@ -1181,11 +1176,5 @@ write_background(const QColor& color, std::ofstream& out)
   out << " " << -corner << " " <<  corner << " " << depth_pos << " ";
   out << "]" << std::endl;
 }
-
-
-#if QT_VERSION < 0x050000
-#include <QtPlugin>
-Q_EXPORT_PLUGIN2(C3t3_rib_exporter_plugin, C3t3_rib_exporter_plugin)
-#endif
 
 #include "C3t3_rib_exporter_plugin.moc"

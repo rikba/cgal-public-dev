@@ -1,41 +1,11 @@
 #include "Scene_polylines_item.h"
-
 #include <CGAL/bounding_box.h>
 #include <CGAL/gl.h>
-#include <CGAL/glu.h>
 #include <QMenu>
 #include <QAction>
-
 #include <QInputDialog>
-namespace {
-void CGALglcolor(QColor c, int dv = 0)
-{
-    if ( 0 != dv )
-    {
-        // workaround for Qt-4.2.
-#if QT_VERSION < 0x040300
-#  define darker dark
-#endif
-        c = c.darker(dv);
-#undef darker
-    }
-    //::glColor4d(c.red()/255.0, c.green()/255.0, c.blue()/255.0, c.alpha()/255.0);
-}
-}
-struct light_info
-{
-    //position
-    GLfloat position[4];
 
-    //ambient
-    GLfloat ambient[4];
 
-    //diffuse
-    GLfloat diffuse[4];
-
-    //specular
-    GLfloat specular[4];
-};
 typedef Scene_polylines_item::K K;
 typedef K::Point_3 Point_3;
 //Fill the VBO with coordinates of the vertices composing a sphere
@@ -231,27 +201,15 @@ public:
 
     Scene_polylines_item_private() :
         draw_extremities(false),
-        spheres_drawn_radius(0),
-        sphere_display_list(0)/*,
-        quadric(0)*/
+        spheres_drawn_radius(0)
     {}
-
-    ~Scene_polylines_item_private()
-    {
-      //  if(quadric != 0)
-      //      gluDeleteQuadric(quadric);
-      //  if(sphere_display_list  != 0)
-      //      glDeleteLists(sphere_display_list, 1);
-    }
 
     void draw_sphere(const K::Point_3&, double) const;
     void draw_spheres(const Scene_polylines_item*) const;
 
     bool draw_extremities;
     double spheres_drawn_radius;
-private:
-    mutable GLuint sphere_display_list;
-   // mutable GLUquadric* quadric;
+
 };
 
 void
@@ -264,7 +222,8 @@ Scene_polylines_item::initialize_buffers(Viewer_interface *viewer = 0) const
 
         vaos[0]->bind();
         buffers[0].bind();
-        buffers[0].allocate(positions_lines.data(), positions_lines.size()*sizeof(float));
+        buffers[0].allocate(positions_lines.data(),
+                            static_cast<int>(positions_lines.size()*sizeof(float)));
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,4);
         buffers[0].release();
@@ -278,31 +237,35 @@ Scene_polylines_item::initialize_buffers(Viewer_interface *viewer = 0) const
 
         vaos[1]->bind();
         buffers[1].bind();
-        buffers[1].allocate(positions_spheres.data(), positions_spheres.size()*sizeof(float));
+        buffers[1].allocate(positions_spheres.data(), 
+                            static_cast<int>(positions_spheres.size()*sizeof(float)));
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,4);
         buffers[1].release();
 
         buffers[2].bind();
-        buffers[2].allocate(normals_spheres.data(), normals_spheres.size()*sizeof(float));
+        buffers[2].allocate(normals_spheres.data(),
+                            static_cast<int>(normals_spheres.size()*sizeof(float)));
         program->enableAttributeArray("normals");
         program->setAttributeBuffer("normals",GL_FLOAT,0,3);
         buffers[2].release();
 
         buffers[3].bind();
-        buffers[3].allocate(color_spheres.data(), color_spheres.size()*sizeof(float));
+        buffers[3].allocate(color_spheres.data(),
+                            static_cast<int>(color_spheres.size()*sizeof(float)));
         program->enableAttributeArray("colors");
         program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[3].release();
 
         buffers[4].bind();
-        buffers[4].allocate(positions_center.data(), positions_center.size()*sizeof(float));
+        buffers[4].allocate(positions_center.data(),
+                            static_cast<int>(positions_center.size()*sizeof(float)));
         program->enableAttributeArray("center");
         program->setAttributeBuffer("center",GL_FLOAT,0,3);
         buffers[4].release();
 
-        //qFunc.glVertexAttribDivisor(program->attributeLocation("center"), 1);
-        //qFunc.glVertexAttribDivisor(program->attributeLocation("colors"), 1);
+        //viewer->glVertexAttribDivisor(program->attributeLocation("center"), 1);
+        //viewer->glVertexAttribDivisor(program->attributeLocation("colors"), 1);
         vaos[1]->release();
 
         program->release();
@@ -315,7 +278,8 @@ Scene_polylines_item::initialize_buffers(Viewer_interface *viewer = 0) const
 
         vaos[2]->bind();
         buffers[5].bind();
-        buffers[5].allocate(positions_wire_spheres.data(), positions_wire_spheres.size()*sizeof(float));
+        buffers[5].allocate(positions_wire_spheres.data(),
+                            static_cast<int>(positions_wire_spheres.size()*sizeof(float)));
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,4);
         buffers[5].release();
@@ -325,18 +289,20 @@ Scene_polylines_item::initialize_buffers(Viewer_interface *viewer = 0) const
         program->setAttributeValue("normals",QVector3D(0.0,0.0,0.0));
 
         buffers[6].bind();
-        buffers[6].allocate(color_spheres.data(), color_spheres.size()*sizeof(float));
+        buffers[6].allocate(color_spheres.data(),
+                            static_cast<int>(color_spheres.size()*sizeof(float)));
         program->enableAttributeArray("colors");
         program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[6].release();
 
         buffers[7].bind();
-        buffers[7].allocate(positions_center.data(), positions_center.size()*sizeof(float));
+        buffers[7].allocate(positions_center.data(),
+                            static_cast<int>(positions_center.size()*sizeof(float)));
         program->enableAttributeArray("center");
         program->setAttributeBuffer("center",GL_FLOAT,0,3);
         buffers[7].release();
 
-       // qFunc.glVertexAttribDivisor(program->attributeLocation("center"), 1);
+//        viewer->glVertexAttribDivisor(program->attributeLocation("center"), 1);
         vaos[2]->release();
         program->release();
     }
@@ -347,12 +313,12 @@ Scene_polylines_item::initialize_buffers(Viewer_interface *viewer = 0) const
 void
 Scene_polylines_item::compute_elements()
 {
-    positions_spheres.clear();
-    positions_wire_spheres.clear();
-    positions_lines.clear();
-    color_spheres.clear();
-    normals_spheres.clear();
-    positions_center.clear();
+    positions_spheres.resize(0);
+    positions_wire_spheres.resize(0);
+    positions_lines.resize(0);
+    color_spheres.resize(0);
+    normals_spheres.resize(0);
+    positions_center.resize(0);
     nbSpheres = 0;
 
     //Fills the VBO with the lines
@@ -455,23 +421,23 @@ Scene_polylines_item::compute_elements()
                 break;
             case 2:
                 colors[0] = 0.0; // green
-                colors[1] = 0.8;
+                colors[1] = 0.8f;
                 colors[2] = 0.0;
                 break;
             case 3:
                 colors[0] = 0.0; // blue
                 colors[1] = 0.0;
-                colors[2] = 0.8;
+                colors[2] = 0.8f;
                 break;
             case 4:
-                colors[0] = 0.8; //red
+                colors[0] = 0.8f; //red
                 colors[1] = 0.0;
                 colors[2] = 0.0;
                 break;
             default:
-                colors[0] = 0.8; //fuschia
+                colors[0] = 0.8f; //fuschia
                 colors[1] = 0.0;
-                colors[2] = 0.8;
+                colors[2] = 0.8f;
             }
 
             color_spheres.push_back(colors[0]);
@@ -482,7 +448,7 @@ Scene_polylines_item::compute_elements()
 
         //Convert the triangle coordinates to lines coordinates for the
         //Wiremode in the spheres
-        for(int i=0; i< positions_spheres.size(); i=i)
+        for(int i=0; i< (int) positions_spheres.size();)
         {
             //draw triangles
             if(i< (360/sectors)*12)
@@ -505,7 +471,7 @@ Scene_polylines_item::compute_elements()
                 i+=12;
             }
             //draw quads
-            else if((360/sectors) * 3 * 4 < i < positions_spheres.size() - (360/sectors) * 3 * 4)
+            else if((360/sectors) * 3 * 4 < i && i < (int)positions_spheres.size() - (360/sectors) * 3 * 4)
             {
                 //AB
                 for(int j=i; j<i+8; j++)
@@ -566,11 +532,12 @@ Scene_polylines_item::compute_elements()
 
 
 Scene_polylines_item::Scene_polylines_item() 
-    : d(new Scene_polylines_item_private()),positions_lines(0), positions_spheres(0),
-      normals_spheres(0), positions_center(0),color_spheres(0), positions_wire_spheres(0),nbSpheres(0),
-      rings(18), sectors(36), Scene_item(8,3)
+    :Scene_item(8,3)
+    ,d(new Scene_polylines_item_private())
+    ,nbSpheres(0)
+    ,rings(18)
+    ,sectors(36)
 {
-    qFunc.initializeOpenGLFunctions();
     changed();
 
 }
@@ -666,7 +633,8 @@ Scene_item::draw();
         program = getShaderProgram(PROGRAM_INSTANCED);
         attrib_buffers(viewer, PROGRAM_INSTANCED);
         program->bind();
-       //qFunc.glDrawArraysInstanced(GL_TRIANGLES, 0, positions_spheres.size()/4, nbSpheres);
+//        viewer->glDrawArraysInstanced(GL_TRIANGLES, 0,
+//                                    static_cast<GLsizei>(positions_spheres.size()/4), nbSpheres);
         program->release();
         vaos[1]->release();
     }
@@ -685,7 +653,7 @@ Scene_item::draw();
     program->bind();
     QColor temp = this->color();
     program->setAttributeValue("colors", temp);
-    qFunc.glDrawArrays(GL_LINES, 0, positions_lines.size()/4);
+    viewer->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(positions_lines.size()/4));
     program->release();
     vaos[0]->release();
     if(d->draw_extremities)
@@ -694,7 +662,9 @@ Scene_item::draw();
         attrib_buffers(viewer, PROGRAM_INSTANCED_WIRE);
         program = getShaderProgram(PROGRAM_INSTANCED_WIRE);
         program->bind();
-       // qFunc.glDrawArraysInstanced(GL_LINES, 0, positions_wire_spheres.size()/4, nbSpheres);
+//        viewer->glDrawArraysInstanced(GL_LINES, 0,
+//                                    static_cast<GLsizei>(positions_wire_spheres.size()/4), nbSpheres);
+
         program->release();
         vaos[2]->release();
     }
@@ -711,7 +681,7 @@ Scene_polylines_item::draw_points(Viewer_interface* viewer) const {
     attrib_buffers(viewer, PROGRAM_WITHOUT_LIGHT);
     program = getShaderProgram(PROGRAM_WITHOUT_LIGHT);
     program->bind();
-    qFunc.glDrawArrays(GL_POINTS, 0, positions_lines.size()/4);
+    viewer->glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(positions_lines.size()/4));
     // Clean-up
    vaos[0]->release();
    program->release();
@@ -724,7 +694,7 @@ QMenu* Scene_polylines_item::contextMenu()
     QMenu* menu = Scene_item::contextMenu();
 
     // Use dynamic properties:
-    // http://doc.trolltech.com/lastest/qobject.html#property
+    // http://doc.qt.io/qt-5/qobject.html#property
     bool menuChanged = menu->property(prop_name).toBool();
 
     if(!menuChanged) {
@@ -782,7 +752,7 @@ void Scene_polylines_item::change_corner_radii(double r) {
         d->spheres_drawn_radius = r;
         d->draw_extremities = (r > 0);
         this->changed();
-        emit itemChanged();
+    Q_EMIT itemChanged();
     }
 }
 
@@ -867,7 +837,7 @@ void Scene_polylines_item::split_at_sharp_angles()
             }
         }
     }
-    emit itemChanged();
+  Q_EMIT itemChanged();
 }
 
 void
@@ -886,4 +856,3 @@ Scene_polylines_item::merge(Scene_polylines_item* other_item) {
     changed();
 }
 
-#include "Scene_polylines_item.moc"

@@ -45,7 +45,6 @@ public:
   virtual QString toolTip() const;
 
   virtual void changed();
-  virtual void selection_changed(bool);
 
   // Indicate if rendering mode is supported
   virtual bool supportsRenderingMode(RenderingMode m) const;
@@ -53,8 +52,6 @@ public:
   virtual void draw_edges(Viewer_interface* viewer) const;
   virtual void draw_points(Viewer_interface*) const;
 
-  virtual void draw_splats(Viewer_interface*) const;
-  
   // Gets wrapped point set
   Point_set*       point_set();
   const Point_set* point_set() const;
@@ -72,7 +69,7 @@ public:
   bool has_normals() const;
   void set_has_normals(bool b);
 
-public slots:
+public Q_SLOTS:
   // Delete selection
   virtual void deleteSelection();
   // Reset selection mark
@@ -88,23 +85,16 @@ private:
   QAction* actionResetSelection;
   QAction* actionSelectDuplicatedPoints;
 
-
+  mutable int texture[3];
   std::vector<float> positions_lines;
   std::vector<float> positions_points;
-  std::vector<float> positions_splats;
   std::vector<float> positions_selected_points;
-  std::vector<float> color_lines;
-  std::vector<float> color_points;
-  std::vector<float> color_selected_points;
   std::vector<float> normals;
-  std::vector<float> tex_coords;
 
-  mutable int texture[3];
 
   mutable QOpenGLShaderProgram *program;
-  mutable GLuint textureId;
-  mutable GLint sampler_location;
 
+  using Scene_item::initialize_buffers;
   void initialize_buffers(Viewer_interface *viewer) const;
 
   void compute_normals_and_vertices(void);

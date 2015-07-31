@@ -13,12 +13,11 @@ class Q_DECL_EXPORT Scene_bbox_item : public Scene_item
     Q_OBJECT
 public:
     Scene_bbox_item(const Scene_interface* scene_interface)
-        : scene(scene_interface),
-          Scene_item(1,1)
+        :  Scene_item(1,1), scene(scene_interface)
+
     {
 
         positions_lines.resize(0);
-        qFunc.initializeOpenGLFunctions();
         //Generates an integer which will be used as ID for each buffer
     }
     ~Scene_bbox_item()
@@ -58,7 +57,7 @@ public:
         attrib_buffers(viewer, PROGRAM_WITHOUT_LIGHT);
         program->bind();
         program->setAttributeValue("colors", this->color());
-        qFunc.glDrawArrays(GL_LINES, 0, positions_lines.size()/3);
+        viewer->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(positions_lines.size()/3));
         vaos[0]->release();
         program->release();
 
@@ -74,6 +73,7 @@ private:
 
     std::vector<float> positions_lines;
     mutable QOpenGLShaderProgram *program;
+    using Scene_item::initialize_buffers;
     void initialize_buffers(Viewer_interface *viewer)const
     {
 
@@ -84,7 +84,8 @@ private:
 
             vaos[0]->bind();
             buffers[0].bind();
-            buffers[0].allocate(positions_lines.data(), positions_lines.size()*sizeof(float));
+            buffers[0].allocate(positions_lines.data(),
+                                static_cast<GLsizei>(positions_lines.size()*sizeof(float)));
             program->enableAttributeArray("vertex");
             program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
             buffers[0].release();
@@ -141,10 +142,7 @@ class Polyhedron_demo_trivial_plugin :
 {
     Q_OBJECT
     Q_INTERFACES(Polyhedron_demo_plugin_interface)
-
-  #if QT_VERSION >= 0x050000
-  Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")//New for Qt5 version !
-  #endif
+    Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")
 
 public:
     void init(QMainWindow* mainWindow, Scene_interface* scene_interface);
@@ -155,7 +153,7 @@ public:
     bool applicable(QAction*) const {
         return true;
     }
-public slots:
+public Q_SLOTS:
 
     void bbox();
     void enableAction();
@@ -196,9 +194,5 @@ void Polyhedron_demo_trivial_plugin::bbox()
 void Polyhedron_demo_trivial_plugin::enableAction() {
     actionBbox->setEnabled(true);
 }
-
-#if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(Polyhedron_demo_trivial_plugin, Polyhedron_demo_trivial_plugin)
-#endif
 
 #include "Polyhedron_demo_trivial_plugin.moc"

@@ -6,23 +6,24 @@ project (Alpha_shape_3)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
-cmake_minimum_required(VERSION 2.6.2)
-if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" VERSION_GREATER 2.8.3)
-  cmake_policy(VERSION 2.8.4)
-else()
-  cmake_policy(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.11)
+if(POLICY CMP0043)
+  cmake_policy(SET CMP0043 OLD)
 endif()
 
-find_package(CGAL REQUIRED COMPONENTS Qt5)
+find_package(CGAL COMPONENTS Qt5)
 include(${CGAL_USE_FILE})
 
-find_package(Qt5 COMPONENTS Xml Script OpenGL)
+find_package(Qt5 QUIET COMPONENTS Xml Script OpenGL Svg)
 
 find_package(OpenGL)
 find_package(QGLViewer)
 
 if ( CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND )
 
+  add_definitions(-DQT_NO_KEYWORDS)
+
+ # include(${QT_USE_FILE})
 
   include_directories (${QGLVIEWER_INCLUDE_DIR})
   include_directories (BEFORE ../../include ./ )
@@ -33,10 +34,8 @@ if ( CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_
   # qrc files (resources files, that contain icons, at least)
   qt5_add_resources ( RESOURCE_FILES ./Alpha_shape_3.qrc )
 
-  #qt4_automoc( MainWindow.cpp Viewer.cpp)
-
   add_executable  ( Alpha_shape_3 Alpha_shape_3.cpp MainWindow.cpp Viewer.cpp ${uis}  ${RESOURCE_FILES} )
-  qt5_use_modules(Alpha_shape_3 Xml Script OpenGL)
+  qt5_use_modules(Alpha_shape_3 Xml Script OpenGL Svg)
   add_to_cached_list( CGAL_EXECUTABLE_TARGETS Alpha_shape_3 )
 
   target_link_libraries( Alpha_shape_3 ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES})

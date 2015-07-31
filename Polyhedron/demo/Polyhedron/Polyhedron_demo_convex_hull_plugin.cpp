@@ -22,10 +22,7 @@ class Polyhedron_demo_convex_hull_plugin :
 {
   Q_OBJECT
   Q_INTERFACES(Polyhedron_demo_plugin_interface)
-
-  #if QT_VERSION >= 0x050000
-  Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")//New for Qt5 version !
-  #endif
+  Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")
 
 public:
   // used by Polyhedron_demo_plugin_helper
@@ -41,7 +38,7 @@ public:
       qobject_cast<Scene_polyhedron_selection_item*>(scene->item(scene->mainSelectionIndex()));
   }
 
-public slots:
+public Q_SLOTS:
   void on_actionConvexHull_triggered();
 
 }; // end Polyhedron_demo_convex_hull_plugin
@@ -121,9 +118,5 @@ void Polyhedron_demo_convex_hull_plugin::on_actionConvexHull_triggered()
     QApplication::restoreOverrideCursor();
   }
 }
-
-#if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(Polyhedron_demo_convex_hull_plugin, Polyhedron_demo_convex_hull_plugin)
-#endif
 
 #include "Polyhedron_demo_convex_hull_plugin.moc"

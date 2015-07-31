@@ -24,12 +24,13 @@ Scene_implicit_function_item(Implicit_function_interface* f)
 {
   compile_shaders();
   texture = new Texture(grid_size_,grid_size_);
-  glGenTextures(1, &textureId);
   blue_color_ramp_.build_blue();
   red_color_ramp_.build_red();
   compute_min_max();
   compute_function_grid();
   connect(frame_, SIGNAL(modified()), this, SLOT(compute_function_grid()));
+  are_buffers_initialized = false;
+  texture_initialized = false;
 }
 
 
@@ -337,14 +338,14 @@ void Scene_implicit_function_item::compute_elements()
        }
 }
 
-void Scene_implicit_function_item::initialize_buffers()
+void Scene_implicit_function_item::initialize_buffers(Viewer* viewer) const
 {
 
     rendering_program.bind();
 
     vao[0].bind();
     buffers[0].bind();
-    buffers[0].allocate(v_cube.data(), v_cube.size()*sizeof(float));
+    buffers[0].allocate(v_cube.data(), static_cast<int>(v_cube.size()*sizeof(float)));
     vertexLocation[0] = rendering_program.attributeLocation("vertex");
     rendering_program.enableAttributeArray(vertexLocation[0]);
     rendering_program.setAttributeBuffer(vertexLocation[0],GL_FLOAT,0,3);
@@ -355,7 +356,7 @@ void Scene_implicit_function_item::initialize_buffers()
     //cutting plane
     vao[1].bind();
     buffers[1].bind();
-    buffers[1].allocate(v_plan.data(), v_plan.size()*sizeof(float));
+    buffers[1].allocate(v_plan.data(), static_cast<int>(v_plan.size()*sizeof(float)));
     vertexLocation[1] = tex_rendering_program.attributeLocation("vertex");
     tex_rendering_program.bind();
     tex_rendering_program.setAttributeBuffer(vertexLocation[1],GL_FLOAT,0,3);
@@ -364,7 +365,7 @@ void Scene_implicit_function_item::initialize_buffers()
     tex_rendering_program.release();
 
     buffers[2].bind();
-    buffers[2].allocate(texture_map.data(), texture_map.size()*sizeof(float));
+    buffers[2].allocate(texture_map.data(), static_cast<int>(texture_map.size()*sizeof(float)));
     tex_Location = tex_rendering_program.attributeLocation("tex_coord");
     tex_rendering_program.bind();
     tex_rendering_program.setAttributeBuffer(tex_Location,GL_FLOAT,0,2);
@@ -372,8 +373,8 @@ void Scene_implicit_function_item::initialize_buffers()
     buffers[2].release();
     tex_rendering_program.release();
 
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    glTexImage2D(GL_TEXTURE_2D,
+    viewer->glBindTexture(GL_TEXTURE_2D, textureId);
+    viewer->glTexImage2D(GL_TEXTURE_2D,
                  0,
                  GL_RGB,
                  texture->getWidth(),
@@ -382,15 +383,16 @@ void Scene_implicit_function_item::initialize_buffers()
                  GL_RGB,
                  GL_UNSIGNED_BYTE,
                  texture->getData());
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    viewer->glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE );
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE );
     vao[1].release();
     tex_rendering_program.release();
+    are_buffers_initialized = true;
 }
 
-void Scene_implicit_function_item::attrib_buffers(QGLViewer* viewer) const
+void Scene_implicit_function_item::attrib_buffers(Viewer* viewer) const
 {
     QMatrix4x4 mvpMatrix;
     QMatrix4x4 fMatrix;
@@ -423,24 +425,31 @@ void Scene_implicit_function_item::attrib_buffers(QGLViewer* viewer) const
 }
 
 void
-Scene_implicit_function_item::draw(QGLViewer* viewer) const
+Scene_implicit_function_item::draw(Viewer* viewer) const
 {
+  if(!texture_initialized)
+  {
+    viewer->glGenTextures(1, &textureId);
+    texture_initialized = true;
+  }
+  if(!are_buffers_initialized)
+    initialize_buffers(viewer);
   QColor color;
   vao[0].bind();
   attrib_buffers(viewer);
   rendering_program.bind();
   color.setRgbF(0.0,0.0,0.0);
   rendering_program.setUniformValue(colorLocation[0], color);
-  glDrawArrays(GL_LINES, 0, v_cube.size()/3);
+  glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(v_cube.size()/3));
   rendering_program.release();
   vao[0].release();
 
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, textureId);
+  viewer->glActiveTexture(GL_TEXTURE0);
+  viewer->glBindTexture(GL_TEXTURE_2D, textureId);
 
   vao[1].bind();
   tex_rendering_program.bind();
-  glDrawArrays(GL_TRIANGLES, 0, v_plan.size()/3);
+  glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(v_plan.size()/3));
   tex_rendering_program.release();
   vao[1].release();
 
@@ -551,7 +560,7 @@ compute_min_max()
 void Scene_implicit_function_item::changed()
 {
     compute_elements();
-    initialize_buffers();
+    are_buffers_initialized = false;
 }
 
 void Scene_implicit_function_item::compute_texture(int i, int j)
@@ -573,5 +582,4 @@ void Scene_implicit_function_item::compute_texture(int i, int j)
        }
 }
 
-#include "Scene_implicit_function_item.moc"
 

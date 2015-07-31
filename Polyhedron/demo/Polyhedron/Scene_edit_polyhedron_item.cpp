@@ -3,94 +3,73 @@
 #include "Scene_edit_polyhedron_item.h"
 #include <boost/foreach.hpp>
 #include <algorithm>
-
-
+#include <QTime>
 #include <CGAL/gl_render.h>
-struct light_info
-{
-    //position
-    GLfloat position[4];
-
-    //ambient
-    GLfloat ambient[4];
-
-    //diffuse
-    GLfloat diffuse[4];
-
-    //specular
-    GLfloat specular[4];
-};
 Scene_edit_polyhedron_item::Scene_edit_polyhedron_item
 (Scene_polyhedron_item* poly_item,
  Ui::DeformMesh* ui_widget,
  QMainWindow* mw)
-    : ui_widget(ui_widget),
-      poly_item(poly_item),
-      deform_mesh(*(poly_item->polyhedron()), Deform_mesh::Vertex_index_map(), Deform_mesh::Hedge_index_map(), Array_based_vertex_point_map(&positions)),
-      is_rot_free(true),
-      own_poly_item(true),
-      ROI_points(0),
-      control_points(0),
-      control_color(0),
-      ROI_color(0),
-      pos_sphere(0),
-      normals_sphere(0),
-      k_ring_selector(poly_item, mw, Scene_polyhedron_item_k_ring_selection::Active_handle::VERTEX, true),
-      Scene_item(20,8)
+  : Scene_item(19,8),
+    ui_widget(ui_widget),
+    poly_item(poly_item),
+    deform_mesh(*(poly_item->polyhedron()), Deform_mesh::Vertex_index_map(), Deform_mesh::Hedge_index_map(), Array_based_vertex_point_map(&positions)),
+    is_rot_free(true),
+    own_poly_item(true),
+    k_ring_selector(poly_item, mw, Scene_polyhedron_item_k_ring_selection::Active_handle::VERTEX, true)
 {
-    mw->installEventFilter(this);
-    // bind vertex picking
-    connect(&k_ring_selector, SIGNAL(selected(const std::set<Polyhedron::Vertex_handle>&)), this,
-            SLOT(selected(const std::set<Polyhedron::Vertex_handle>&)));
+  mw->installEventFilter(this);
+  // bind vertex picking
+  connect(&k_ring_selector, SIGNAL(selected(const std::set<Polyhedron::Vertex_handle>&)), this,
+          SLOT(selected(const std::set<Polyhedron::Vertex_handle>&)));
 
-    poly_item->set_color_vector_read_only(true); // to prevent recomputation of color vector in changed()
-    poly_item->update_vertex_indices();
+  poly_item->set_color_vector_read_only(true); // to prevent recomputation of color vector in changed()
+  poly_item->update_vertex_indices();
 
-    length_of_axis = bbox().diagonal_length() / 15.0;
+  length_of_axis = bbox().diagonal_length() / 15.0;
 
-    // interleave events of viewer (there is only one viewer)
-    QGLViewer* viewer = *QGLViewer::QGLViewerPool().begin();
-    viewer->installEventFilter(this);
+  // interleave events of viewer (there is only one viewer) 
+  QGLViewer* viewer = *QGLViewer::QGLViewerPool().begin();
+  viewer->installEventFilter(this);
+    
+  // create an empty group of control vertices for starting
+  create_ctrl_vertices_group();
+   
+  // start QObject's timer for continuous effects 
+  // (deforming mesh while mouse not moving)
+  startTimer(0);
 
-    // create an empty group of control vertices for starting
-    create_ctrl_vertices_group();
+  // Required for drawing functionality
+  positions.resize(num_vertices(*polyhedron())*3);
+  normals.resize(positions.size());
+  Polyhedron::Vertex_iterator vb, ve;
+  std::size_t counter = 0;
+  for(vb=polyhedron()->vertices_begin(), ve = polyhedron()->vertices_end();vb != ve; ++vb, ++counter) {
+    positions[counter*3] = vb->point().x();
+    positions[counter*3+1] = vb->point().y();
+    positions[counter*3+2] = vb->point().z();
 
-    // start QObject's timer for continuous effects
-    // (deforming mesh while mouse not moving)
-    startTimer(0);
+    const Polyhedron::Traits::Vector_3& n = 
+      CGAL::Polygon_mesh_processing::compute_vertex_normal(vb, deform_mesh.halfedge_graph());
 
-    // Required for drawing functionality
-    positions.resize(num_vertices(*polyhedron())*3);
-    normals.resize(positions.size());
-    Polyhedron::Vertex_iterator vb, ve;
-    std::size_t counter = 0;
-    for(vb=polyhedron()->vertices_begin(), ve = polyhedron()->vertices_end();vb != ve; ++vb, ++counter) {
-        positions[counter*3] = vb->point().x();
-        positions[counter*3+1] = vb->point().y();
-        positions[counter*3+2] = vb->point().z();
+    normals[counter*3] = n.x();
+    normals[counter*3+1] = n.y();
+    normals[counter*3+2] = n.z();
+  }
+  tris.resize(polyhedron()->size_of_facets()*3);
+  counter = 0;
+  for(Polyhedron::Facet_handle fb = polyhedron()->facets_begin(); fb != polyhedron()->facets_end(); ++fb, ++counter) {
+    tris[counter*3] =  static_cast<unsigned int>(fb->halfedge()->vertex()->id());
+    tris[counter*3+1] = static_cast<unsigned int>(fb->halfedge()->next()->vertex()->id());
+    tris[counter*3+2] = static_cast<unsigned int>(fb->halfedge()->prev()->vertex()->id());
+  }
 
-        const Polyhedron::Traits::Vector_3& n =
-                compute_vertex_normal<Polyhedron::Vertex, Polyhedron::Traits>(*vb);
+  edges.resize(polyhedron()->size_of_halfedges());
+  counter = 0;
+  for(Polyhedron::Edge_iterator eb = polyhedron()->edges_begin(); eb != polyhedron()->edges_end(); ++eb, ++counter) {
+    edges[counter*2] = static_cast<unsigned int>(eb->vertex()->id());
+    edges[counter*2+1] = static_cast<unsigned int>(eb->opposite()->vertex()->id());
+  }
 
-        normals[counter*3] = n.x();
-        normals[counter*3+1] = n.y();
-        normals[counter*3+2] = n.z();
-    }
-    tris.resize(polyhedron()->size_of_facets()*3);
-    counter = 0;
-    for(Polyhedron::Facet_handle fb = polyhedron()->facets_begin(); fb != polyhedron()->facets_end(); ++fb, ++counter) {
-        tris[counter*3] =  static_cast<unsigned int>(fb->halfedge()->vertex()->id());
-        tris[counter*3+1] = static_cast<unsigned int>(fb->halfedge()->next()->vertex()->id());
-        tris[counter*3+2] = static_cast<unsigned int>(fb->halfedge()->prev()->vertex()->id());
-    }
-
-    edges.resize(polyhedron()->size_of_halfedges());
-    counter = 0;
-    for(Polyhedron::Edge_iterator eb = polyhedron()->edges_begin(); eb != polyhedron()->edges_end(); ++eb, ++counter) {
-        edges[counter*2] = static_cast<unsigned int>(eb->vertex()->id());
-        edges[counter*2+1] = static_cast<unsigned int>(eb->opposite()->vertex()->id());
-    }
-    qFunc.initializeOpenGLFunctions();
     //Generates an integer which will be used as ID for each buffer
 
     const char vertex_shader_source_bbox[] =
@@ -134,12 +113,11 @@ Scene_edit_polyhedron_item::Scene_edit_polyhedron_item
 Scene_edit_polyhedron_item::~Scene_edit_polyhedron_item()
 {
     setVisible(false);
-    while(is_there_any_ctrl_vertices_group())
-    {
-        delete_ctrl_vertices_group(false);
-    }
- //   gluDeleteQuadric(quadric);
-    if (own_poly_item) delete poly_item;
+  while(is_there_any_ctrl_vertices_group())
+  {
+    delete_ctrl_vertices_group(false);
+  }
+  if (own_poly_item) delete poly_item;
 
 }
 /////////////////////////////
@@ -173,6 +151,7 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
         program->bind();
         vaos[1]->bind();
         buffers[2].bind();
+
         buffers[2].allocate(ROI_points.data(), ROI_points.size()*sizeof(float));
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
@@ -199,11 +178,6 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
         program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[4].release();
 
-        buffers[5].bind();
-        buffers[5].allocate(color_edges.data(), color_edges.size()*sizeof(float));
-        program->enableAttributeArray("colors");
-        program->setAttributeBuffer("colors",GL_FLOAT,0,3);
-        buffers[5].release();
         vaos[2]->release();
         program->release();
     }
@@ -212,49 +186,56 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
         program = getShaderProgram(PROGRAM_INSTANCED, viewer);
         program->bind();
         vaos[3]->bind();
-        buffers[6].bind();
-        buffers[6].allocate(pos_sphere.data(), pos_sphere.size()*sizeof(float));
+
+        buffers[5].bind();
+        buffers[5].allocate(pos_sphere.data(),
+                            static_cast<int>(pos_sphere.size()*sizeof(float)));
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
+        buffers[5].release();
+
+        buffers[6].bind();
+        buffers[6].allocate(normals_sphere.data(),
+                            static_cast<int>(normals_sphere.size()*sizeof(float)));
+        program->enableAttributeArray("normals");
+        program->setAttributeBuffer("normals",GL_FLOAT,0,3);
         buffers[6].release();
 
         buffers[7].bind();
-        buffers[7].allocate(normals_sphere.data(), normals_sphere.size()*sizeof(float));
-        program->enableAttributeArray("normals");
-        program->setAttributeBuffer("normals",GL_FLOAT,0,3);
+        buffers[7].allocate(color_sphere_ROI.data(),
+                            static_cast<int>(color_sphere_ROI.size()*sizeof(float)));
+        program->enableAttributeArray("colors");
+        program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[7].release();
 
         buffers[8].bind();
-        buffers[8].allocate(color_sphere_ROI.data(), color_sphere_ROI.size()*sizeof(float));
-        program->enableAttributeArray("colors");
-        program->setAttributeBuffer("colors",GL_FLOAT,0,3);
-        buffers[8].release();
-
-        buffers[9].bind();
-        buffers[9].allocate(centers_ROI.data(), centers_ROI.size()*sizeof(float));
+        buffers[8].allocate(centers_ROI.data(),
+                            static_cast<int>(centers_ROI.size()*sizeof(float)));
         program->enableAttributeArray("center");
         program->setAttributeBuffer("center",GL_FLOAT,0,3);
-        buffers[9].release();
+        buffers[8].release();
 
-      //  qFunc.glVertexAttribDivisor(program->attributeLocation("center"), 1);
-      //  qFunc.glVertexAttribDivisor(program->attributeLocation("colors"), 1);
+        //viewer->glVertexAttribDivisor(program->attributeLocation("center"), 1);
+        //viewer->glVertexAttribDivisor(program->attributeLocation("colors"), 1);
         vaos[3]->release();
     }
     //vao for the BBOX
     {
         bbox_program.bind();
         vaos[4]->bind();
-        buffers[10].bind();
-        buffers[10].allocate(pos_bbox.data(), pos_bbox.size()*sizeof(float));
+        buffers[9].bind();
+        buffers[9].allocate(pos_bbox.data(),
+                             static_cast<int>(pos_bbox.size()*sizeof(float)));
         bbox_program.enableAttributeArray("vertex");
         bbox_program.setAttributeBuffer("vertex",GL_FLOAT,0,3);
-        buffers[10].release();
+        buffers[9].release();
 
-        buffers[11].bind();
-        buffers[11].allocate(color_bbox.data(), color_bbox.size()*sizeof(float));
+        buffers[10].bind();
+        buffers[10].allocate(color_bbox.data(),
+                             static_cast<int>(color_bbox.size()*sizeof(float)));
         bbox_program.enableAttributeArray("colors");
         bbox_program.setAttributeBuffer("colors",GL_FLOAT,0,3);
-        buffers[11].release();
+        buffers[10].release();
         vaos[4]->release();
         bbox_program.release();
     }
@@ -263,17 +244,20 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
         program = getShaderProgram(PROGRAM_WITHOUT_LIGHT, viewer);
         program->bind();
         vaos[5]->bind();
-        buffers[12].bind();
-        buffers[12].allocate(control_points.data(), control_points.size()*sizeof(float));
+
+        buffers[11].bind();
+        buffers[11].allocate(control_points.data(),
+                             static_cast<int>(control_points.size()*sizeof(float)));
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
-        buffers[12].release();
+        buffers[11].release();
 
-        buffers[13].bind();
-        buffers[13].allocate(control_color.data(), control_color.size()*sizeof(float));
+        buffers[12].bind();
+        buffers[12].allocate(control_color.data(),
+                             static_cast<int>(control_color.size()*sizeof(float)));
         program->enableAttributeArray("colors");
         program->setAttributeBuffer("colors",GL_FLOAT,0,3);
-        buffers[13].release();
+        buffers[12].release();
         vaos[5]->release();
         program->release();
     }
@@ -282,32 +266,37 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
         program = getShaderProgram(PROGRAM_INSTANCED, viewer);
         program->bind();
         vaos[6]->bind();
-        buffers[14].bind();
-        buffers[14].allocate(pos_sphere.data(), pos_sphere.size()*sizeof(float));
+
+        buffers[13].bind();
+        buffers[13].allocate(pos_sphere.data(),
+                             static_cast<int>(pos_sphere.size()*sizeof(float)));
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
+        buffers[13].release();
+
+        buffers[14].bind();
+        buffers[14].allocate(normals_sphere.data(),
+                             static_cast<int>(normals_sphere.size()*sizeof(float)));
+        program->enableAttributeArray("normals");
+        program->setAttributeBuffer("normals",GL_FLOAT,0,3);
         buffers[14].release();
 
         buffers[15].bind();
-        buffers[15].allocate(normals_sphere.data(), normals_sphere.size()*sizeof(float));
-        program->enableAttributeArray("normals");
-        program->setAttributeBuffer("normals",GL_FLOAT,0,3);
+        buffers[15].allocate(color_sphere_control.data(),
+                             static_cast<int>(color_sphere_control.size()*sizeof(float)));
+        program->enableAttributeArray("colors");
+        program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[15].release();
 
         buffers[16].bind();
-        buffers[16].allocate(color_sphere_control.data(), color_sphere_control.size()*sizeof(float));
-        program->enableAttributeArray("colors");
-        program->setAttributeBuffer("colors",GL_FLOAT,0,3);
-        buffers[16].release();
-
-        buffers[17].bind();
-        buffers[17].allocate(centers_control.data(), centers_control.size()*sizeof(float));
+        buffers[16].allocate(centers_control.data(),
+                             static_cast<int>(centers_control.size()*sizeof(float)));
         program->enableAttributeArray("center");
         program->setAttributeBuffer("center",GL_FLOAT,0,3);
-        buffers[17].release();
+        buffers[16].release();
 
-       // qFunc.glVertexAttribDivisor(program->attributeLocation("center"), 1);
-       // qFunc.glVertexAttribDivisor(program->attributeLocation("colors"), 1);
+        //viewer->glVertexAttribDivisor(program->attributeLocation("center"), 1);
+        //viewer->glVertexAttribDivisor(program->attributeLocation("colors"), 1);
         vaos[6]->release();
     }
     //vao for the axis
@@ -315,23 +304,26 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
         program = getShaderProgram(PROGRAM_WITHOUT_LIGHT, viewer);
         program->bind();
         vaos[7]->bind();
-        buffers[18].bind();
-        buffers[18].allocate(pos_axis.data(), pos_axis.size()*sizeof(float));
+
+        buffers[17].bind();
+        buffers[17].allocate(pos_axis.data(),
+                             static_cast<int>(pos_axis.size()*sizeof(float)));
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
-        buffers[18].release();
+        buffers[17].release();
 
-        buffers[19].bind();
-        buffers[19].allocate(color_lines.data(), color_lines.size()*sizeof(float));
+        buffers[18].bind();
+        buffers[18].allocate(color_lines.data(),
+                             static_cast<int>(color_lines.size()*sizeof(float)));
         program->enableAttributeArray("colors");
         program->setAttributeBuffer("colors",GL_FLOAT,0,3);
-        buffers[19].release();
+        buffers[18].release();
         vaos[7]->release();
         program->release();
     }
     if(program_list_is_empty)
     {
-    foreach(QOpenGLShaderProgram* prog, shader_programs)
+    Q_FOREACH(QOpenGLShaderProgram* prog, shader_programs)
         viewer->program_list.push_back(prog);
     k_ring_selector.edit_programs = viewer->program_list;
     program_list_is_empty = false;
@@ -342,9 +334,8 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
 
 void Scene_edit_polyhedron_item::compute_normals_and_vertices(void)
 {
-
-    ROI_points.clear();
-    control_points.clear();
+    ROI_points.resize(0);
+    control_points.resize(0);
     BOOST_FOREACH(vertex_descriptor vd, deform_mesh.roi_vertices())
     {
         if(!deform_mesh.is_control_vertex(vd))
@@ -357,11 +348,11 @@ void Scene_edit_polyhedron_item::compute_normals_and_vertices(void)
     centers_ROI.resize(ROI_points.size());
     ROI_color.resize(ROI_points.size());
     color_sphere_ROI.resize(ROI_points.size());
-    for(int i=0; i<centers_ROI.size(); i++)
+    for(int i=0; i<(int)centers_ROI.size(); i++)
     {
         centers_ROI[i] = ROI_points[i];
     }
-    for(int i=0; i<ROI_color.size(); i++)
+    for(int i=0; i<(int)ROI_color.size(); i++)
     {
         if(i%3==1)
         {
@@ -380,9 +371,7 @@ void Scene_edit_polyhedron_item::compute_normals_and_vertices(void)
     {
         if(hgb_data->frame == viewer->manipulatedFrame())
         {
-            // draw axis
-
-            if(ui_widget->ActivatePivotingCheckBox->isChecked())
+            if(!ui_widget->ActivatePivotingCheckBox->isChecked())
             {
                 // draw bbox
                 compute_bbox(hgb_data->bbox);
@@ -411,28 +400,23 @@ void Scene_edit_polyhedron_item::compute_normals_and_vertices(void)
 
         }
         centers_control.resize(control_points.size());
-        for(int i=0; i<centers_control.size(); i++)
+        for(int i=0; i<(int)centers_control.size(); i++)
         {
             centers_control[i]=control_points[i];
         }
     }
     color_sphere_control.resize(control_color.size());
-    for(int i=0; i<color_sphere_control.size(); i++)
+    for(int i=0; i<(int)color_sphere_control.size(); i++)
     {
         color_sphere_control[i] = control_color[i];
     }
 
-    //The edges color
-    color_edges.resize(edges.size());
-    for(int i =0; i< edges.size(); i++)
-        color_edges[i]=0.0;
-
     //The box color
     color_bbox.resize(pos_bbox.size());
-    for(int i =0; i< pos_bbox.size(); i++)
+    for(int i =0; i< (int)pos_bbox.size(); i++)
         color_bbox[i]=0.0;
 
-    for(int i =0; i< pos_bbox.size(); i+=3)
+    for(int i =0; i< (int)pos_bbox.size(); i+=3)
         color_bbox[i]=1.0;
 
     //The axis
@@ -455,84 +439,84 @@ void Scene_edit_polyhedron_item::compute_normals_and_vertices(void)
 /////////// Most relevant functions lie here ///////////
 void Scene_edit_polyhedron_item::deform()
 {
-    if(!is_there_any_ctrl_vertices()) { return; }
+  if(!is_there_any_ctrl_vertices()) { return; }
 
-    for(Ctrl_vertices_group_data_list::iterator it = ctrl_vertex_frame_map.begin(); it != ctrl_vertex_frame_map.end(); ++it)
-    { it->set_target_positions(); }
-    deform_mesh.deform();
+  for(Ctrl_vertices_group_data_list::iterator it = ctrl_vertex_frame_map.begin(); it != ctrl_vertex_frame_map.end(); ++it)
+  { it->set_target_positions(); }
+  deform_mesh.deform();
 
-    poly_item->changed(); // now we need to call poly_item changed to delete AABB tree
-    emit itemChanged();
+  poly_item->invalidate_aabb_tree(); // invalidate the AABB-tree of the poly_item
+  Q_EMIT itemChanged();
 }
 
 void Scene_edit_polyhedron_item::timerEvent(QTimerEvent* /*event*/)
 { // just handle deformation - paint like selection is handled in eventFilter()
-    if(state.ctrl_pressing && (state.left_button_pressing || state.right_button_pressing)) {
-        if(!ui_widget->ActivatePivotingCheckBox->isChecked()) {
-            deform();
-        }
-        else {
-            emit itemChanged(); // for redraw while Pivoting (since we close signals of manipulatedFrames while pivoting,
-            // for now redraw with timer)
-        }
+  if(state.ctrl_pressing && (state.left_button_pressing || state.right_button_pressing)) {
+    if(!ui_widget->ActivatePivotingCheckBox->isChecked()) {
+      deform();
     }
+    else {
+      Q_EMIT itemChanged(); // for redraw while Pivoting (since we close signals of manipulatedFrames while pivoting, 
+                          // for now redraw with timer)
+    }
+  }
 }
 bool Scene_edit_polyhedron_item::eventFilter(QObject* /*target*/, QEvent *event)
 {
-    // This filter is both filtering events from 'viewer' and 'main window'
-    Mouse_keyboard_state_deformation old_state = state;
-    ////////////////// TAKE EVENTS /////////////////////
-    // key events
 
-    if(event->type() == QEvent::KeyPress || event->type() == QEvent::KeyRelease)
-    {
-        QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
-        Qt::KeyboardModifiers modifiers = keyEvent->modifiers();
+  // This filter is both filtering events from 'viewer' and 'main window'
+  Mouse_keyboard_state_deformation old_state = state;
+  ////////////////// TAKE EVENTS /////////////////////
+  // key events
+  if(event->type() == QEvent::KeyPress || event->type() == QEvent::KeyRelease)
+  {
+      QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+      Qt::KeyboardModifiers modifiers = keyEvent->modifiers();
 
-        ctrl_pressing = modifiers.testFlag(Qt::ControlModifier);
-        shift_pressing = modifiers.testFlag(Qt::ShiftModifier);
-    }
-   QGLViewer* viewer = *QGLViewer::QGLViewerPool().begin();
-    // mouse events
+      ctrl_pressing = modifiers.testFlag(Qt::ControlModifier);
+      shift_pressing = modifiers.testFlag(Qt::ShiftModifier);
+  }
+  QGLViewer* viewer = *QGLViewer::QGLViewerPool().begin();
+  // mouse events
 
-    if(event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseButtonRelease)
-    {
+  if(event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseButtonRelease)
+  {
 
-        if(viewer->frame_manipulation || ctrl_pressing  )
-        {
-            state.ctrl_pressing = true;
-        }
-        else
-            state.ctrl_pressing = false;
-        if(viewer->selection_mode || shift_pressing )
-            state.shift_pressing = true;
-        else
-            state.shift_pressing = false;
-        QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
-        if(mouse_event->button() == Qt::LeftButton) {
-            state.left_button_pressing = event->type() == QEvent::MouseButtonPress;
-        }
-        if(mouse_event->button() == Qt::RightButton) {
-            state.right_button_pressing = event->type() == QEvent::MouseButtonPress;
-        }
-    }
-    ////////////////// //////////////// /////////////////////
+      if(viewer->frame_manipulation || ctrl_pressing  )
+      {
+          state.ctrl_pressing = true;
+      }
+      else
+          state.ctrl_pressing = false;
+      if(viewer->selection_mode || shift_pressing )
+          state.shift_pressing = true;
+      else
+          state.shift_pressing = false;
+      QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
+      if(mouse_event->button() == Qt::LeftButton) {
+          state.left_button_pressing = event->type() == QEvent::MouseButtonPress;
+      }
+      if(mouse_event->button() == Qt::RightButton) {
+          state.right_button_pressing = event->type() == QEvent::MouseButtonPress;
+      }
+  }
 
-    if(!poly_item->visible()) { return false; } // if not visible just update event state but don't do any action
+  ////////////////// //////////////// /////////////////////
 
-    // check state changes between old and current state
-    bool ctrl_pressed_now = ctrl_pressing && !old_state.ctrl_pressing;
-    bool ctrl_released_now = !ctrl_pressing && old_state.ctrl_pressing;
-    if(ctrl_pressed_now || ctrl_released_now || event->type() == QEvent::HoverMove)
-    {// activate a handle manipulated frame
-        QGLViewer* viewer = *QGLViewer::QGLViewerPool().begin();
-        const QPoint& p = viewer->mapFromGlobal(QCursor::pos());
-        bool need_repaint = activate_closest_manipulated_frame(p.x(), p.y());
+  if(!poly_item->visible()) { return false; } // if not visible just update event state but don't do any action
+  // check state changes between old and current state
+  bool ctrl_pressed_now = ctrl_pressing && !old_state.ctrl_pressing;
+  bool ctrl_released_now = !ctrl_pressing && old_state.ctrl_pressing;
+  if(ctrl_pressed_now || ctrl_released_now || event->type() == QEvent::HoverMove)
+  {// activate a handle manipulated frame
+    QGLViewer* viewer = *QGLViewer::QGLViewerPool().begin();
+    const QPoint& p = viewer->mapFromGlobal(QCursor::pos());
+    bool need_repaint = activate_closest_manipulated_frame(p.x(), p.y());
 
-        if(need_repaint) { emit itemChanged(); }
-    }
+    if(need_repaint) { Q_EMIT itemChanged(); }
+  }
 
-    return false;
+  return false;
 }
 
 void Scene_edit_polyhedron_item::draw_edges(Viewer_interface* viewer) const {
@@ -544,14 +528,14 @@ void Scene_edit_polyhedron_item::draw_edges(Viewer_interface* viewer) const {
     program = getShaderProgram(PROGRAM_WITHOUT_LIGHT);
     attrib_buffers(viewer,PROGRAM_WITHOUT_LIGHT);
     program->bind();
-    qFunc.glDrawElements(GL_LINES, (GLsizei) edges.size(), GL_UNSIGNED_INT, edges.data());
+    program->setAttributeValue("colors", QColor(0,0,0));
+    viewer->glDrawElements(GL_LINES, (GLsizei) edges.size(), GL_UNSIGNED_INT, edges.data());
     program->release();
     vaos[2]->release();
 
-    if(rendering_mode == Wireframe) {
+  if(rendering_mode == Wireframe) {
         draw_ROI_and_control_vertices(viewer);
-    }
-
+  }
 }
 void Scene_edit_polyhedron_item::draw(Viewer_interface* viewer) const {
     Scene_item::draw();
@@ -566,7 +550,7 @@ void Scene_edit_polyhedron_item::draw(Viewer_interface* viewer) const {
     program->bind();
     QColor color = this->color();
     program->setAttributeValue("colors", color);
-    qFunc.glDrawElements(GL_TRIANGLES, (GLsizei) tris.size(), GL_UNSIGNED_INT, tris.data());
+    viewer->glDrawElements(GL_TRIANGLES, (GLsizei) tris.size(), GL_UNSIGNED_INT, tris.data());
     program->release();
     vaos[0]->release();
     draw_edges(viewer);
@@ -586,13 +570,14 @@ void Scene_edit_polyhedron_item::draw_ROI_and_control_vertices(Viewer_interface*
         //qFunc.glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
     if(ui_widget->ShowROICheckBox->isChecked()) {
 
+
         if(!ui_widget->ShowAsSphereCheckBox->isChecked()) {
 
             vaos[1]->bind();
             program = getShaderProgram(PROGRAM_WITHOUT_LIGHT);
             attrib_buffers(viewer,PROGRAM_WITHOUT_LIGHT);
             program->bind();
-            qFunc.glDrawArrays(GL_POINTS, 0, ROI_points.size()/3);
+            viewer->glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(ROI_points.size()/3));
             program->release();
             vaos[1]->release();
         }
@@ -601,18 +586,21 @@ void Scene_edit_polyhedron_item::draw_ROI_and_control_vertices(Viewer_interface*
             program = getShaderProgram(PROGRAM_INSTANCED);
             attrib_buffers(viewer,PROGRAM_INSTANCED);
             program->bind();
-       //     qFunc.glDrawArraysInstanced(GL_TRIANGLES, 0, pos_sphere.size()/3, ROI_points.size()/3);
+            //viewer->glDrawArraysInstanced(GL_TRIANGLES, 0,
+            //                            static_cast<GLsizei>(pos_sphere.size()/3),
+            //                            static_cast<GLsizei>(ROI_points.size()/3));
+
             program->release();
             vaos[3]->release();
-        }
     }
+  }
 
     if(!ui_widget->ShowAsSphereCheckBox->isChecked()) {
         vaos[5]->bind();
         program = getShaderProgram(PROGRAM_WITHOUT_LIGHT);
         attrib_buffers(viewer,PROGRAM_WITHOUT_LIGHT);
         program->bind();
-        qFunc.glDrawArrays(GL_POINTS, 0, control_points.size()/3);
+        viewer->glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(control_points.size()/3));
         program->release();
         vaos[5]->release();
     }
@@ -621,16 +609,18 @@ void Scene_edit_polyhedron_item::draw_ROI_and_control_vertices(Viewer_interface*
         program = getShaderProgram(PROGRAM_INSTANCED);
         attrib_buffers(viewer,PROGRAM_INSTANCED);
         program->bind();
-   //     qFunc.glDrawArraysInstanced(GL_TRIANGLES, 0, pos_sphere.size()/3, control_points.size()/3);
+       /* viewer->glDrawArraysInstanced(GL_TRIANGLES, 0,
+                                    static_cast<GLsizei>(pos_sphere.size()/3),
+                                    static_cast<GLsizei>(control_points.size()/3));*/
         program->release();
         vaos[6]->release();
     }
 
     QGLViewer* viewerB = *QGLViewer::QGLViewerPool().begin();
-    for(Ctrl_vertices_group_data_list::const_iterator hgb_data = ctrl_vertex_frame_map.begin(); hgb_data != ctrl_vertex_frame_map.end(); ++hgb_data)
-    {
+  for(Ctrl_vertices_group_data_list::const_iterator hgb_data = ctrl_vertex_frame_map.begin(); hgb_data != ctrl_vertex_frame_map.end(); ++hgb_data)
+  {
         if(hgb_data->frame == viewerB->manipulatedFrame())
-        {
+    {      
             GLfloat f_matrix[16];
             for(int i =0; i<16; i++)
                 f_matrix[i] = hgb_data->frame->matrix()[i];
@@ -642,21 +632,17 @@ void Scene_edit_polyhedron_item::draw_ROI_and_control_vertices(Viewer_interface*
             attrib_buffers(viewer, PROGRAM_WITHOUT_LIGHT);
             program->bind();
             program->setUniformValue("f_matrix", f_mat);
-            qFunc.glDrawArrays(GL_LINES, 0, pos_axis.size()/3);
+            viewer->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(pos_axis.size()/3));
             program->release();
             vaos[7]->release();
 
             //QGLViewer::drawAxis(length_of_axis);
-            // draw bbox
-            if(!ui_widget->ActivatePivotingCheckBox->isChecked())
-            {
-                GLfloat colors[3];
+      // draw bbox
+      if(!ui_widget->ActivatePivotingCheckBox->isChecked())
+      {
                 GLfloat f_matrix[16];
                 GLfloat trans[3];
                 GLfloat trans2[3];
-                colors[0]=1.0;
-                colors[1]=0.0;
-                colors[2]=0.0;
 
                 trans[0] = hgb_data->frame->position().x;
                 trans[1] = hgb_data->frame->position().y;
@@ -685,14 +671,14 @@ void Scene_edit_polyhedron_item::draw_ROI_and_control_vertices(Viewer_interface*
                 bbox_program.setUniformValue("translation", vec);
                 bbox_program.setUniformValue("translation_2", vec2);
                 bbox_program.setUniformValue("mvp_matrix", mvp_mat);
-                qFunc.glDrawArrays(GL_LINES, 0, pos_bbox.size()/3);
+                viewer->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(pos_bbox.size()/3));
                 bbox_program.release();
                 vaos[4]->release();
-            }
-        }
     }
+    }
+  }
 
-}
+  } 
 
 
 void Scene_edit_polyhedron_item::compute_bbox(const Scene_interface::Bbox& bb){
@@ -702,17 +688,17 @@ void Scene_edit_polyhedron_item::compute_bbox(const Scene_interface::Bbox& bb){
     pos_bbox[3]=bb.xmax; pos_bbox[4]=bb.ymin; pos_bbox[5]=bb.zmin;
     pos_bbox[6]=bb.xmin; pos_bbox[7]=bb.ymin; pos_bbox[8]=bb.zmin;
     pos_bbox[9]=bb.xmin; pos_bbox[10]=bb.ymax; pos_bbox[11]=bb.zmin;
-
+    
     pos_bbox[12]=bb.xmin; pos_bbox[13]=bb.ymin; pos_bbox[14]=bb.zmin;
     pos_bbox[15]=bb.xmin; pos_bbox[16]=bb.ymin; pos_bbox[17]=bb.zmax;
     pos_bbox[18]= bb.xmax; pos_bbox[19]=bb.ymin; pos_bbox[20]=bb.zmin;
     pos_bbox[21]= bb.xmax; pos_bbox[22]=bb.ymax; pos_bbox[23]=bb.zmin;
-
+    
     pos_bbox[24]= bb.xmax; pos_bbox[25]=bb.ymin; pos_bbox[26]=bb.zmin;
     pos_bbox[27]= bb.xmax; pos_bbox[28]=bb.ymin; pos_bbox[29]=bb.zmax;
     pos_bbox[30]=bb.xmin; pos_bbox[31]=bb.ymax; pos_bbox[32]=bb.zmin;
     pos_bbox[33]=bb.xmax; pos_bbox[34]=bb.ymax; pos_bbox[35]=bb.zmin;
-
+    
     pos_bbox[36]=bb.xmin; pos_bbox[37]=bb.ymax; pos_bbox[38]=bb.zmin;
     pos_bbox[39]=bb.xmin; pos_bbox[40]=bb.ymax; pos_bbox[41]=bb.zmax;
     pos_bbox[42]=bb.xmin; pos_bbox[43]=bb.ymin; pos_bbox[44]=bb.zmax;
@@ -727,7 +713,7 @@ void Scene_edit_polyhedron_item::compute_bbox(const Scene_interface::Bbox& bb){
     pos_bbox[63]=bb.xmax; pos_bbox[64]=bb.ymin; pos_bbox[65]=bb.zmax;
     pos_bbox[66]=bb.xmax; pos_bbox[67]=bb.ymax; pos_bbox[68]=bb.zmax;
     pos_bbox[69]=bb.xmax; pos_bbox[70]=bb.ymax; pos_bbox[71]=bb.zmin;
-
+    
 }
 
 void Scene_edit_polyhedron_item::changed()
@@ -740,61 +726,61 @@ void Scene_edit_polyhedron_item::changed()
 }
 
 Scene_polyhedron_item* Scene_edit_polyhedron_item::to_polyhedron_item() {
-    Scene_polyhedron_item* poly_item_tmp = poly_item;
-    poly_item->set_color_vector_read_only(false);
-    own_poly_item=false;
-    return poly_item_tmp;
+  Scene_polyhedron_item* poly_item_tmp = poly_item;
+  poly_item->set_color_vector_read_only(false);
+  own_poly_item=false;
+  return poly_item_tmp;
 }
 
-Polyhedron* Scene_edit_polyhedron_item::polyhedron()
+Polyhedron* Scene_edit_polyhedron_item::polyhedron()       
 { return poly_item->polyhedron(); }
-const Polyhedron* Scene_edit_polyhedron_item::polyhedron() const
+const Polyhedron* Scene_edit_polyhedron_item::polyhedron() const 
 { return poly_item->polyhedron(); }
 QString Scene_edit_polyhedron_item::toolTip() const
 {
-    if(!poly_item->polyhedron())
-        return QString();
+  if(!poly_item->polyhedron())
+    return QString();
 
-    return QObject::tr("<p>Polyhedron <b>%1</b> (mode: %5, color: %6)</p>"
-                       "<p>Number of vertices: %2<br />"
-                       "Number of edges: %3<br />"
-                       "Number of facets: %4</p>")
-            .arg(this->name())
-            .arg(poly_item->polyhedron()->size_of_vertices())
-            .arg(poly_item->polyhedron()->size_of_halfedges()/2)
-            .arg(poly_item->polyhedron()->size_of_facets())
-            .arg(this->renderingModeName())
-            .arg(this->color().name());
+  return QObject::tr("<p>Polyhedron <b>%1</b> (mode: %5, color: %6)</p>"
+                     "<p>Number of vertices: %2<br />"
+                     "Number of edges: %3<br />"
+                     "Number of facets: %4</p>")
+    .arg(this->name())
+    .arg(poly_item->polyhedron()->size_of_vertices())
+    .arg(poly_item->polyhedron()->size_of_halfedges()/2)
+    .arg(poly_item->polyhedron()->size_of_facets())
+    .arg(this->renderingModeName())
+    .arg(this->color().name());
 }
 bool Scene_edit_polyhedron_item::isEmpty() const {
-    return poly_item->isEmpty();
+  return poly_item->isEmpty();
 }
 Scene_edit_polyhedron_item::Bbox Scene_edit_polyhedron_item::bbox() const {
-    return poly_item->bbox();
+  return poly_item->bbox();
 }
 
 void Scene_edit_polyhedron_item::setVisible(bool b) {
-    poly_item->setVisible(b);
-    Scene_item::setVisible(b);
-    if(!b) {
-        (*QGLViewer::QGLViewerPool().begin())->setManipulatedFrame(NULL);
-    }
+  poly_item->setVisible(b);
+  Scene_item::setVisible(b);
+  if(!b) {
+    (*QGLViewer::QGLViewerPool().begin())->setManipulatedFrame(NULL);
+  }
 }
 void Scene_edit_polyhedron_item::setColor(QColor c) {
-    poly_item->setColor(c);
-    Scene_item::setColor(c);
+  poly_item->setColor(c);
+  Scene_item::setColor(c);
 }
 void Scene_edit_polyhedron_item::setName(QString n) {
-    Scene_item::setName(n);
-    n.replace(" (edit)", "");
-    poly_item->setName(n);
+  Scene_item::setName(n);
+  n.replace(" (edit)", "");
+  poly_item->setName(n);
 }
 void Scene_edit_polyhedron_item::setRenderingMode(RenderingMode m) {
-    poly_item->setRenderingMode(m);
-    Scene_item::setRenderingMode(m);
+  poly_item->setRenderingMode(m);
+  Scene_item::setRenderingMode(m);
 }
 Scene_edit_polyhedron_item* Scene_edit_polyhedron_item::clone() const {
-    return 0;
+  return 0;
 }
 void Scene_edit_polyhedron_item::select(
         float orig_x,
@@ -804,33 +790,33 @@ void Scene_edit_polyhedron_item::select(
         float dir_y,
         float dir_z)
 {
-    Scene_item::select(orig_x,
+  Scene_item::select(orig_x,
+                     orig_y,
+                     orig_z,
+                     dir_x,
+                     dir_y,
+                     dir_z);
+  poly_item->select(orig_x,
                        orig_y,
                        orig_z,
                        dir_x,
                        dir_y,
                        dir_z);
-    poly_item->select(orig_x,
-                      orig_y,
-                      orig_z,
-                      dir_x,
-                      dir_y,
-                      dir_z);
 }
 
 bool Scene_edit_polyhedron_item::keyPressEvent(QKeyEvent* e)
 {
-    //setting/unsetting rotation constraints
-    if (e->key()==Qt::Key_R && !state.ctrl_pressing)
-    {
-        is_rot_free = !is_rot_free;
-        rot_constraint.setRotationConstraintType( is_rot_free?
-                                                      qglviewer::AxisPlaneConstraint::FREE:
-                                                      qglviewer::AxisPlaneConstraint::AXIS);
-        return true;
-    }
+  //setting/unsetting rotation constraints
+  if (e->key()==Qt::Key_R && !state.ctrl_pressing)
+  {
+    is_rot_free = !is_rot_free;
+    rot_constraint.setRotationConstraintType( is_rot_free?
+        qglviewer::AxisPlaneConstraint::FREE:
+        qglviewer::AxisPlaneConstraint::AXIS);
+    return true;
+  }
 
-    return false;
+  return false;
 }
 
 void Scene_edit_polyhedron_item::create_Sphere(float R)

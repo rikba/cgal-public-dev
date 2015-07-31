@@ -1,6 +1,5 @@
 #ifndef SCENE_POLYLINES_ITEM_H
 #define SCENE_POLYLINES_ITEM_H
-//#include <GL/glew.h>
 #include "Scene_polylines_item_config.h"
 #include "Viewer_interface.h"
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
@@ -74,7 +73,7 @@ public:
         if (is_closed) polyline[end]=polyline[0];
     }
 
-public slots:
+public Q_SLOTS:
     virtual void changed();
     void change_corner_radii(double);
     void change_corner_radii();
@@ -85,7 +84,7 @@ public slots:
     void smooth(){
         for (Polylines_container::iterator pit=polylines.begin(),pit_end=polylines.end();pit!=pit_end;++pit)
             smooth(*pit);
-        emit itemChanged();
+    Q_EMIT itemChanged();
     }
 public:
     Polylines_container polylines;
@@ -110,6 +109,7 @@ private:
     typedef std::map<Point_3, int> Point_to_int_map;
     typedef Point_to_int_map::iterator iterator;
     void create_Sphere(double);
+    using Scene_item::initialize_buffers;
     void initialize_buffers(Viewer_interface *viewer) const;
     void compute_elements();
 

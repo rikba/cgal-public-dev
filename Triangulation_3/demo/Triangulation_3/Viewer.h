@@ -12,7 +12,7 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QOpenGLShaderProgram>
-
+#include <CGAL/Qt/CreateOpenGLContext.h>
 #include <iostream>
 using namespace qglviewer;
 
@@ -24,7 +24,7 @@ class Viewer : public QGLViewer, QOpenGLFunctions_3_3_Core {
 
 public:
   Viewer(QWidget* parent)
-    : QGLViewer(parent)
+    : QGLViewer(CGAL::Qt::createOpenGLContext(),parent)
     , m_showAxis(false)
     , m_showVertex(true)
     , m_showDEdge(true)
@@ -62,6 +62,7 @@ public:
       points_sphere = new std::vector<float>();
       points_trackBall = new std::vector<float>();
       normals_sphere = new std::vector<float>();
+      normals_emptySphere = new std::vector<float>();
       normals_trackBall= new std::vector<float>();
       transfo1_voronoi = new std::vector<float>();
       transfo2_voronoi = new std::vector<float>();
@@ -120,23 +121,11 @@ public:
     // In other words, there is no toColor(), toImage(), or toPixmap() functions in QVariant.
     // Instead, use the QVariant::value() or the qVariantValue() template function
     m_colorVertex = settings.value( "Show/vertexcolor", QColor(255, 150, 0) ).value<QColor>();
-#if QT_VERSION >= 0x040600
     m_fSizeVertex = settings.value( "Show/vertexsize", 0.04f ).toFloat();
-#else
-    m_fSizeVertex = settings.value( "Show/vertexsize", 0.04f ).value<float>();
-#endif
     m_colorDEdge = settings.value( "Show/dedgecolor", QColor(0, 255, 0) ).value<QColor>();
-#if QT_VERSION >= 0x040600
     m_fSizeDEdge = settings.value( "Show/dedgesize", 0.01f ).toFloat();
-#else
-    m_fSizeDEdge = settings.value( "Show/dedgesize", 0.01f ).value<float>();
-#endif
     m_colorVEdge = settings.value( "Show/vedgecolor", QColor(0, 0, 255) ).value<QColor>();
-#if QT_VERSION >= 0x040600
     m_fSizeVEdge = settings.value( "Show/vedgesize", 0.01f ).toFloat();
-#else
-    m_fSizeVEdge = settings.value( "Show/vedgesize", 0.01f ).value<float>();
-#endif
     m_colorFacet = settings.value( "Show/facetcolor",
                              QColor(255, 255, 0, 96) ).value<QColor>();
     m_colorTrackball = settings.value( "Show/ballcolor",
@@ -163,12 +152,12 @@ public:
     settings.setValue("Show/spherecolor", m_colorEmptySphere);
   }
 
-public slots :
+public Q_SLOTS:
   // clear scene
   void changed()
   {
       compute_elements();
-      initialize_buffers();
+      are_buffers_initialized = false;
   }
   void clear() {
     m_pScene->eraseOldData();
@@ -180,7 +169,7 @@ public slots :
     m_nearestNb = NULL;
     m_hasEmptyS = false;
     if( !m_incrementalPts.isEmpty() ) {
-      emit( stopIncAnimation() );
+      Q_EMIT( stopIncAnimation() );
       m_incrementalPts.clear();
     }
   }
@@ -239,7 +228,7 @@ public slots :
     updateGL();
   }
 
-  signals:
+  Q_SIGNALS:
   void stopIncAnimation();
 
 // overloading QGLViewer virtual functions
@@ -266,11 +255,11 @@ protected:
 
 private:
   // draw a 3d effect vertex
-  void drawVertex(const Point_3& p, const QColor& clr, float r, std::vector<float> *vertices);
+  void drawVertex(const Point_3& p, std::vector<float> *vertices);
   // draw a 3d effect edge
-  void drawEdge(const Point_3& from, const Point_3& to, const QColor& clr, float r, std::vector<float> *vertices);
+  void drawEdge(const Point_3& from, const Point_3 &to, std::vector<float> *vertices);
   // draw a facet
-  void drawFacet(const Triangle_3& t, const QColor& clr, std::vector<float> *vertices);
+  void drawFacet(const Triangle_3& t, std::vector<float> *vertices);
   // test whether the give 3D point is on the sphere
   inline bool isOnSphere( const Point_3 & pt ) {
     return ( (pt.x()*pt.x() + pt.y()*pt.y() + pt.z()*pt.z()) == (m_fRadius*m_fRadius) );
@@ -341,7 +330,7 @@ private:
 
   QColor color;
   static const int vaoSize = 29;
-  static const int vboSize = 32;
+  static const int vboSize = 33;
   // define material
    QVector4D	ambient;
    QVector4D	diffuse;
@@ -355,6 +344,7 @@ private:
       int colorLocation[3];
       int lightLocation[5*2];
 
+      bool are_buffers_initialized;
       std::vector<float> *pos_emptyFacet;
       std::vector<float> *pos_emptySphere;
       std::vector<float> *points_emptySphere;
@@ -375,6 +365,7 @@ private:
       std::vector<float> *normals_cylinder;
       std::vector<float> *points_sphere;
       std::vector<float> *normals_sphere;
+      std::vector<float> *normals_emptySphere;
       std::vector<float> *normals_trackBall;
       std::vector<float> *transfo1_voronoi;
       std::vector<float> *transfo2_voronoi;

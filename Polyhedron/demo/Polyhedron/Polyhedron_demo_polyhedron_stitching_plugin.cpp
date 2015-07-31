@@ -9,7 +9,7 @@
 #include "Polyhedron_demo_plugin_helper.h"
 #include "Polyhedron_demo_plugin_interface.h"
 
-#include <CGAL/Polyhedron_stitching.h>
+#include <CGAL/Polygon_mesh_processing/stitch_borders.h>
 
 #include <CGAL/boost/graph/split_graph_into_polylines.h>
 #include <CGAL/boost/graph/helpers.h>
@@ -22,9 +22,9 @@ struct Is_border {
     : g(g)
   {}
 
- template <typename Edge>
-  bool operator()(const Edge& e) const {
-   return is_border(e,g);
+ template <typename Descriptor>
+  bool operator()(const Descriptor& d) const {
+   return is_border(d,g);
   }
 };
 
@@ -36,10 +36,7 @@ class Polyhedron_demo_polyhedron_stitching_plugin :
 {
   Q_OBJECT
   Q_INTERFACES(Polyhedron_demo_plugin_interface)
-
-  #if QT_VERSION >= 0x050000
-  Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")//New for Qt5 version !
-  #endif
+  Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")
 
   QAction* actionDetectBorders;
   QAction* actionStitchBorders;
@@ -64,7 +61,7 @@ public:
     return false;
   }
 
-public slots:
+public Q_SLOTS:
   void on_actionDetectBorders_triggered();
   void on_actionStitchBorders_triggered();
 
@@ -89,6 +86,7 @@ struct Polyline_visitor
   {
     new_item->polylines.back().push_back(vd->point());
   }
+  void end_polyline(){}
 };
 
 void Polyhedron_demo_polyhedron_stitching_plugin::on_actionDetectBorders_triggered()
@@ -117,10 +115,10 @@ void Polyhedron_demo_polyhedron_stitching_plugin::on_actionDetectBorders_trigger
         new_item->polylines.back().push_back( it->vertex()->point() );
       }
 #else
-      typedef boost::filtered_graph<Polyhedron,Is_border<Polyhedron> > BorderGraph;
+      typedef boost::filtered_graph<Polyhedron,Is_border<Polyhedron>, Is_border<Polyhedron> > BorderGraph;
       
       Is_border<Polyhedron> ib(*pMesh);
-      BorderGraph bg(*pMesh,ib);
+      BorderGraph bg(*pMesh,ib,ib);
       Polyline_visitor polyline_visitor(new_item); 
       CGAL::split_graph_into_polylines( bg,
                                         polyline_visitor,
@@ -152,14 +150,10 @@ void Polyhedron_demo_polyhedron_stitching_plugin::on_actionStitchBorders_trigger
     if(item)
     {
       Polyhedron* pMesh = item->polyhedron();
-      CGAL::polyhedron_stitching(*pMesh);
+      CGAL::Polygon_mesh_processing::stitch_borders(*pMesh);
       scene->itemChanged(item);
     }
   }
 }
-
-#if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(Polyhedron_demo_polyhedron_stitching_plugin, Polyhedron_demo_polyhedron_stitching_plugin)
-#endif
 
 #include "Polyhedron_demo_polyhedron_stitching_plugin.moc"

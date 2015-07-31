@@ -26,7 +26,6 @@
 #include <QMainWindow>
 #include <QApplication>
 #include "Scene_item.h"
-
 //typedef CGAL::Simple_cartesian<double> Epic_kernel;
 typedef CGAL::Exact_predicates_inexact_constructions_kernel Epic_kernel;
 
@@ -38,10 +37,9 @@ class Q_DECL_EXPORT Scene_aabb_item : public Scene_item
 {
   Q_OBJECT
 public:
-  Scene_aabb_item(const AABB_tree& tree_) : tree(tree_), Scene_item(1,1)
+  Scene_aabb_item(const AABB_tree& tree_) : Scene_item(1,1), tree(tree_)
   {
       positions_lines.resize(0);
-      qFunc.initializeOpenGLFunctions();
   }
 
     ~Scene_aabb_item()
@@ -94,6 +92,7 @@ private:
 
     mutable QOpenGLShaderProgram *program;
 
+    using Scene_item::initialize_buffers;
     void initialize_buffers(Viewer_interface *viewer)const
     {
         program = getShaderProgram(PROGRAM_WITHOUT_LIGHT, viewer);
@@ -101,7 +100,8 @@ private:
         vaos[0]->bind();
 
         buffers[0].bind();
-        buffers[0].allocate(positions_lines.data(), positions_lines.size()*sizeof(float));
+        buffers[0].allocate(positions_lines.data(),
+                            static_cast<int>(positions_lines.size()*sizeof(float)));
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[0].release();
@@ -130,7 +130,7 @@ private:
         attrib_buffers(viewer, PROGRAM_WITHOUT_LIGHT);
         program->bind();
         program->setAttributeValue("colors",this->color());
-        qFunc.glDrawArrays(GL_LINES, 0, positions_lines.size()/3);
+        viewer->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(positions_lines.size()/3));
         program->release();
         vaos[0]->release();
     }
@@ -143,7 +143,7 @@ public:
     Scene_edges_item():Scene_item(1,1)
     {
         positions_lines.resize(0);
-        qFunc.initializeOpenGLFunctions();
+        top = true;
     }
   ~Scene_edges_item()
   {
@@ -205,12 +205,18 @@ public:
 
 public:
   std::vector<Epic_kernel::Segment_3> edges;
+  bool top;
 
 private:
     std::vector<float> positions_lines;
+    void timerEvent(QTimerEvent* /*event*/)
+    {
+       top = true;
+    }
 
   mutable QOpenGLShaderProgram *program;
 
+    using Scene_item::initialize_buffers;
     void initialize_buffers(Viewer_interface *viewer)const
     {
         program = getShaderProgram(PROGRAM_WITHOUT_LIGHT, viewer);
@@ -218,7 +224,8 @@ private:
         vaos[0]->bind();
 
         buffers[0].bind();
-        buffers[0].allocate(positions_lines.data(), positions_lines.size()*sizeof(float));
+        buffers[0].allocate(positions_lines.data(),
+                            static_cast<int>(positions_lines.size()*sizeof(float)));
         program->enableAttributeArray("vertex");
         program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[0].release();
@@ -250,7 +257,7 @@ private:
         attrib_buffers(viewer, PROGRAM_WITHOUT_LIGHT);
         program->bind();
         program->setAttributeValue("colors",this->color());
-        qFunc.glDrawArrays(GL_LINES, 0, positions_lines.size()/3);
+        viewer->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(positions_lines.size()/3));
         vaos[0]->release();
         program->release();
 
@@ -267,10 +274,7 @@ class Polyhedron_demo_cut_plugin :
   Q_OBJECT
   Q_INTERFACES(Polyhedron_demo_plugin_interface)
   Q_INTERFACES(Polyhedron_demo_io_plugin_interface)
-
-  #if QT_VERSION >= 0x050000
-  Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")//New for Qt5 version !
-  #endif
+  Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")
 
 public:
   Polyhedron_demo_cut_plugin() : QObject(), edges_item(0) {
@@ -338,7 +342,7 @@ public:
             Messages_interface* m);
   QList<QAction*> actions() const;
 
-public slots:
+public Q_SLOTS:
   void createCutPlane();
   void enableAction();
   void cut();
@@ -421,10 +425,13 @@ void Polyhedron_demo_cut_plugin::cut() {
     edges_item = new Scene_edges_item;
     edges_item->setName("Edges of the cut");
     edges_item->setColor(Qt::red);
+    edges_item->startTimer(0);
     connect(edges_item, SIGNAL(destroyed()),
             this, SLOT(reset_edges()));
     scene->addItem(edges_item);
   }
+  if(edges_item->top)
+  {
   const qglviewer::Vec& pos = plane_item->manipulatedFrame()->position();
   const qglviewer::Vec& n =
     plane_item->manipulatedFrame()->inverseTransformOf(qglviewer::Vec(0.f, 0.f, 1.f));
@@ -476,15 +483,14 @@ void Polyhedron_demo_cut_plugin::cut() {
       messages->information(QString("cut (%1 ms). %2 edges.").arg(time.elapsed()).arg(edges_item->edges.size()));
   }
   scene->itemChanged(edges_item);
+  }
   QApplication::restoreOverrideCursor();
+
+    edges_item->top = false;
 }
 
 void Polyhedron_demo_cut_plugin::enableAction() {
   actionCreateCutPlane->setEnabled(true);
 }
-
-#if QT_VERSION < 0x050000
-Q_EXPORT_PLUGIN2(Polyhedron_demo_cut_plugin, Polyhedron_demo_cut_plugin)
-#endif
 
 #include "Polyhedron_demo_cut_plugin.moc"

@@ -6,7 +6,7 @@
 #include "Image_type_fwd.h"
 #include "Scene_segmented_image_item_config.h"
 #include <CGAL/gl.h>
-#include<QGLViewer/qglviewer.h>
+
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QOpenGLShaderProgram>
@@ -31,17 +31,17 @@ public:
   virtual bool supportsRenderingMode(RenderingMode m) const;
 
   // draw
-  virtual void direct_draw(QGLViewer* viewer) const { draw(viewer); }
-  virtual void direct_draw_edges(QGLViewer* viewer) const { draw_edges(viewer); }
-  virtual void draw(QGLViewer*) const;
-  virtual void draw_edges(QGLViewer* viewer) const { draw_gl(viewer); }
+  virtual void direct_draw(Viewer* viewer) const { draw(viewer); }
+  virtual void direct_draw_edges(Viewer* viewer) const { draw_edges(viewer); }
+  virtual void draw(Viewer*) const;
+  virtual void draw_edges(Viewer* viewer) const { draw_gl(viewer); }
   
   virtual QString toolTip() const;
   
   const Image* image() const { return m_image; }
 
 private:
-  void draw_gl(QGLViewer* viewer) const;
+  void draw_gl(Viewer* viewer) const;
   
   void initialize_buffers();
   GLint ibo_size() const;
@@ -53,9 +53,6 @@ private:
   bool m_initialized;
 #ifdef SCENE_SEGMENTED_IMAGE_GL_BUFFERS_AVAILABLE
   int m_voxel_scale;
- // GLuint m_vbo[3];
- // GLuint m_ibo;
-
   static const int vaoSize = 2;
   static const int vboSize = 6;
   mutable int poly_vertexLocation[1];
@@ -75,10 +72,10 @@ private:
   mutable QOpenGLVertexArrayObject vao[vaoSize];
   mutable QOpenGLShaderProgram rendering_program;
   void draw_bbox();
-  void attrib_buffers(QGLViewer*) const;
+  void attrib_buffers(Viewer*) const;
   void compile_shaders();
   void draw_Bbox(Bbox bbox, std::vector<float> *vertices);
-public slots:
+public Q_SLOTS:
     void changed();
 #endif // SCENE_SEGMENTED_IMAGE_GL_BUFFERS_AVAILABLE
 };

@@ -8,14 +8,13 @@
 #include <manipulatedCameraFrame.h>
 #include <cmath>
 
+#include <QGLFunctions>
+#include <CGAL/Qt/CreateOpenGLContext.h>
 
 Viewer::Viewer(QWidget* parent)
-    : QGLViewer(parent),
-      m_pScene(NULL),
-      m_custom_mouse(false),
-      settingPivotPoint(false),
-      areOpenGLBuffersInitialized(false)
-
+  : QGLViewer(parent),
+    m_pScene(NULL),
+    m_custom_mouse(false)
 {
 }
 
@@ -49,12 +48,9 @@ void Viewer::draw()
 
 void Viewer::initializeGL()
 {
-    QGLViewer::initializeGL();
-    // Set up the rendering context, load shaders and other resources, etc.:
-
-    setBackgroundColor(::Qt::white);
-    m_pScene->setGL(gl);
-    m_pScene->compile_shaders();
+  QGLViewer::initializeGL();
+  setBackgroundColor(::Qt::white);
+  m_pScene->initGL(this);
 }
 
 

@@ -306,6 +306,7 @@ if( NOT CGAL_MACROS_FILE_INCLUDED )
           find_package( OpenGL )
         endif()
         find_package( Qt5 COMPONENTS OpenGL Svg)
+
       endif()
 
     else(WITH_CGAL_${component})
@@ -435,20 +436,6 @@ if( NOT CGAL_MACROS_FILE_INCLUDED )
     if(NOT CGAL_MODULE_PATH_IS_SET)
       # Where to look first for cmake modules, before ${CMAKE_ROOT}/Modules/ is checked
       set(CGAL_CMAKE_MODULE_PATH ${CGAL_MODULES_DIR})
-
-      # Use FindQt5 from CMake-2.8.1 if 2.6.2 <= CMake <= 2.8.1
-      if(CMAKE_VERSION)
-        is_version_less("2.6.1" "${CMAKE_VERSION}" CMAKE_VERSION_BETWEEN_2_6_2_AND_2_8_1)
-      else()
-        # It seems CMake <= 2.6.1 does not has that CMAKE_VERSION
-        set(CMAKE_VERSION_BETWEEN_2_6_2_AND_2_8_1 FALSE)
-      endif()
-      if(CMAKE_VERSION_BETWEEN_2_6_2_AND_2_8_1)
-        is_version_less(${CMAKE_VERSION} "2.8.2" CMAKE_VERSION_BETWEEN_2_6_2_AND_2_8_1)
-        if(CMAKE_VERSION_BETWEEN_2_6_2_AND_2_8_1)
-          set(CGAL_CMAKE_MODULE_PATH ${CGAL_CMAKE_MODULE_PATH} ${CGAL_MODULES_DIR}/2.6.2-to-2.8.1)
-        endif()
-      endif()
 
       set(ORIGINAL_CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
 

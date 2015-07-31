@@ -71,7 +71,7 @@ public:
   virtual QString toolTip() const;
   virtual void contextual_changed();
   virtual void changed();
-public slots:
+public Q_SLOTS:
   void plane_was_moved() { need_update_ = true; }
   void compute_function_grid() const;
 
@@ -101,12 +101,13 @@ private:
 
 
   mutable QOpenGLShaderProgram *program;
-  GLuint textureId;
+  mutable GLuint textureId;
 
 
 
   GLuint vao;
   GLuint buffer[4];
+  using Scene_item::initialize_buffers;
   void initialize_buffers(Viewer_interface *viewer) const;
   void compute_vertices_and_texmap(void);
   void compute_texture(int, int);
