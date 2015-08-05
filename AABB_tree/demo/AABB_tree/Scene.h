@@ -93,6 +93,7 @@ private:
     std::list<Point> m_points;
     std::list<Segment> m_segments;
     std::vector<Segment> m_cut_segments;
+    bool ready_to_cut;
     bool are_buffers_initialized;
     bool boule;
     // distance functions (simple 2D arrays)
@@ -252,6 +253,8 @@ public:
     void activate_cutting_plane();
     void deactivate_cutting_plane();
     void setGL(QOpenGLFunctions *);
+    void timerEvent(QTimerEvent *);
+
 public slots:
     // cutting plane
     void cutting_plane();

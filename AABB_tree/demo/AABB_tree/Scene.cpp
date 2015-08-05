@@ -47,6 +47,8 @@ Scene::Scene()
     m_blue_ramp.build_blue();
     m_max_distance_function = (FT)0.0;
     texture = new Texture(m_grid_size,m_grid_size);
+    startTimer(0);
+    ready_to_cut = false;
     are_buffers_initialized = false;
 
 }
@@ -1284,23 +1286,27 @@ void Scene::cut_segment_plane()
 
 void Scene::cutting_plane()
 {
-    switch( m_cut_plane )
+    if(ready_to_cut)
     {
-    case UNSIGNED_FACETS:
-        return unsigned_distance_function();
-    case SIGNED_FACETS:
-        return signed_distance_function();
-    case UNSIGNED_EDGES:
-        return unsigned_distance_function_to_edges();
-    case CUT_SEGMENTS:
-        return cut_segment_plane();
-    case NONE: // do nothing
-        return;
-    }
+        ready_to_cut = false;
+        switch( m_cut_plane )
+        {
+        case UNSIGNED_FACETS:
+            return unsigned_distance_function();
+        case SIGNED_FACETS:
+            return signed_distance_function();
+        case UNSIGNED_EDGES:
+            return unsigned_distance_function_to_edges();
+        case CUT_SEGMENTS:
+            return cut_segment_plane();
+        case NONE: // do nothing
+            return;
+        }
 
-    // Should not be here
-    std::cerr << "Unknown cut_plane type" << std::endl;
-    CGAL_assertion(false);
+        // Should not be here
+        std::cerr << "Unknown cut_plane type" << std::endl;
+        CGAL_assertion(false);
+    }
 }
 
 void Scene::toggle_view_poyhedron()
@@ -1378,4 +1384,11 @@ void Scene::initGL(Viewer* /* viewer */)
     gl->initializeOpenGLFunctions();
     gl->glGenTextures(1, &textureId);
     compile_shaders();
+}
+
+void Scene::timerEvent(QTimerEvent *)
+{
+    if(manipulatedFrame()->isSpinning())
+        set_fast_distance(true);
+    ready_to_cut = true;
 }
