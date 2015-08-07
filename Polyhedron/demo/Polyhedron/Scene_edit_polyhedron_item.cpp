@@ -9,7 +9,7 @@ Scene_edit_polyhedron_item::Scene_edit_polyhedron_item
 (Scene_polyhedron_item* poly_item,
  Ui::DeformMesh* ui_widget,
  QMainWindow* mw)
-  : Scene_item(19,8),
+  : Scene_item(20,8),
     ui_widget(ui_widget),
     poly_item(poly_item),
     deform_mesh(*(poly_item->polyhedron()), Deform_mesh::Vertex_index_map(), Deform_mesh::Hedge_index_map(), Array_based_vertex_point_map(&positions)),
@@ -69,8 +69,6 @@ Scene_edit_polyhedron_item::Scene_edit_polyhedron_item
     edges[counter*2] = static_cast<unsigned int>(eb->vertex()->id());
     edges[counter*2+1] = static_cast<unsigned int>(eb->opposite()->vertex()->id());
   }
-
-    //Generates an integer which will be used as ID for each buffer
 
     const char vertex_shader_source_bbox[] =
     {
@@ -301,7 +299,7 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
     }
     //vao for the axis
     {
-        program = getShaderProgram(PROGRAM_WITHOUT_LIGHT, viewer);
+        program = getShaderProgram(PROGRAM_WITH_LIGHT, viewer);
         program->bind();
         vaos[7]->bind();
 
@@ -318,6 +316,14 @@ void Scene_edit_polyhedron_item::initialize_buffers(Viewer_interface *viewer =0)
         program->enableAttributeArray("colors");
         program->setAttributeBuffer("colors",GL_FLOAT,0,3);
         buffers[18].release();
+
+        buffers[19].bind();
+        buffers[19].allocate(pos_axis.data(),
+                             static_cast<int>(normal_axis.size()*sizeof(float)));
+        program->enableAttributeArray("normals");
+        program->setAttributeBuffer("normals",GL_FLOAT,0,3);
+        buffers[19].release();
+
         vaos[7]->release();
         program->release();
     }
@@ -420,7 +426,18 @@ void Scene_edit_polyhedron_item::compute_normals_and_vertices(void)
         color_bbox[i]=1.0;
 
     //The axis
+    qglviewer::AxisData data;
+    pos_axis.resize(0);
+    normal_axis.resize(0);
+    color_lines.resize(0);
 
+    data.vertices=&pos_axis;
+    data.normals=&normal_axis;
+    data.colors=&color_lines;
+    viewer->drawArrowGLES(0.01f, 10, qglviewer::Vec(0,0,0), qglviewer::Vec(0,0,length_of_axis), qglviewer::Vec(0,0,1), data);
+    viewer->drawArrowGLES(0.01f, 10, qglviewer::Vec(0,0,0), qglviewer::Vec(0,length_of_axis,0), qglviewer::Vec(0,1,0), data);
+    viewer->drawArrowGLES(0.01f, 10, qglviewer::Vec(0,0,0), qglviewer::Vec(length_of_axis,0,0), qglviewer::Vec(1,0,0), data);
+/*
     pos_axis.resize(18);
     for(int i =0; i< 18; i++)
         pos_axis[i]=0.0;
@@ -432,6 +449,7 @@ void Scene_edit_polyhedron_item::compute_normals_and_vertices(void)
     color_lines[2] = 1.0; color_lines[5] = 1.0;
     color_lines[6] = 1.0; color_lines[9] = 1.0;
     color_lines[13] = 1.0; color_lines[16] = 1.0;
+    */
 
 }
 
@@ -628,11 +646,11 @@ void Scene_edit_polyhedron_item::draw_ROI_and_control_vertices(Viewer_interface*
                 for(int i=0; i<16; i++)
                     f_mat.data()[i] = (float)f_matrix[i];
             vaos[7]->bind();
-            program = getShaderProgram(PROGRAM_WITHOUT_LIGHT);
-            attrib_buffers(viewer, PROGRAM_WITHOUT_LIGHT);
+            program = getShaderProgram(PROGRAM_WITH_LIGHT);
+            attrib_buffers(viewer, PROGRAM_WITH_LIGHT);
             program->bind();
             program->setUniformValue("f_matrix", f_mat);
-            viewer->glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(pos_axis.size()/3));
+            viewer->glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(pos_axis.size()/3));
             program->release();
             vaos[7]->release();
 

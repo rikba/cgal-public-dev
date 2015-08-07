@@ -280,6 +280,7 @@ private:
   std::vector<GLfloat> normals;
   std::vector<GLfloat> pos_bbox;
   std::vector<GLfloat> pos_axis;
+  std::vector<GLfloat> normal_axis;
   std::vector<GLfloat> pos_sphere;
   std::vector<GLfloat> normals_sphere;
   std::vector<GLfloat> centers_control;

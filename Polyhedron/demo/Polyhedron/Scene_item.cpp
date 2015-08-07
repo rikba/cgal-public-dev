@@ -153,6 +153,7 @@ void Scene_item::attrib_buffers(Viewer_interface* viewer, int program_name) cons
         shader_programs[PROGRAM_WITH_LIGHT]->bind();
         shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("mvp_matrix", mvp_mat);
         shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("mv_matrix", mv_mat);
+        shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("f_matrix",f_mat);
         shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("light_pos", position);
         shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("light_diff",diffuse);
         shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("light_spec", specular);
