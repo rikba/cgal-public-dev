@@ -109,7 +109,7 @@ void Viewer::fastDraw()
 void Viewer::initializeGL()
 {
   QGLViewer::initializeGL();
-  //gl.initializeOpenGLFunctions();
+  initializeOpenGLFunctions();
   setBackgroundColor(::Qt::white);
   d->scene->initializeGL();
   if(!context()->isOpenGLES())
