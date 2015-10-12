@@ -508,7 +508,6 @@ endif()
 
   if(ANDROID)
 
-
 include(/home/mgimeno/Android/qt-android-cmake/AddQtAndroidApk.cmake)
     add_qt_android_apk(
                         Polyhedron_3_apk Polyhedron_3
@@ -539,54 +538,55 @@ include(/home/mgimeno/Android/qt-android-cmake/AddQtAndroidApk.cmake)
 libedit_polyhedron_plugin.so
 liboff_plugin.so
 
-#libparameterization_plugin.so
-#libremeshing_plugin.so
-#libcamera_positions_plugin.so
-#libinside_out_plugin.so
-#libnef_io_plugin.so
-#libpolylines_io_plugin.so
-#libio_implicit_function_plugin.so
-#libgocad_plugin.so
-#libstl_plugin.so
-#libxyz_plugin.so
-#libselection_io_plugin.so
-#liborient_soup_plugin.so
-#libtriangulate_facets_plugin.so
-#liboff_to_nef_plugin.so
-#liboff_to_xyz_plugin.so
-#libconvex_hull_plugin.so
-#libkernel_plugin.so
-#libpca_plugin.so
-#libself_intersection_plugin.so
-#libpolyhedron_stitching_plugin.so
-#libjoin_and_split_polyhedra_plugin.so
-#libsubdivision_methods_plugin.so
-#libmesh_simplification_plugin.so
-#libpolyhedron_slicer_plugin.so
-#libmesh_segmentation_plugin.so
-#libnef_plugin.so
-#libintersection_plugin.so
-#libtransform_polyhedron_plugin.so
-#libcorefinement_plugin.so
+libparameterization_plugin.so
+libremeshing_plugin.so
+libcamera_positions_plugin.so
+libinside_out_plugin.so
+libnef_io_plugin.so
+libpolylines_io_plugin.so
+libio_implicit_function_plugin.so
+libgocad_plugin.so
+libstl_plugin.so
+libxyz_plugin.so
+libselection_io_plugin.so
+liborient_soup_plugin.so
+libtriangulate_facets_plugin.so
+liboff_to_nef_plugin.so
+liboff_to_xyz_plugin.so
+libconvex_hull_plugin.so
+libkernel_plugin.so
+libpca_plugin.so
+libself_intersection_plugin.so
+libpolyhedron_stitching_plugin.so
+libjoin_and_split_polyhedra_plugin.so
+libsubdivision_methods_plugin.so
+libmesh_simplification_plugin.so
+libpolyhedron_slicer_plugin.so
+libmesh_segmentation_plugin.so
+libnef_plugin.so
+libintersection_plugin.so
+libtransform_polyhedron_plugin.so
+libcorefinement_plugin.so
 
 libtrivial_plugin.so
 
-#libcut_plugin.so
-#libpoint_inside_polyhedron_plugin.so
-#libpoint_set_simplification_plugin.so
-#libpoint_set_outliers_removal_plugin.so
+libcut_plugin.so
+libpoint_inside_polyhedron_plugin.so
+libpoint_set_simplification_plugin.so
+libpoint_set_outliers_removal_plugin.so
 
 libselection_plugin.so
 
-#libpoisson_plugin.so
-#libscale_space_reconstruction_plugin.so
-#
-#libnormal_estimation_plugin.so
-#libpoint_set_average_spacing_plugin.so
-#libjet_fitting_plugin.so
-#libpoint_set_smoothing_plugin.so
+libpoisson_plugin.so
+libscale_space_reconstruction_plugin.so
+
+libnormal_estimation_plugin.so
+libpoint_set_average_spacing_plugin.so
+libjet_fitting_plugin.so
+libpoint_set_smoothing_plugin.so
 
                         INSTALL)
+
 endif()
 
 else (CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)

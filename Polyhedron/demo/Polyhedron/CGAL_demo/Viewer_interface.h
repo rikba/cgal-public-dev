@@ -6,6 +6,7 @@
 #include <QPoint>
 #include <QOpenGLFunctions>
 #include <CGAL/Qt/CreateOpenGLContext.h>
+#include <QOpenGLShaderProgram>
 // forward declarations
 class QWidget;
 class Scene_draw_interface;
