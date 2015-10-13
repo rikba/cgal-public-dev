@@ -5,6 +5,7 @@
 #include <QString>
 #include <QPixmap>
 #include <QFont>
+#include <QOpenGLFunctions>
 #include <QOpenGLBuffer>
 #include <QOpenGLShader>
 #include <QOpenGLVertexArrayObject>
@@ -16,8 +17,6 @@
 #define PROGRAM_WITH_TEXTURED_EDGES 3
 #define PROGRAM_INSTANCED 4
 #define PROGRAM_INSTANCED_WIRE 5
-
-
 namespace qglviewer {
   class ManipulatedFrame;
 }
@@ -78,12 +77,6 @@ public:
   {
       is_monochrome = true;
       nbVaos = 0;
-      for(int i=0; i<vaosSize; i++)
-      {
-          addVaos(i);
-          vaos[i]->create();
-      }
-
       for(int i=0; i<buffersSize; i++)
       {
           QOpenGLBuffer n_buf;
@@ -96,11 +89,22 @@ public:
   std::size_t getNbIsolatedvertices() const {return nb_isolated_vertices;}
   virtual ~Scene_item();
   virtual Scene_item* clone() const = 0;
-
+  mutable  bool areVaosCreated;
   // Indicate if rendering mode is supported
   virtual bool supportsRenderingMode(RenderingMode m) const = 0;
   // Flat/Gouraud OpenGL drawing
-  virtual void draw() const {}
+  virtual void draw() const {
+        if(!areVaosCreated)
+        {
+            for(int i=0; i<vaosSize; i++)
+            { 
+                    addVaos(i);
+                    vaos[i]->create();
+            }
+            areVaosCreated = true;
+        }
+
+}
   virtual void draw(Viewer_interface*) const  { draw(); }
   // Wireframe OpenGL drawing
   virtual void draw_edges() const { draw(); }
@@ -140,6 +144,8 @@ public:
 
   // Event handling
   virtual bool keyPressEvent(QKeyEvent*){return false;}
+  mutable QMap<int, QOpenGLShaderProgram*> shader_programs;
+
 public Q_SLOTS:
   // Call that once you have finished changing something in the item
   // (either the properties or internal data)
@@ -240,9 +246,9 @@ protected:
   mutable std::vector<QOpenGLBuffer> buffers;
   //not allowed to use vectors of VAO for some reason
   //mutable QOpenGLVertexArrayObject vaos[10];
-  QMap<int,QOpenGLVertexArrayObject*> vaos;
-  int nbVaos;
-  void addVaos(int i)
+  mutable QMap<int,QOpenGLVertexArrayObject*> vaos;
+  mutable int nbVaos;
+  void addVaos(int i)const
   {
       QOpenGLVertexArrayObject* n_vao = new QOpenGLVertexArrayObject();
       vaos[i] = n_vao;
@@ -250,7 +256,7 @@ protected:
   }
 
 
-  mutable QMap<int, QOpenGLShaderProgram*> shader_programs;
+
   QOpenGLShaderProgram* getShaderProgram(int , Viewer_interface *viewer = 0) const;
 
   int vertexLoc;
@@ -260,8 +266,6 @@ protected:
   virtual void initialize_buffers(){}
   virtual void compute_elements(){}
   virtual void attrib_buffers(Viewer_interface*, int program_name) const;
-
-
 
 }; // end class Scene_item
 

@@ -7,7 +7,16 @@
 #include <QDebug>
 #include <QOpenGLShader>
 #include <cmath>
-class Viewer_impl {
+#include <QOpenGLContext>
+#ifndef GL_MULTISAMPLE
+#define GL_MULTISAMPLE 0x809D
+#endif
+//just so it can compile.
+#ifndef GL_VERTEX_PROGRAM_POINT_SIZE
+#define GL_VERTEX_PROGRAM_POINT_SIZE 1
+#endif
+
+class Viewer_impl{
 public:
   Scene_draw_interface* scene;
   bool antialiasing;
@@ -26,6 +35,7 @@ Viewer::Viewer(QWidget* parent, bool antialiasing)
   d->antialiasing = antialiasing;
   d->twosides = false;
   d->macro_mode = false;
+  program_list.resize(0);
   setShortcut(EXIT_VIEWER, 0);
   setShortcut(DRAW_AXIS, 0);
   setKeyDescription(Qt::Key_T,
@@ -74,19 +84,22 @@ void Viewer::setScene(Scene_draw_interface* scene)
 
 bool Viewer::antiAliasing() const
 {
-  return d->antialiasing; 
+  return d->antialiasing;
 }
 
 void Viewer::setAntiAliasing(bool b)
 {
   d->antialiasing = b;
-  updateGL();
+  update();
+
 }
 
 void Viewer::setTwoSides(bool b)
 {
   d->twosides = b;
-  updateGL();
+  is_two_sides = b;
+  update();
+
 }
 
 bool Viewer::inFastDrawing() const {
@@ -112,6 +125,7 @@ void Viewer::initializeGL()
 {
   QGLViewer::initializeGL();
   initializeOpenGLFunctions();
+#if !ANDROID
   glDrawArraysInstanced = (PFNGLDRAWARRAYSINSTANCEDARBPROC)this->context()->getProcAddress("glDrawArraysInstancedARB");
   if(!glDrawArraysInstanced)
   {
@@ -129,7 +143,7 @@ void Viewer::initializeGL()
   }
   else
       extension_is_found = true;
-
+#endif
 
   setBackgroundColor(::Qt::white);
   vao[0].create();
@@ -140,7 +154,7 @@ void Viewer::initializeGL()
   //Vertex source code
   const char vertex_source[] =
   {
-      "#version 120 \n"
+      //"#version 120 \n"
       "attribute highp vec4 vertex;\n"
       "attribute highp vec3 normal;\n"
       "attribute highp vec4 colors;\n"
@@ -158,12 +172,8 @@ void Viewer::initializeGL()
       "   fP = mv_matrix * vertex; \n"
       "   fN = mat3(mv_matrix)* normal; \n"
       "   vec4 temp = vec4(mvp_matrix * vertex); \n"
-      "   vec4 ort = ortho_mat * vec4(width, height, 0,0); \n"
-      "   float ratio = width/height; \n"
-      "   if(ratio>=1) \n"
-      "     gl_Position = ort +  vec4(temp.x-ort.x/10, ratio*temp.y-ratio*ort.y/10, temp.z, 1.0); \n"
-      "   else \n"
-      "     gl_Position = ort +  vec4(temp.x-1/ratio*ort.x/10, width/height*temp.y-ort.y/10, temp.z, 1.0); \n"
+      "   vec4 ort = ortho_mat * vec4(width-150.0, height-150.0, 0.0,0.0); \n"
+      "   gl_Position =  ort +vec4(temp.x, temp.y, temp.z, 1.0); \n"
 
       "} \n"
       "\n"
@@ -171,7 +181,7 @@ void Viewer::initializeGL()
   //Fragment source code
   const char fragment_source[] =
   {
-      "#version 120 \n"
+      //"#version 120 \n"
       "varying highp vec4 color; \n"
       "varying highp vec4 fP; \n"
       "varying highp vec3 fN; \n"
@@ -183,18 +193,18 @@ void Viewer::initializeGL()
 
       "void main(void) { \n"
 
-      "   vec3 L = light_pos.xyz - fP.xyz; \n"
-      "   vec3 V = -fP.xyz; \n"
-      "   vec3 N; \n"
-      "   if(fN == vec3(0.0,0.0,0.0)) \n"
-      "       N = vec3(0.0,0.0,0.0); \n"
+      "  highp vec3 L = light_pos.xyz - fP.xyz; \n"
+      "  highp vec3 V = -fP.xyz; \n"
+      "  highp vec3 N; \n"
+      "   if(fN == highp vec3(0.0,0.0,0.0)) \n"
+      "       N = highp vec3(0.0,0.0,0.0); \n"
       "   else \n"
       "       N = normalize(fN); \n"
       "   L = normalize(L); \n"
       "   V = normalize(V); \n"
-      "   vec3 R = reflect(-L, N); \n"
-      "   vec4 diffuse = max(abs(dot(N,L)),0.0) * light_diff*color; \n"
-      "   vec4 specular = pow(max(dot(R,V), 0.0), spec_power) * light_spec; \n"
+      "   highp vec3 R = reflect(-L, N); \n"
+      "   highp vec4 diffuse = max(abs(dot(N,L)),0.0) * light_diff*color; \n"
+      "   highp vec4 specular = pow(max(dot(R,V), 0.0), spec_power) * light_spec; \n"
 
       "gl_FragColor = color*light_amb + diffuse + specular; \n"
       "} \n"
@@ -224,22 +234,35 @@ void Viewer::initializeGL()
   {
       //std::cerr<<"linking Program FAILED"<<std::endl;
       qDebug() << rendering_program.log();
+
+  if(!context()->isOpenGLES())
+  {
+    gl->glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
   }
 }
-
+}
 #include <QMouseEvent>
 
 void Viewer::mousePressEvent(QMouseEvent* event)
 {
   if(event->button() == Qt::RightButton &&
-     event->modifiers().testFlag(Qt::ShiftModifier)) 
+     event->modifiers().testFlag(Qt::ShiftModifier))
   {
     select(event->pos());
     requestContextMenu(event->globalPos());
     event->accept();
   }
   else {
-    QGLViewer::mousePressEvent(event);
+      if(frame_manipulation)
+      {
+          setMouseBinding(Qt::Key(0),Qt::NoModifier, Qt::LeftButton, FRAME, ROTATE);
+      }
+      else
+      {
+          setMouseBinding(Qt::NoModifier, Qt::LeftButton, CAMERA, ROTATE);
+
+      }
+          QGLViewer::mousePressEvent(event);
   }
 }
 
@@ -267,7 +290,11 @@ void Viewer::keyPressEvent(QKeyEvent* e)
     }
     else if(e->key() == Qt::Key_A) {
           axis_are_displayed = !axis_are_displayed;
-          updateGL();
+#if !ANDROID
+          this->updateGL();
+#else
+          update();
+#endif
         }
   }
   //forward the event to the scene (item handling of the event)
@@ -291,7 +318,7 @@ void Viewer_impl::draw_aux(bool with_names, Viewer* viewer)
 {
   if(scene == 0)
     return;
-
+#if !ANDROID
   viewer->glLineWidth(1.0f);
   viewer->glPointSize(2.f);
   viewer->glEnable(GL_POLYGON_OFFSET_FILL);
@@ -299,18 +326,21 @@ void Viewer_impl::draw_aux(bool with_names, Viewer* viewer)
   viewer->glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 
   viewer->glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-
   if(twosides)
     viewer->glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
   else
     viewer->glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
 
-  if(antialiasing)
+  if(!viewer->context()->isOpenGLES())
   {
-    viewer->glEnable(GL_BLEND);
-    viewer->glEnable(GL_LINE_SMOOTH);
-    viewer->glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-    viewer->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      if(antialiasing)
+      {
+          glEnable(GL_MULTISAMPLE);
+      }
+      else
+      {
+          glDisable(GL_MULTISAMPLE);
+      }
   }
   else
   {
@@ -319,24 +349,29 @@ void Viewer_impl::draw_aux(bool with_names, Viewer* viewer)
     viewer->glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
     viewer->glBlendFunc(GL_ONE, GL_ZERO);
   }
+#endif
   if(with_names)
     scene->drawWithNames(viewer);
   else
     scene->draw(viewer);
+  #if !ANDROID
   viewer->glDisable(GL_POLYGON_OFFSET_FILL);
   viewer->glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+#endif
 }
 
-void Viewer::drawWithNames()
+void Viewer::drawWithNames(const QPoint &point)
 {
   QGLViewer::draw();
+  d->scene->picking_target = point;
   d->draw_aux(true, this);
 }
 
 void Viewer::postSelection(const QPoint& pixel)
 {
   bool found = false;
-  qglviewer::Vec point = camera()->pointUnderPixel(pixel, found);
+  //qglviewer::Vec point = camera()->pointUnderPixel(pixel, found);
+  qglviewer::Vec point = pointUnderPixelGLES(d->scene->list_programs,camera(),pixel, found);
   if(found) {
     Q_EMIT selectedPoint(point.x,
                        point.y,
@@ -394,7 +429,7 @@ QString Viewer_interface::dumpFrame(const qglviewer::Frame& frame) {
 bool Viewer::moveCameraToCoordinates(QString s, float animation_duration) {
   qglviewer::Frame new_frame;
   if(readFrame(s, new_frame)) {
-    camera()->interpolateTo(new_frame, animation_duration); 
+    camera()->interpolateTo(new_frame, animation_duration);
     return true;
   }
   else
@@ -458,15 +493,17 @@ GLint viewport[4])
 }
 void Viewer::beginSelection(const QPoint &point)
 {
+#if !ANDROID
     QGLViewer::beginSelection(point);
     //set the picking matrix to allow the picking
     static GLint viewport[4];
     camera()->getViewport(viewport);
     pickMatrix(point.x(), point.y(), selectRegionWidth(), selectRegionHeight(), viewport);
-
+#endif
 }
 void Viewer::endSelection(const QPoint& point)
 {
+#if !ANDROID
   QGLViewer::endSelection(point);
    //set dthe pick matrix to Identity
     for(int i=0; i<16; i++)
@@ -475,6 +512,7 @@ void Viewer::endSelection(const QPoint& point)
     pickMatrix_[5]=1;
     pickMatrix_[10]=1;
     pickMatrix_[15]=1;
+#endif
 }
 
 void Viewer::makeArrow(double R, int prec, qglviewer::Vec from, qglviewer::Vec to, qglviewer::Vec color, AxisData &data)
@@ -657,7 +695,7 @@ void Viewer::drawVisualHints()
     {
         QMatrix4x4 mvpMatrix;
         QMatrix4x4 mvMatrix;
-        double mat[16];
+        float mat[16];
         camera()->frame()->rotation().getMatrix(mat);
         for(int i=0; i < 16; i++)
         {

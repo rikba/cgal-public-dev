@@ -5,7 +5,6 @@
 
 #include "Scene_interface.h"
 #include "Scene_draw_interface.h"
-
 #include <QtOpenGL/qgl.h>
 #include <QAbstractListModel>
 #include <QString>
@@ -19,6 +18,7 @@
 #include <iostream>
 #include <cmath>
 #include <boost/variant.hpp>
+
 
 class QEvent;
 class QMouseEvent;
@@ -166,17 +166,28 @@ private Q_SLOTS:
   void callDraw(){  QGLViewer* viewer = *QGLViewer::QGLViewerPool().begin(); viewer->update();}
 
 private:
-  void draw_aux(bool with_names, Viewer_interface*);
+  void draw_aux(bool with_names, Viewer_interface* viewer);
   typedef QList<Scene_item*> Entries;
   Entries m_entries;
   int selected_item;
   QList<int> selected_items_list;
   int item_A;
   int item_B;
+#if !ANDROID
   static GlSplat::SplatRenderer* ms_splatting;
   static int ms_splattingCounter;
+#endif
+  struct shaders_info
+  {
+      QByteArray code;
+      int program_index;
+      int shader_index;
+      int item_index;
+  };
 public:
+#if !ANDROID
   static GlSplat::SplatRenderer* splatting();
+#endif
 
 }; // end class Scene
 
@@ -200,6 +211,7 @@ private:
   QPixmap checkOnPixmap;
   QPixmap checkOffPixmap;
   mutable int size;
+
 }; // end class SceneDelegate
 
 #endif // SCENE_H

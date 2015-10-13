@@ -566,6 +566,7 @@ Scene_polygon_soup_item::toolTip() const
 
 void
 Scene_polygon_soup_item::draw(Viewer_interface* viewer) const {
+    Scene_item::draw();
     if(!are_buffers_filled)
     {
      compute_normals_and_vertices();
@@ -614,6 +615,7 @@ Scene_polygon_soup_item::draw_points(Viewer_interface* viewer) const {
 
 void
 Scene_polygon_soup_item::draw_edges(Viewer_interface* viewer) const {
+   Scene_item::draw();
     if(!are_buffers_filled)
   {
      compute_normals_and_vertices();

@@ -1,9 +1,7 @@
-#ifndef _GL_RENDER_
-#define _GL_RENDER_
-
 #include <CGAL/gl.h>
 #include <CGAL/Polygon_mesh_processing/compute_normal.h>
-
+/*#ifndef _GL_RENDER_
+#define _GL_RENDER_
 
 
 inline void CGALglcolor(QColor c, int dv = 0)
@@ -96,3 +94,4 @@ void gl_render_edges(Polyhedron& polyhedron)
 
 
 
+*/

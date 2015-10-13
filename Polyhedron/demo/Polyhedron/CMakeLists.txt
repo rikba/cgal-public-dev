@@ -24,7 +24,7 @@ endif()
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 # Include this package's headers first
-include_directories( BEFORE ./ ./include ../../include ./CGAL_demo )
+include_directories( BEFORE ./ ./include ../../include ./CGAL_demo ../../../Advancing_front_surface_reconstruction/include ../../../Polygon_mesh_processing/include ../../../)
 
 add_subdirectory( implicit_functions )
 
@@ -108,12 +108,14 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
 
   include( ${CMAKE_CURRENT_SOURCE_DIR}/polyhedron_demo_macros.cmake )
 
-
   qt5_add_resources ( RESOURCE_FILES Polyhedron_3.qrc )
+
+if (NOT ANDROID)
   qt5_add_resources(gl_splat_rc GlSplat/glsplat.qrc)
   add_library(gl_splat SHARED
       GlSplat/GlSplat.cpp GlSplat/Shader.cpp ${gl_splat_rc})
   qt5_use_modules(gl_splat OpenGL Gui Xml)
+endif()
 
   qt5_generate_moc( "CGAL_demo/Viewer_interface.h" "${CMAKE_CURRENT_BINARY_DIR}/Viewer_interface_moc.cpp" )
 
@@ -131,12 +133,12 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
     Viewer_interface_moc.cpp
     Scene_item.cpp #Scene_item.moc
     Polyhedron_demo_plugin_helper.cpp)
-    qt5_use_modules(demo_framework OpenGL Gui Widgets Script Xml)
+    qt5_use_modules(demo_framework OpenGL Gui Widgets Script Xml Svg)
 
   target_link_libraries(demo_framework
     ${QGLVIEWER_LIBRARIES}
     ${OPENGL_gl_LIBRARY}
-    ${OPENGL_glu_LIBRARY}
+   # ${OPENGL_glu_LIBRARY}
     )
 
   add_library(scene_basic_objects SHARED
@@ -148,16 +150,18 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
     ${CGAL_LIBRARIES}
     ${QGLVIEWER_LIBRARIES}
     ${OPENGL_gl_LIBRARY}
-    ${OPENGL_glu_LIBRARY}
+   # ${OPENGL_glu_LIBRARY}
     )
-  qt5_use_modules(scene_basic_objects OpenGL Gui Xml Script Widgets)
+  qt5_use_modules(scene_basic_objects OpenGL Gui Xml Svg Script Widgets)
   add_library(point_dialog SHARED Show_point_dialog.cpp Show_point_dialog.ui ${Show_point_dialogUI_FILES})
-  qt5_use_modules(point_dialog OpenGL Gui Xml Script Widgets)
+
+  qt5_use_modules(point_dialog OpenGL Gui Xml Svg Script Widgets)
+  target_link_libraries(point_dialog ${QT_LIBRARIES})
 
   macro(add_item item_name)
     add_library(${item_name} SHARED ${ARGN})
-    qt5_use_modules(${item_name} OpenGL Gui Xml Script Widgets)
-    target_link_libraries(${item_name} demo_framework ${CGAL_LIBRARIES} ${Boost_LIBRARIES})
+    qt5_use_modules(${item_name} OpenGL Gui Xml Svg Script Widgets)
+    target_link_libraries(${item_name} demo_framework ${QT_LIBRARIES} ${CGAL_LIBRARIES} ${Boost_LIBRARIES})
   endmacro(add_item)
 
   add_item(scene_c2t3_item Scene_c2t3_item.cpp)# Scene_c2t3_item.moc)
@@ -197,8 +201,10 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
   
   target_link_libraries(scene_nef_polyhedron_item scene_polyhedron_item)
   add_item(scene_points_with_normal_item Scene_points_with_normal_item.cpp)# Scene_points_with_normal_item.moc)
+if(NOT ANDROID)
   target_link_libraries( scene_points_with_normal_item gl_splat)
   target_link_libraries( demo_framework gl_splat)
+endif()
 
   foreach( lib 
       demo_framework
@@ -213,13 +219,28 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
 #  if(POLYHEDRON_DEMO_ENABLE_FORWARD_DECL)
     set(CGAL_POLYHEDRON_DEMO_DEFINITIONS "-DUSE_FORWARD_DECL")
     add_definitions(${CGAL_POLYHEDRON_DEMO_DEFINITIONS})
+if(ANDROID)
+    add_library  ( Polyhedron_3
+      SHARED
+      MainWindow.cpp
+      Polyhedron_3.cpp
+      Viewer.cpp
+      Scene.cpp
+    #MainWindow_moc.cpp
+      File_loader_dialog_moc.cpp
+    # Viewer_moc.cpp
+      ${FileLoaderDialogUI_files} ${MainWindowUI_files} ${PreferencesUI_FILES} ${RESOURCE_FILES} )
+else()
     add_executable  ( Polyhedron_3
       MainWindow.cpp
       Polyhedron_3.cpp
       File_loader_dialog_moc.cpp
-       ${FileLoaderDialogUI_files} ${MainWindowUI_files} ${PreferencesUI_FILES} ${RESOURCE_FILES} )
+    # Viewer_moc.cpp
+      ${FileLoaderDialogUI_files} ${MainWindowUI_files} ${PreferencesUI_FILES} ${RESOURCE_FILES} )
+endif()
     add_to_cached_list( CGAL_EXECUTABLE_TARGETS Polyhedron_3 )
-    qt5_use_modules(Polyhedron_3 Gui OpenGL Xml Widgets Script Svg )
+    qt5_use_modules(Polyhedron_3 Gui OpenGL Xml Svg Widgets Script )
+
     if(EIGEN3_FOUND)
 #      add_executable( Polyhedron_3 Scene_tex_rendering.cpp Scene_tex_polyhedron_operations.cpp )
     endif()
@@ -241,13 +262,17 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
   endif()
   target_link_libraries( Polyhedron_3 demo_framework )
   target_link_libraries( Polyhedron_3 point_dialog )
+if(NOT ANDROID)
   target_link_libraries( Polyhedron_3 gl_splat)
+endif()
 
   # Link with CGAL
   target_link_libraries( Polyhedron_3 ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} )
 
   # Link with libQGLViewer, OpenGL
-  target_link_libraries( Polyhedron_3 ${QGLVIEWER_LIBRARIES} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} )
+  target_link_libraries( Polyhedron_3 ${QGLVIEWER_LIBRARIES} ${OPENGL_gl_LIBRARY}
+#${OPENGL_glu_LIBRARY}
+)
 
 
   add_to_cached_list( CGAL_EXECUTABLE_TARGETS Polyhedron_3 )
@@ -275,7 +300,9 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
     polyhedron_demo_plugin(mesh_3_plugin Polyhedron_demo_mesh_3_plugin 
       Polyhedron_demo_mesh_3_plugin_cgal_code.cpp #Scene_c3t3_item.moc
       ${meshingUI_FILES})
-    target_link_libraries(mesh_3_plugin scene_polyhedron_item scene_polygon_soup_item ${QGLVIEWER_LIBRARIES} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
+    target_link_libraries(mesh_3_plugin scene_polyhedron_item scene_polygon_soup_item ${QGLVIEWER_LIBRARIES} ${OPENGL_gl_LIBRARY}
+#${OPENGL_glu_LIBRARY}
+)
   else( Boost_VERSION GREATER 103400 )
     message(STATUS "warning: the plugin mesh_3_plugin requires Boost>=1.34.1 and will not be compiled.")
   endif( Boost_VERSION GREATER 103400 )
@@ -503,14 +530,98 @@ if(CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
     scene_polylines_item
     NAMESPACE Polyhedron_
     APPEND FILE polyhedron_demo_targets.cmake)
-
+if(NOT ANDROID)
   export(
     TARGETS
     gl_splat
     NAMESPACE Polyhedron_
     APPEND FILE polyhedron_demo_targets.cmake)
+endif()
 
   configure_file(CGAL_polyhedron_demoConfig.cmake.in  CGAL_polyhedron_demoConfig.cmake)
+
+  if(ANDROID)
+
+include(/home/mgimeno/Android/qt-android-cmake/AddQtAndroidApk.cmake)
+    add_qt_android_apk(
+                        Polyhedron_3_apk Polyhedron_3
+                        NAME "Polyhedron_3"
+                        DEPENDS
+                        /home/mgimeno/Android/Android-build/lib/libgmp.so
+                        /home/mgimeno/Téléchargements/android-ndk-r10d/platforms/android-16/arch-arm/usr/lib/libGLESv2.so
+                        /home/mgimeno/Android/libQGLViewer_Clone/libQGLViewer/build-for-android/libQGLViewer.so
+                        libdemo_framework.so
+                        libscene_polyhedron_item.so
+                        libscene_polygon_soup_item.so
+                        libscene_points_with_normal_item.so
+                        libscene_implicit_function_item.so
+                        libscene_polylines_item.so
+                        libpoint_dialog.so
+                        libscene_c2t3_item.so
+                        libscene_nef_polyhedron_item.so
+                        libscene_polyhedron_selection_item.so
+                        libscene_nef_polyhedron_item.so
+                        libscene_basic_objects.so
+                        libscene_combinatorial_map_item.so
+                        libscene_polyhedron_transform_item.so
+                        libscene_polyhedron_item_k_ring_selection.so
+                        libscene_polyhedron_item_decorator.so
+                        libscene_textured_polyhedron_item.so
+                        libscene_edit_polyhedron_item.so
+
+libedit_polyhedron_plugin.so
+liboff_plugin.so
+
+libparameterization_plugin.so
+libremeshing_plugin.so
+libcamera_positions_plugin.so
+libinside_out_plugin.so
+libnef_io_plugin.so
+libpolylines_io_plugin.so
+libio_implicit_function_plugin.so
+libgocad_plugin.so
+libstl_plugin.so
+libxyz_plugin.so
+libselection_io_plugin.so
+liborient_soup_plugin.so
+libtriangulate_facets_plugin.so
+liboff_to_nef_plugin.so
+liboff_to_xyz_plugin.so
+libconvex_hull_plugin.so
+libkernel_plugin.so
+libpca_plugin.so
+libself_intersection_plugin.so
+libpolyhedron_stitching_plugin.so
+libjoin_and_split_polyhedra_plugin.so
+libsubdivision_methods_plugin.so
+libmesh_simplification_plugin.so
+libpolyhedron_slicer_plugin.so
+libmesh_segmentation_plugin.so
+libnef_plugin.so
+libintersection_plugin.so
+libtransform_polyhedron_plugin.so
+libcorefinement_plugin.so
+
+libtrivial_plugin.so
+
+libcut_plugin.so
+libpoint_inside_polyhedron_plugin.so
+libpoint_set_simplification_plugin.so
+libpoint_set_outliers_removal_plugin.so
+
+libselection_plugin.so
+
+libpoisson_plugin.so
+libscale_space_reconstruction_plugin.so
+
+libnormal_estimation_plugin.so
+libpoint_set_average_spacing_plugin.so
+libjet_fitting_plugin.so
+libpoint_set_smoothing_plugin.so
+
+                        INSTALL)
+
+endif()
 
 else (CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
 

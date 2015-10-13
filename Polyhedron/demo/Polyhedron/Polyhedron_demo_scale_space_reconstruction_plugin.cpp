@@ -40,7 +40,6 @@ class Polyhedron_demo_scale_space_reconstruction_plugin :
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID "com.geometryfactory.PolyhedronDemo.PluginInterface/1.0")
-
   Q_INTERFACES(Polyhedron_demo_plugin_interface)
   QAction* actionScaleSpaceReconstruction;
 

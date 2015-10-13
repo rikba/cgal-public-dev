@@ -311,11 +311,10 @@ Scene_polyhedron_item::triangulate_facet_color(Facet_iterator fit) const
 #include <QObject>
 #include <QMenu>
 #include <QAction>
-#include <CGAL/gl_render.h>
+//#include <CGAL/gl_render.h>
 
 
-void
-Scene_polyhedron_item::initialize_buffers(Viewer_interface* viewer) const
+void Scene_polyhedron_item::initialize_buffers(Viewer_interface* viewer) const
 {
     //vao containing the data for the unselected facets
     {
@@ -538,7 +537,6 @@ Scene_polyhedron_item::compute_normals_and_vertices(void) const
     typedef Polyhedron::Halfedge_around_facet_circulator HF_circulator;
 
 
-
     Facet_iterator f = poly->facets_begin();
 
     for(f = poly->facets_begin();
@@ -554,9 +552,6 @@ Scene_polyhedron_item::compute_normals_and_vertices(void) const
             HF_circulator end = he;
             CGAL_For_all(he,end)
             {
-
-                // // If Flat shading:1 normal per polygon added once per vertex
-
                 Vector n = CGAL::Polygon_mesh_processing::compute_face_normal(f, *poly);
                 normals_flat.push_back(n.x());
                 normals_flat.push_back(n.y());
@@ -737,8 +732,7 @@ Scene_polyhedron_item::Scene_polyhedron_item()
       erase_next_picked_facet_m(false),
       plugin_has_set_color_vector_m(false)
 {
-   // setItemIsMulticolor(true);
-    cur_shading=FlatPlusEdges;
+    cur_shading= FlatPlusEdges;
     is_selected = true;
     nb_facets = 0;
     nb_lines = 0;
@@ -960,6 +954,7 @@ void Scene_polyhedron_item::set_erase_next_picked_facet(bool b)
 }
 
 void Scene_polyhedron_item::draw(Viewer_interface* viewer) const {
+    Scene_item::draw();
     if(!are_buffers_filled)
     {
         is_Triangulated();
@@ -979,9 +974,7 @@ void Scene_polyhedron_item::draw(Viewer_interface* viewer) const {
         vaos[5]->bind();
     }
     else
-    {
         vaos[2]->bind();
-    }
     attrib_buffers(viewer, PROGRAM_WITH_LIGHT);
     program = getShaderProgram(PROGRAM_WITH_LIGHT);
     program->bind();
@@ -1006,13 +999,13 @@ void Scene_polyhedron_item::draw(Viewer_interface* viewer) const {
 
 // Points/Wireframe/Flat/Gouraud OpenGL drawing in a display list
 void Scene_polyhedron_item::draw_edges(Viewer_interface* viewer) const {
+    Scene_item::draw();
     if(!are_buffers_filled)
     {
         is_Triangulated();
         compute_normals_and_vertices();
         initialize_buffers(viewer);
     }
-
     if(!is_selected)
     {
         vaos[1]->bind();
@@ -1042,13 +1035,15 @@ void Scene_polyhedron_item::draw_edges(Viewer_interface* viewer) const {
 
 void
 Scene_polyhedron_item::draw_points(Viewer_interface* viewer) const {
+    Scene_item::draw();
     if(!are_buffers_filled)
     {
         is_Triangulated();
         compute_normals_and_vertices();
         initialize_buffers(viewer);
     }
-
+    program = getShaderProgram(PROGRAM_WITHOUT_LIGHT, viewer);
+    program->bind();
     vaos[1]->bind();
     attrib_buffers(viewer, PROGRAM_WITHOUT_LIGHT);
     program = getShaderProgram(PROGRAM_WITHOUT_LIGHT);
@@ -1106,8 +1101,6 @@ contextual_changed()
     if(prev_shading != cur_shading)
         if(cur_shading == Flat || cur_shading == FlatPlusEdges ||cur_shading == Gouraud)
         {
-            //Change the normals
-           // invalidate_buffers();
         }
 
 }
@@ -1117,7 +1110,6 @@ Scene_polyhedron_item::selection_changed(bool p_is_selected)
     if(p_is_selected != is_selected)
     {
         is_selected = p_is_selected;
-         //are_buffers_filled = false;
     }
 
 }

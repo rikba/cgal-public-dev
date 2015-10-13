@@ -13,6 +13,7 @@
 #include <QFileInfo>
 #include <QStringList>
 #include <QSet>
+#include <QCheckBox>
 
 class Scene;
 class Viewer;
@@ -149,6 +150,11 @@ protected Q_SLOTS:
   void filterOperations();
 
   void on_actionRecenterScene_triggered();
+
+  //Controls
+
+  void toggle_frameManipulation(bool b);
+  void toggle_SelectionMode(bool b);
 protected:
   QList<QAction*> createSubMenus(QList<QAction*>);
   /*! For each objects in the sceneView, loads the associated plugins.
@@ -185,6 +191,8 @@ private:
   QVector<PluginNamePair > plugins;
 #ifdef QT_SCRIPT_LIB
   QScriptEngine* script_engine;
+  QCheckBox *ctrl_checkBox;
+  QCheckBox *shift_checkBox;
 public:
   void evaluate_script(QString script, 
                        const QString & fileName = QString(),

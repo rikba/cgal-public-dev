@@ -4,8 +4,9 @@
 #include <QGLViewer/qglviewer.h>
 #include <QWidget>
 #include <QPoint>
-#include <QOpenGLFunctions_2_1>
+#include <QOpenGLFunctions>
 #include <CGAL/Qt/CreateOpenGLContext.h>
+#include <QOpenGLShaderProgram>
 // forward declarations
 class QWidget;
 class Scene_draw_interface;
@@ -14,12 +15,15 @@ class QKeyEvent;
 
 #include "../Viewer_config.h" // for VIEWER_EXPORT
 
-class VIEWER_EXPORT Viewer_interface : public QGLViewer, public QOpenGLFunctions_2_1 {
+class VIEWER_EXPORT Viewer_interface : public QGLViewer, public QOpenGLFunctions{
 
   Q_OBJECT
 
 public:
-  Viewer_interface(QWidget* parent) : QGLViewer(CGAL::Qt::createOpenGLContext(), parent) {}
+
+  mutable int is_two_sides;
+  mutable std::vector<QOpenGLShaderProgram*> program_list;
+  Viewer_interface(QWidget* parent) : QGLViewer(parent) {}
   virtual ~Viewer_interface() {}
 
   virtual void setScene(Scene_draw_interface* scene) = 0;
@@ -30,12 +34,14 @@ public:
   static QString dumpFrame(const qglviewer::Frame&);
 
   virtual bool inFastDrawing() const = 0;
+#if !ANDROID
   typedef void (APIENTRYP PFNGLDRAWARRAYSINSTANCEDARBPROC) (GLenum mode, GLint first, GLsizei count, GLsizei primcount);
   typedef void (APIENTRYP PFNGLVERTEXATTRIBDIVISORARBPROC) (GLuint index, GLuint divisor);
   typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTURE2DEXTPROC) (GLuint target, GLuint attachment, GLuint textarget, GLuint texture, GLint level);
   PFNGLDRAWARRAYSINSTANCEDARBPROC glDrawArraysInstanced;
   PFNGLVERTEXATTRIBDIVISORARBPROC glVertexAttribDivisor;
   PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2D;
+#endif
   bool extension_is_found;
   GLfloat pickMatrix_[16];
 

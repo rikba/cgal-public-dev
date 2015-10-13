@@ -1,6 +1,5 @@
 #include "Scene_polyhedron_selection_item.h"
 
-
 void Scene_polyhedron_selection_item::initialize_buffers(Viewer_interface *viewer)const
 {
     //vao containing the data for the unselected facets
@@ -162,7 +161,7 @@ void Scene_polyhedron_selection_item::compute_elements()
 
 void Scene_polyhedron_selection_item::draw(Viewer_interface* viewer) const
 {
-
+    Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
 
@@ -189,7 +188,7 @@ void Scene_polyhedron_selection_item::draw(Viewer_interface* viewer) const
 
 void Scene_polyhedron_selection_item::draw_edges(Viewer_interface* viewer) const
 {
-
+    Scene_item::draw();
     viewer->glLineWidth(3.f);
     vaos[1]->bind();
     program = getShaderProgram(PROGRAM_WITHOUT_LIGHT);
@@ -204,7 +203,8 @@ void Scene_polyhedron_selection_item::draw_edges(Viewer_interface* viewer) const
 
 void Scene_polyhedron_selection_item::draw_points(Viewer_interface* viewer) const
 {
-    viewer->glPointSize(5.f);
+    Scene_item::draw();
+    //viewer->glPointSize(5.f);
     vaos[2]->bind();
     program = getShaderProgram(PROGRAM_WITHOUT_LIGHT);
     attrib_buffers(viewer,PROGRAM_WITHOUT_LIGHT);
@@ -213,6 +213,6 @@ void Scene_polyhedron_selection_item::draw_points(Viewer_interface* viewer) cons
     viewer->glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(nb_points/3));
     program->release();
     vaos[2]->release();
-    viewer->glPointSize(1.f);
+    //viewer->glPointSize(1.f);
 
 }

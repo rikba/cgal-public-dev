@@ -73,10 +73,10 @@ private:
     template <class Predicate> void export_as_polyhedron(Predicate,const QString&) const;
 
 
-   mutable std::vector<double> positions_lines;
-   mutable std::vector<double> positions_points;
-   mutable std::vector<double> positions_facets;
-   mutable std::vector<double> normals;
+   mutable std::vector<float> positions_lines;
+   mutable std::vector<float> positions_points;
+   mutable std::vector<float> positions_facets;
+   mutable std::vector<float> normals;
    mutable std::size_t nb_lines;
    mutable std::size_t nb_points;
    mutable std::size_t nb_facets;

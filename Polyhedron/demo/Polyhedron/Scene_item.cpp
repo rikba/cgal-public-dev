@@ -14,7 +14,7 @@ Scene_item::~Scene_item() {
     }
     for(int i=0; i<vaosSize; i++)
     {
-     vaos[i]->destroy();
+        vaos[i]->destroy();
     }
 }
 
@@ -143,7 +143,8 @@ void Scene_item::attrib_buffers(Viewer_interface* viewer, int program_name) cons
 
     mvp_mat = pick_mat * mvp_mat;
 
-    viewer->glGetIntegerv(GL_LIGHT_MODEL_TWO_SIDE, &is_both_sides);
+
+    //viewer->glGetIntegerv(GL_LIGHT_MODEL_TWO_SIDE, &is_both_sides);
 
     QVector4D position(0.0f,0.0f,1.0f, 1.0f );
     QVector4D ambient(0.4f, 0.4f, 0.4f, 0.4f);
@@ -158,25 +159,19 @@ void Scene_item::attrib_buffers(Viewer_interface* viewer, int program_name) cons
         shader_programs[PROGRAM_WITH_LIGHT]->bind();
         shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("mvp_matrix", mvp_mat);
         shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("mv_matrix", mv_mat);
+        shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("f_matrix",f_mat);
         shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("light_pos", position);
         shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("light_diff",diffuse);
         shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("light_spec", specular);
         shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("light_amb", ambient);
         shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("spec_power", 51.8f);
-        shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("is_two_side", is_both_sides);
+        shader_programs[PROGRAM_WITH_LIGHT]->setUniformValue("is_two_side", viewer->is_two_sides);
         shader_programs[PROGRAM_WITH_LIGHT]->release();
         break;
     case PROGRAM_WITHOUT_LIGHT:
         shader_programs[PROGRAM_WITHOUT_LIGHT]->bind();
         shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("mvp_matrix", mvp_mat);
         shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("mv_matrix", mv_mat);
-
-        shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("light_pos", position);
-        shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("light_diff", diffuse);
-        shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("light_spec", specular);
-        shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("light_amb", ambient);
-        shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("spec_power", 51.8f);
-        shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("is_two_side", is_both_sides);
         shader_programs[PROGRAM_WITHOUT_LIGHT]->setAttributeValue("normals", 0.0,0.0,0.0);
         shader_programs[PROGRAM_WITHOUT_LIGHT]->setUniformValue("f_matrix",f_mat);
 
@@ -235,7 +230,7 @@ void Scene_item::attrib_buffers(Viewer_interface* viewer, int program_name) cons
         shader_programs[PROGRAM_INSTANCED]->setUniformValue("light_spec", specular);
         shader_programs[PROGRAM_INSTANCED]->setUniformValue("light_amb", ambient);
         shader_programs[PROGRAM_INSTANCED]->setUniformValue("spec_power", 51.8f);
-        shader_programs[PROGRAM_INSTANCED]->setUniformValue("is_two_side", is_both_sides);
+        shader_programs[PROGRAM_INSTANCED]->setUniformValue("is_two_side", viewer->is_two_sides);
         shader_programs[PROGRAM_INSTANCED]->release();
 
         break;

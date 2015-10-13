@@ -61,6 +61,7 @@ Scene_points_with_normal_item::Scene_points_with_normal_item(const Polyhedron& i
     : Scene_item(6,3),
     m_points(new Point_set),
     m_has_normals(true)
+
 {
   // Converts Polyhedron vertices to point set.
   // Computes vertices normal from connectivity.
@@ -101,16 +102,14 @@ void Scene_points_with_normal_item::initialize_buffers(Viewer_interface *viewer)
 
         vaos[0]->bind();
         buffers[0].bind();
-        buffers[0].allocate(positions_lines.data(),
-                            static_cast<int>(positions_lines.size()*sizeof(double)));
+        buffers[0].allocate(positions_lines.data(), positions_lines.size()*sizeof(float));
         program->enableAttributeArray("vertex");
-        program->setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[0].release();
-
         vaos[0]->release();
         nb_lines = positions_lines.size();
         positions_lines.resize(0);
-        std::vector<double>(positions_lines).swap(positions_lines);
+        std::vector<float>(positions_lines).swap(positions_lines);
         program->release();
     }
     //vao for the points
@@ -121,14 +120,14 @@ void Scene_points_with_normal_item::initialize_buffers(Viewer_interface *viewer)
         vaos[1]->bind();
         buffers[1].bind();
         buffers[1].allocate(positions_points.data(),
-                            static_cast<int>(positions_points.size()*sizeof(double)));
+                            static_cast<int>(positions_points.size()*sizeof(float)));
         program->enableAttributeArray("vertex");
-        program->setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[1].release();
         vaos[1]->release();
         nb_points = positions_points.size();
         positions_points.resize(0);
-        std::vector<double>(positions_points).swap(positions_points);
+        std::vector<float>(positions_points).swap(positions_points);
         program->release();
     }
     //vao for the selected points
@@ -139,15 +138,15 @@ void Scene_points_with_normal_item::initialize_buffers(Viewer_interface *viewer)
         vaos[2]->bind();
         buffers[2].bind();
         buffers[2].allocate(positions_selected_points.data(),
-                            static_cast<int>(positions_selected_points.size()*sizeof(double)));
+                            static_cast<int>(positions_selected_points.size()*sizeof(float)));
         program->enableAttributeArray("vertex");
-        program->setAttributeBuffer("vertex",GL_DOUBLE,0,3);
+        program->setAttributeBuffer("vertex",GL_FLOAT,0,3);
         buffers[2].release();
 
         vaos[2]->release();
         nb_selected_points = positions_selected_points.size();
         positions_selected_points.resize(0);
-        std::vector<double>(positions_selected_points).swap(positions_selected_points);
+        std::vector<float>(positions_selected_points).swap(positions_selected_points);
         program->release();
     }
     are_buffers_filled = true;
@@ -252,6 +251,7 @@ void Scene_points_with_normal_item::compute_normals_and_vertices() const
         }
     }
 }
+
 
 // Duplicates scene item
 Scene_points_with_normal_item*
@@ -406,7 +406,8 @@ bool Scene_points_with_normal_item::supportsRenderingMode(RenderingMode m) const
 void Scene_points_with_normal_item::draw_splats(Viewer_interface* viewer) const
 {
    // TODO add support for selection
-   viewer->glBegin(GL_POINTS);
+   #if(!ANDROID)
+    viewer->glBegin(GL_POINTS);
    for ( Point_set_3<Kernel>::const_iterator it = m_points->begin(); it != m_points->end(); it++)
    {
      const UI_point& p = *it;
@@ -416,13 +417,14 @@ void Scene_points_with_normal_item::draw_splats(Viewer_interface* viewer) const
 
    }
    viewer->glEnd();
-
+#endif
 
 
 }
 
 void Scene_points_with_normal_item::draw_edges(Viewer_interface* viewer) const
 {
+    Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
     vaos[0]->bind();
@@ -436,6 +438,7 @@ void Scene_points_with_normal_item::draw_edges(Viewer_interface* viewer) const
 }
 void Scene_points_with_normal_item::draw_points(Viewer_interface* viewer) const
 {
+    Scene_item::draw();
     if(!are_buffers_filled)
         initialize_buffers(viewer);
 
@@ -447,9 +450,10 @@ void Scene_points_with_normal_item::draw_points(Viewer_interface* viewer) const
     viewer->glDrawArrays(GL_POINTS, 0, static_cast<GLsizei>(nb_points/3));
     vaos[1]->release();
     program->release();
-    GLfloat point_size;
-    viewer->glGetFloatv(GL_POINT_SIZE, &point_size);
-    viewer->glPointSize(4.f);
+
+//    GLfloat point_size;
+//    viewer->glGetFloatv(GL_POINT_SIZE, &point_size);
+//    viewer->glPointSize(4.f);
 
     vaos[2]->bind();
     program=getShaderProgram(PROGRAM_WITHOUT_LIGHT);
@@ -460,7 +464,7 @@ void Scene_points_with_normal_item::draw_points(Viewer_interface* viewer) const
                        static_cast<GLsizei>(nb_selected_points/3));
     vaos[2]->release();
     program->release();
-    viewer->glPointSize(point_size);
+//    viewer->glPointSize(point_size);
 }
 // Gets wrapped point set
 Point_set* Scene_points_with_normal_item::point_set()
@@ -509,7 +513,7 @@ void Scene_points_with_normal_item::computes_local_spacing(int k)
     for (Point_set::iterator it=m_points->begin(); it!=end; ++it, ++i)
     {
       Neighbor_search search(tree, *it, k+1);
-      double maxdist2 = (--search.end())->second; // squared distance to furthest neighbor
+      float maxdist2 = (--search.end())->second; // squared distance to furthest neighbor
       it->radius() = sqrt(maxdist2)/2.;
     }
   }

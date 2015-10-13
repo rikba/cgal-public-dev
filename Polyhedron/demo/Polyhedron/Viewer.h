@@ -1,3 +1,4 @@
+
 #ifndef VIEWER_H
 #define VIEWER_H
 
@@ -11,6 +12,7 @@
 #include <QGLViewer/qglviewer.h>
 #include <QPoint>
 
+
 // forward declarations
 class QWidget;
 class Scene_draw_interface;
@@ -20,7 +22,6 @@ class QKeyEvent;
 class Viewer_impl;
 
 class VIEWER_EXPORT Viewer : public Viewer_interface {
-
   Q_OBJECT
 
 public:
@@ -32,13 +33,12 @@ public:
   void drawVisualHints();
   void fastDraw();
   void initializeGL();
-  void drawWithNames();
+  void drawWithNames(const QPoint& point);
   void postSelection(const QPoint&);
   void beginSelection(const QPoint &point);
   void endSelection(const QPoint &point);
   void setScene(Scene_draw_interface* scene);
   bool antiAliasing() const;
-
   bool inFastDrawing() const;
 
 public Q_SLOTS:
@@ -46,7 +46,7 @@ public Q_SLOTS:
   void setTwoSides(bool b);
   void turnCameraBy180Degres();
   QString dumpCameraCoordinates();
-  bool moveCameraToCoordinates(QString, 
+  bool moveCameraToCoordinates(QString,
                                float animation_duration = 0.5f);
 
 protected:
