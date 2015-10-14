@@ -316,6 +316,7 @@ void Viewer::turnCameraBy180Degres() {
 
 void Viewer_impl::draw_aux(bool with_names, Viewer* viewer)
 {
+    qDebug()<<"DRAW";
   if(scene == 0)
     return;
 #if !ANDROID
@@ -369,8 +370,8 @@ void Viewer::drawWithNames(const QPoint &point)
 
 void Viewer::postSelection(const QPoint& pixel)
 {
+
   bool found = false;
-  //qglviewer::Vec point = camera()->pointUnderPixel(pixel, found);
   qglviewer::Vec point = pointUnderPixelGLES(d->scene->list_programs,camera(),pixel, found);
   if(found) {
     Q_EMIT selectedPoint(point.x,

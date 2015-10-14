@@ -986,6 +986,7 @@ void Scene_polyhedron_item::draw(Viewer_interface* viewer) const {
             program->setAttributeValue("colors", this->color());
     }
     viewer->glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(nb_facets/4));
+    qDebug()<<"draw Poly_item";
     program->release();
     if(!is_selected && renderingMode() == Flat)
         vaos[0]->release();

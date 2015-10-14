@@ -177,6 +177,7 @@ void Scene_polyhedron_selection_item::draw(Viewer_interface* viewer) const
     attrib_buffers(viewer,PROGRAM_WITH_LIGHT);
     program->bind();
     program->setAttributeValue("colors",facet_color);
+    qDebug()<<"draw sel";
     viewer->glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(nb_facets/3));
     program->release();
     vaos[0]->release();
