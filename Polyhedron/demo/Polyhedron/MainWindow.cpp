@@ -1194,7 +1194,17 @@ void MainWindow::toggle_frameManipulation(bool b)
 }
 void MainWindow::toggle_SelectionMode(bool b)
 {
-    viewer->selection_mode = b;
+  if(b)
+  {
+    viewer->setBindingSelect();
+    viewer->shift_pressed = b;
+  }
+  else
+  {
+    viewer->setNoBinding();
+    viewer->shift_pressed = b;
+
+  }
 
 }
 

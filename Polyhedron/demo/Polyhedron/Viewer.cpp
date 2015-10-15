@@ -70,6 +70,7 @@ Viewer::Viewer(QWidget* parent, bool antialiasing)
   pickMatrix_[15]=1;
   prev_radius = sceneRadius();
   axis_are_displayed = true;
+  shift_pressed = false;
 }
 
 Viewer::~Viewer()
@@ -316,7 +317,6 @@ void Viewer::turnCameraBy180Degres() {
 
 void Viewer_impl::draw_aux(bool with_names, Viewer* viewer)
 {
-    qDebug()<<"DRAW";
   if(scene == 0)
     return;
 #if !ANDROID
@@ -369,8 +369,15 @@ void Viewer::drawWithNames(const QPoint &point)
 }
 
 void Viewer::postSelection(const QPoint& pixel)
-{
-
+{/*
+    qDebug()<<"postSelection";
+    //Avoids a segfault. I don't know where the segfault comes from but it only
+    //hapens in a situation that should not exist, so this should do the trick.
+#if ANDROID
+    if(selection_mode)
+    {
+#endif*/
+        qDebug()<<selection_mode;
   bool found = false;
   qglviewer::Vec point = pointUnderPixelGLES(d->scene->list_programs,camera(),pixel, found);
   if(found) {
@@ -383,6 +390,12 @@ void Viewer::postSelection(const QPoint& pixel)
     Q_EMIT selectionRay(orig.x, orig.y, orig.z,
                       dir.x, dir.y, dir.z);
   }
+
+/*
+#if ANDROID
+    }
+#endif
+*/
 }
 bool Viewer_interface::readFrame(QString s, qglviewer::Frame& frame)
 {
@@ -811,5 +824,99 @@ void Viewer::resizeGL(int w, int h)
     rendering_program.setUniformValue("height", (float)dim.y);
     rendering_program.setUniformValue("ortho_mat", orthoMatrix);
     rendering_program.release();
-
+}/*
+#if ANDROID
+bool Viewer::event(QEvent *e)
+{
+    bool save;
+    if(e->type() == QEvent::TouchBegin)
+    {
+      save = selection_mode;
+      selection_mode = selection_mode && shift_pressed;
+    }
+    QGLViewer::event(e);
+    if(e->type() == QEvent::TouchBegin)
+    {
+      selection_mode = save;
+    }
 }
+void Viewer::mouseMoveEvent(QMouseEvent* e)
+{
+    bool save = selection_mode;
+    selection_mode =  shift_pressed;
+    QGLViewer::mouseMoveEvent(e);
+    selection_mode = save;
+}
+#endif
+
+qglviewer::Vec Viewer::pointUnderPixelGLES(std::vector<QOpenGLShaderProgram*> programs, qglviewer::Camera*const camera, const QPoint& pixel, bool& found)
+{
+    makeCurrent();
+
+    static const int size = programs.size();
+
+    std::vector<datas> original_shaders;
+    //The fragmentertex source code
+    const char grayscale_fragment_source[] =
+    {
+        //"#version 330 \n"
+        "void main(void) { \n"
+        "gl_FragColor = vec4(vec3(gl_FragCoord.z), 1.0); \n"
+        "} \n"
+        "\n"
+    };
+
+    for(int i=0; i<size; i++)
+    {
+        for(int j=0; j<programs[i]->shaders().size(); j++)
+        {
+            if(programs[i]->shaders().at(j)->shaderType() == QOpenGLShader::Fragment)
+            {
+                //copies the original shaders of each program
+                datas c;
+                c.code = programs[i]->shaders().at(j)->sourceCode();
+                c.program_index = i;
+                c.shader_index = j;
+                original_shaders.push_back(c);
+                //replace their fragment shaders so they display in a grayscale
+                programs[i]->shaders().at(j)->compileSourceCode(grayscale_fragment_source);
+            }
+            programs[i]->link();
+        }
+}
+    //determines the size of the buffer
+    int deviceWidth = camera->screenWidth();
+    int deviceHeight = camera->screenHeight();
+    int rowLength = deviceWidth * 4; // data asked in RGBA,so 4 bytes.
+    //the FBO in which the grayscale image will be rendered
+    QOpenGLFramebufferObject *fbo = new QOpenGLFramebufferObject(deviceWidth, deviceHeight);
+    fbo->bind();
+    //make the lines thicker so it is easier to click
+    gl->glLineWidth(10.0);
+    //draws the image in the fbo
+    paintGL();
+    gl->glLineWidth(1.0);
+    const static int dataLength = rowLength * deviceHeight;
+    GLubyte* buffer = new GLubyte[dataLength];
+    // Qt uses upper corner for its origin while GL uses the lower corner.
+    gl->glReadPixels(pixel.x(), deviceHeight-1-pixel.y(), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+    //reset the fbo to the one rendered on-screen, now that we have our information
+    fbo->release();
+    delete fbo;
+    //resets the originals programs
+    for(int i=0; i<(int)original_shaders.size(); i++)
+    {
+        programs[original_shaders[i].program_index]->shaders().at(original_shaders[i].shader_index)->compileSourceCode(original_shaders[i].code);
+        programs[original_shaders[i].program_index]->link();
+    }
+    //depth value needs to be between 0 and 1.
+    float depth = buffer[0]/255.0;
+    delete buffer;
+    qglviewer::Vec point(pixel.x(), pixel.y(), depth);
+    point = camera->unprojectedCoordinatesOf(point);
+    //if depth is 1, then it is the zFar plane that is hit, so there is nothing rendered along the ray.
+     found = depth<1;
+     //qDebug()<<"pointUnderPixel";
+     return point;
+}
+*/

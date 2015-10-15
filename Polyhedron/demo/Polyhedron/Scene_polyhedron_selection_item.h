@@ -186,6 +186,13 @@ public:
         nb_facets = 0;
         nb_points = 0;
         nb_lines = 0;
+
+        is_selected = true;
+        QGLViewer* v = *QGLViewer::QGLViewerPool().begin();
+        Viewer_interface* viewer = dynamic_cast<Viewer_interface*>(v);
+        if(!viewer)
+            return;
+          viewer->setNoBinding();
     }
 
   Scene_polyhedron_selection_item(Scene_polyhedron_item* poly_item, QMainWindow* mw) 
@@ -205,8 +212,16 @@ public:
         {
             buffers[i].create();
         }
+
+        is_selected = true;
+        QGLViewer* v = *QGLViewer::QGLViewerPool().begin();
+        Viewer_interface* viewer = dynamic_cast<Viewer_interface*>(v);
+        if(!viewer)
+            return;
+          viewer->setNoBinding();
         init(poly_item, mw);
         invalidate_buffers();
+
     }
 
    ~Scene_polyhedron_selection_item()
@@ -267,6 +282,7 @@ public:
   }
   void selection_changed(bool b)
   {
+      qDebug()<<"selection_changed";
       QGLViewer* v = *QGLViewer::QGLViewerPool().begin();
       Viewer_interface* viewer = dynamic_cast<Viewer_interface*>(v);
       if(!viewer)

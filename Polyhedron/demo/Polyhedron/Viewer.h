@@ -41,6 +41,7 @@ public:
   bool antiAliasing() const;
   bool inFastDrawing() const;
 
+
 public Q_SLOTS:
   void setAntiAliasing(bool b);
   void setTwoSides(bool b);
@@ -73,7 +74,18 @@ protected:
 
 protected:
   Viewer_impl* d;
-  double prev_radius;
-}; // end class Viewer
+  double prev_radius;/*
+#if ANDROID
+  bool event(QEvent *e);
+  void mouseMoveEvent(QMouseEvent* e);
+#endif
+  struct datas
+  {
+      QByteArray code;
+      int program_index;
+      int shader_index;
+  };
+  qglviewer::Vec pointUnderPixelGLES(std::vector<QOpenGLShaderProgram*> programs, qglviewer::Camera*const camera, const QPoint& pixel, bool& found);
+*/}; // end class Viewer
 
 #endif // VIEWER_H

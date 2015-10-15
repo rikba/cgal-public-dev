@@ -41,7 +41,9 @@ public:
   PFNGLDRAWARRAYSINSTANCEDARBPROC glDrawArraysInstanced;
   PFNGLVERTEXATTRIBDIVISORARBPROC glVertexAttribDivisor;
   PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2D;
+
 #endif
+  bool shift_pressed;
   bool extension_is_found;
   GLfloat pickMatrix_[16];
   //!Sets the binding for SHIFT+LEFT CLICK to SELECT (initially used in Scene_polyhedron_selection_item.h)
@@ -52,6 +54,11 @@ public:
 #else
     setMouseBinding(Qt::SHIFT + Qt::LeftButton, SELECT);
 #endif
+
+#if ANDROID
+    selection_mode = true;
+#endif
+
   }
   //!Sets the binding for SHIFT+LEFT CLICK to NO_CLICK_ACTION (initially used in Scene_polyhedron_selection_item.h)
   void setNoBinding()
@@ -60,6 +67,9 @@ public:
     setMouseBinding(Qt::ShiftModifier, Qt::LeftButton, NO_CLICK_ACTION);
 #else
     setMouseBinding(Qt::SHIFT + Qt::LeftButton, NO_CLICK_ACTION);
+#endif
+#if ANDROID
+    selection_mode = false;
 #endif
   }
 

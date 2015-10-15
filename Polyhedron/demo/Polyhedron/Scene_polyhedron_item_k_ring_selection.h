@@ -172,7 +172,8 @@ protected:
   {
     // This filter is both filtering events from 'viewer' and 'main window'
     // key events
-      QGLViewer* viewer = *QGLViewer::QGLViewerPool().begin();
+      QGLViewer* v = *QGLViewer::QGLViewerPool().begin();
+      Viewer_interface* viewer = dynamic_cast<Viewer_interface*>(v);
     if(event->type() == QEvent::KeyPress || event->type() == QEvent::KeyRelease)  {
       QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
       Qt::KeyboardModifiers modifiers = keyEvent->modifiers();
@@ -193,11 +194,8 @@ protected:
       }
     }
     // use mouse move event for paint-like selection
-    if(cadencer.elapsed()>300)
-    {
-        cadencer.restart();
       if(event->type() == QEvent::MouseMove &&
-        ((state.shift_pressing || viewer->selection_mode) && state.left_button_pressing) )
+        ((state.shift_pressing || viewer->shift_pressed) && state.left_button_pressing) )
       { // paint with mouse move event
 
         QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
@@ -214,7 +212,6 @@ protected:
           poly_item->select(orig.x, orig.y, orig.z, dir.x, dir.y, dir.z);
         }
       }//end MouseMove
-  }
     return false;
   }
 };
