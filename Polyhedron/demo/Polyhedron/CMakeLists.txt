@@ -557,17 +557,17 @@ include(/home/mgimeno/Android/qt-android-cmake/AddQtAndroidApk.cmake)
                         libscene_implicit_function_item.so
                         libscene_polylines_item.so
                         libpoint_dialog.so
-                        libscene_c2t3_item.so
-                        libscene_nef_polyhedron_item.so
-                        libscene_polyhedron_selection_item.so
-                        libscene_nef_polyhedron_item.so
-                        libscene_basic_objects.so
-                        libscene_combinatorial_map_item.so
-                        libscene_polyhedron_transform_item.so
-                        libscene_polyhedron_item_k_ring_selection.so
-                        libscene_polyhedron_item_decorator.so
-                        libscene_textured_polyhedron_item.so
-                        libscene_edit_polyhedron_item.so
+                        #libscene_c2t3_item.so
+                        #libscene_nef_polyhedron_item.so
+                        #libscene_polyhedron_selection_item.so
+                        #libscene_nef_polyhedron_item.so
+                       # libscene_basic_objects.so
+                        #libscene_combinatorial_map_item.so
+                        #libscene_polyhedron_transform_item.so
+                        #libscene_polyhedron_item_k_ring_selection.so
+                        #libscene_polyhedron_item_decorator.so
+                        #libscene_textured_polyhedron_item.so
+                        #libscene_edit_polyhedron_item.so
 
 #libedit_polyhedron_plugin.so
 liboff_plugin.so
@@ -581,7 +581,7 @@ liboff_plugin.so
 #libio_implicit_function_plugin.so
 #libgocad_plugin.so
 #libstl_plugin.so
-libxyz_plugin.so
+#libxyz_plugin.so
 #libselection_io_plugin.so
 #liborient_soup_plugin.so
 #libtriangulate_facets_plugin.so
@@ -609,7 +609,7 @@ libxyz_plugin.so
 #libpoint_set_simplification_plugin.so
 #libpoint_set_outliers_removal_plugin.so
 #
-libselection_plugin.so
+#libselection_plugin.so
 #
 #libpoisson_plugin.so
 #libscale_space_reconstruction_plugin.so
@@ -617,9 +617,10 @@ libselection_plugin.so
 #libnormal_estimation_plugin.so
 #libpoint_set_average_spacing_plugin.so
 #libjet_fitting_plugin.so
-libpoint_set_smoothing_plugin.so
+#libpoint_set_smoothing_plugin.so
 
                         INSTALL)
+
 
 endif()
 
