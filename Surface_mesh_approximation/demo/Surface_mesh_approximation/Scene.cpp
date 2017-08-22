@@ -299,7 +299,6 @@ void Scene::render_polyhedron()
 
   ::glColor3ub(200, 200, 200);
   ::glBegin(GL_TRIANGLES);
-  std::size_t fidx = 0;
   for(Facet_iterator fitr = m_pmesh->facets_begin();
     fitr != m_pmesh->facets_end(); ++fitr) {
     Halfedge_around_facet_circulator he = fitr->facet_begin();
