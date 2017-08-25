@@ -10,7 +10,6 @@
 
 #include <CGAL/boost/graph/graph_traits_Polyhedron_3.h>
 #include <CGAL/property_map.h>
-#include <CGAL/VSA_metrics.h>
 #include <CGAL/VSA_approximation.h>
 
 typedef CGAL::Simple_cartesian<double> Kernel;
@@ -31,16 +30,14 @@ typedef boost::associative_property_map<std::map<Facet_handle, FT> > FacetAreaMa
 typedef boost::associative_property_map<std::map<Facet_handle, Point_3> > FacetCenterMap;
 typedef boost::property_map<Polyhedron_3, boost::vertex_point_t>::type VertexPointMap;
 
-
-typedef CGAL::PlaneProxy<Polyhedron_3> PlaneProxy;
-
 typedef CGAL::L21Metric<Polyhedron_3> L21Metric;
 typedef CGAL::L21ProxyFitting<Polyhedron_3> L21ProxyFitting;
-typedef CGAL::VSA_approximation<Polyhedron_3, PlaneProxy, L21Metric, L21ProxyFitting> VSAL21;
+typedef CGAL::VSA_approximation<Polyhedron_3, VertexPointMap> VSAL21;
 
 typedef CGAL::L2Metric<Polyhedron_3> L2Metric;
 typedef CGAL::L2ProxyFitting<Polyhedron_3> L2ProxyFitting;
-typedef CGAL::VSA_approximation<Polyhedron_3, PlaneProxy, L2Metric, L2ProxyFitting> VSAL2;
+typedef CGAL::VSA_approximation<Polyhedron_3, VertexPointMap,
+  CGAL::Default, L2Metric, L2ProxyFitting> VSAL2;
 
 // user defined compact metric
 struct PointProxy {
@@ -93,7 +90,8 @@ struct PointProxyFitting {
   const FacetCenterMap center_pmap;
   const FacetAreaMap area_pmap;
 };
-typedef CGAL::VSA_approximation<Polyhedron_3, PointProxy, CompactMetric, PointProxyFitting> VSACompact;
+typedef CGAL::VSA_approximation<Polyhedron_3, VertexPointMap,
+  PointProxy, CompactMetric, PointProxyFitting> VSACompact;
 
 class Scene
 {

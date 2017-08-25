@@ -101,12 +101,16 @@ int Scene::open(QString filename)
   m_pcompact_metric = new CompactMetric(m_center_pmap);
   m_pcompact_proxy_fitting = new PointProxyFitting(m_center_pmap, m_area_pmap);
   
-  m_vsa_l21.set_error_metric(*m_pl21_metric);
-  m_vsa_l21.set_proxy_fitting(*m_pl21_proxy_fitting);
-  m_vsa_l2.set_error_metric(*m_pl2_metric);
-  m_vsa_l2.set_proxy_fitting(*m_pl2_proxy_fitting);
-  m_vsa_compact.set_error_metric(*m_pcompact_metric);
-  m_vsa_compact.set_proxy_fitting(*m_pcompact_proxy_fitting);
+  VertexPointMap vpm = get(boost::vertex_point, const_cast<Polyhedron_3 &>(*m_pmesh));
+
+  m_vsa_l21.set_mesh(*m_pmesh, vpm);
+  m_vsa_l21.set_metric(*m_pl21_metric, *m_pl21_proxy_fitting);
+
+  m_vsa_l2.set_mesh(*m_pmesh, vpm);
+  m_vsa_l2.set_metric(*m_pl2_metric, *m_pl2_proxy_fitting);
+
+  m_vsa_compact.set_mesh(*m_pmesh, vpm);
+  m_vsa_compact.set_metric(*m_pcompact_metric, *m_pcompact_proxy_fitting);
 
   m_view_polyhedron = true;
 
@@ -143,7 +147,6 @@ void Scene::l21_approximation(
     return;
 
   std::cout << "L21 approximation..." << std::endl;
-  m_vsa_l21.set_mesh(*m_pmesh);
 
   if (static_cast<VSAL21::Initialization>(init) == VSAL21::IncrementalInit) {
     // for comparision
@@ -176,7 +179,6 @@ void Scene::l2_approximation(
     return;
 
   std::cout << "L2 approximation..." << std::endl;
-  m_vsa_l2.set_mesh(*m_pmesh);
 
   if (static_cast<VSAL2::Initialization>(init) == VSAL2::IncrementalInit) {
     // for comparision
@@ -209,7 +211,6 @@ void Scene::compact_approximation(
     return;
 
   std::cout << "Compact approximation..." << std::endl;
-  m_vsa_compact.set_mesh(*m_pmesh);
 
   if (static_cast<VSACompact::Initialization>(init) == VSACompact::IncrementalInit) {
     // for comparision
