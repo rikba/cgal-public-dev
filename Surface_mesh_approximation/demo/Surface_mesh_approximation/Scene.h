@@ -41,7 +41,6 @@ typedef CGAL::VSA_approximation<Polyhedron_3, VertexPointMap,
 
 // user defined compact metric
 struct PointProxy {
-  Facet_handle seed;
   Point_3 center;
 };
 
