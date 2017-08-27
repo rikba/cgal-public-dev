@@ -148,17 +148,17 @@ void Scene::l21_approximation(
 
   std::cout << "L21 approximation..." << std::endl;
 
-  if (static_cast<VSAL21::Initialization>(init) == VSAL21::IncrementalInit) {
+  if (static_cast<L21VSA::Initialization>(init) == L21VSA::IncrementalInit) {
     // for comparision
-    m_vsa_l21.init_proxies(num_proxies / 2, VSAL21::RandomInit);
+    m_vsa_l21.init_proxies(num_proxies / 2, L21VSA::RandomInit);
     for (std::size_t i = 0; i < num_iterations; ++i)
       m_vsa_l21.run_one_step();
-    m_vsa_l21.add_proxies(VSAL21::IncrementalInit, num_proxies - num_proxies / 2, num_iterations);
+    m_vsa_l21.add_proxies(L21VSA::IncrementalInit, num_proxies - num_proxies / 2, num_iterations);
     for (std::size_t i = 0; i < num_iterations; ++i)
       m_vsa_l21.run_one_step();
   }
   else {
-    m_vsa_l21.init_proxies(num_proxies, static_cast<VSAL21::Initialization>(init));
+    m_vsa_l21.init_proxies(num_proxies, static_cast<L21VSA::Initialization>(init));
     for (std::size_t i = 0; i < num_iterations; ++i)
       m_vsa_l21.run_one_step();
   }
@@ -180,17 +180,17 @@ void Scene::l2_approximation(
 
   std::cout << "L2 approximation..." << std::endl;
 
-  if (static_cast<VSAL2::Initialization>(init) == VSAL2::IncrementalInit) {
+  if (static_cast<L2VSA::Initialization>(init) == L2VSA::IncrementalInit) {
     // for comparision
-    m_vsa_l2.init_proxies(num_proxies / 2, VSAL2::RandomInit);
+    m_vsa_l2.init_proxies(num_proxies / 2, L2VSA::RandomInit);
     for (std::size_t i = 0; i < num_iterations; ++i)
       m_vsa_l2.run_one_step();
-    m_vsa_l2.add_proxies(VSAL2::IncrementalInit, num_proxies - num_proxies / 2, num_iterations);
+    m_vsa_l2.add_proxies(L2VSA::IncrementalInit, num_proxies - num_proxies / 2, num_iterations);
     for (std::size_t i = 0; i < num_iterations; ++i)
       m_vsa_l2.run_one_step();
   }
   else {
-    m_vsa_l2.init_proxies(num_proxies, static_cast<VSAL2::Initialization>(init));
+    m_vsa_l2.init_proxies(num_proxies, static_cast<L2VSA::Initialization>(init));
     for (std::size_t i = 0; i < num_iterations; ++i)
       m_vsa_l2.run_one_step();
   }
@@ -212,17 +212,17 @@ void Scene::compact_approximation(
 
   std::cout << "Compact approximation..." << std::endl;
 
-  if (static_cast<VSACompact::Initialization>(init) == VSACompact::IncrementalInit) {
+  if (static_cast<CompactVSA::Initialization>(init) == CompactVSA::IncrementalInit) {
     // for comparision
-    m_vsa_compact.init_proxies(num_proxies / 2, VSACompact::RandomInit);
+    m_vsa_compact.init_proxies(num_proxies / 2, CompactVSA::RandomInit);
     for (std::size_t i = 0; i < num_iterations; ++i)
       m_vsa_compact.run_one_step();
-    m_vsa_compact.add_proxies(VSACompact::IncrementalInit, num_proxies - num_proxies / 2, num_iterations);
+    m_vsa_compact.add_proxies(CompactVSA::IncrementalInit, num_proxies - num_proxies / 2, num_iterations);
     for (std::size_t i = 0; i < num_iterations; ++i)
       m_vsa_compact.run_one_step();
   }
   else {
-    m_vsa_compact.init_proxies(num_proxies, static_cast<VSACompact::Initialization>(init));
+    m_vsa_compact.init_proxies(num_proxies, static_cast<CompactVSA::Initialization>(init));
     for (std::size_t i = 0; i < num_iterations; ++i)
       m_vsa_compact.run_one_step();
   }

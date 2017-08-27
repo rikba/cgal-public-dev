@@ -30,14 +30,14 @@ typedef boost::associative_property_map<std::map<Facet_handle, FT> > FacetAreaMa
 typedef boost::associative_property_map<std::map<Facet_handle, Point_3> > FacetCenterMap;
 typedef boost::property_map<Polyhedron_3, boost::vertex_point_t>::type VertexPointMap;
 
-typedef CGAL::VSA_approximation<Polyhedron_3, VertexPointMap> VSAL21;
-typedef VSAL21::ErrorMetric L21Metric;
-typedef VSAL21::ProxyFitting L21ProxyFitting;
+typedef CGAL::VSA_approximation<Polyhedron_3, VertexPointMap> L21VSA;
+typedef L21VSA::ErrorMetric L21Metric;
+typedef L21VSA::ProxyFitting L21ProxyFitting;
 
 typedef CGAL::L2Metric<Polyhedron_3> L2Metric;
 typedef CGAL::L2ProxyFitting<Polyhedron_3> L2ProxyFitting;
 typedef CGAL::VSA_approximation<Polyhedron_3, VertexPointMap,
-  L2Metric, L2ProxyFitting> VSAL2;
+  L2Metric, L2ProxyFitting> L2VSA;
 
 // user defined compact metric
 struct PointProxy {
@@ -90,7 +90,7 @@ struct PointProxyFitting {
   const FacetAreaMap area_pmap;
 };
 typedef CGAL::VSA_approximation<Polyhedron_3, VertexPointMap,
-  CompactMetric, PointProxyFitting> VSACompact;
+  CompactMetric, PointProxyFitting> CompactVSA;
 
 class Scene
 {
@@ -198,15 +198,15 @@ private:
   Metric m_metric; // current metric
   L21Metric *m_pl21_metric;
   L21ProxyFitting *m_pl21_proxy_fitting;
-  VSAL21 m_vsa_l21;
+  L21VSA m_vsa_l21;
 
   L2Metric *m_pl2_metric;
   L2ProxyFitting *m_pl2_proxy_fitting;
-  VSAL2 m_vsa_l2;
+  L2VSA m_vsa_l2;
 
   CompactMetric *m_pcompact_metric;
   PointProxyFitting *m_pcompact_proxy_fitting;
-  VSACompact m_vsa_compact;
+  CompactVSA m_vsa_compact;
 
   std::vector<Point_3> m_anchor_pos;
   std::vector<Polyhedron_3::Vertex_handle> m_anchor_vtx;
