@@ -30,14 +30,14 @@ typedef boost::associative_property_map<std::map<Facet_handle, FT> > FacetAreaMa
 typedef boost::associative_property_map<std::map<Facet_handle, Point_3> > FacetCenterMap;
 typedef boost::property_map<Polyhedron_3, boost::vertex_point_t>::type VertexPointMap;
 
-typedef CGAL::L21Metric<Polyhedron_3> L21Metric;
-typedef CGAL::L21ProxyFitting<Polyhedron_3> L21ProxyFitting;
 typedef CGAL::VSA_approximation<Polyhedron_3, VertexPointMap> VSAL21;
+typedef VSAL21::ErrorMetric L21Metric;
+typedef VSAL21::ProxyFitting L21ProxyFitting;
 
 typedef CGAL::L2Metric<Polyhedron_3> L2Metric;
 typedef CGAL::L2ProxyFitting<Polyhedron_3> L2ProxyFitting;
 typedef CGAL::VSA_approximation<Polyhedron_3, VertexPointMap,
-  CGAL::Default, L2Metric, L2ProxyFitting> VSAL2;
+  L2Metric, L2ProxyFitting> VSAL2;
 
 // user defined compact metric
 struct PointProxy {
@@ -90,7 +90,7 @@ struct PointProxyFitting {
   const FacetAreaMap area_pmap;
 };
 typedef CGAL::VSA_approximation<Polyhedron_3, VertexPointMap,
-  PointProxy, CompactMetric, PointProxyFitting> VSACompact;
+  CompactMetric, PointProxyFitting> VSACompact;
 
 class Scene
 {
