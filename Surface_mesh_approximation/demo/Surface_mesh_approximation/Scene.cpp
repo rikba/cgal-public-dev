@@ -148,20 +148,22 @@ void Scene::l21_approximation(
 
   std::cout << "L21 approximation..." << std::endl;
 
-  if (static_cast<L21VSA::Initialization>(init) == L21VSA::IncrementalInit) {
-    // for comparision
-    m_vsa_l21.init_proxies(num_proxies / 2, L21VSA::RandomInit);
-    for (std::size_t i = 0; i < num_iterations; ++i)
-      m_vsa_l21.run_one_step();
-    m_vsa_l21.add_proxies(L21VSA::IncrementalInit, num_proxies - num_proxies / 2, num_iterations);
-    for (std::size_t i = 0; i < num_iterations; ++i)
-      m_vsa_l21.run_one_step();
+  switch (static_cast<L21VSA::Initialization>(init)) {
+    case L21VSA::RandomInit:
+      m_vsa_l21.seed_random(num_proxies);
+      break;
+    case L21VSA::IncrementalInit:
+      m_vsa_l21.seed_incremental(num_proxies, 5);
+      break;
+    case L21VSA::HierarchicalInit:
+      m_vsa_l21.seed_hierarchical(num_proxies, 5);
+      break;
+    default:
+      return;
   }
-  else {
-    m_vsa_l21.init_proxies(num_proxies, static_cast<L21VSA::Initialization>(init));
-    for (std::size_t i = 0; i < num_iterations; ++i)
-      m_vsa_l21.run_one_step();
-  }
+  for (std::size_t i = 0; i < num_iterations; ++i)
+    m_vsa_l21.run_one_step();
+  
   m_vsa_l21.get_proxy_map(m_fidx_pmap);
   m_px_num = num_proxies;
   m_view_seg_boundary = true;
@@ -180,20 +182,22 @@ void Scene::l2_approximation(
 
   std::cout << "L2 approximation..." << std::endl;
 
-  if (static_cast<L2VSA::Initialization>(init) == L2VSA::IncrementalInit) {
-    // for comparision
-    m_vsa_l2.init_proxies(num_proxies / 2, L2VSA::RandomInit);
-    for (std::size_t i = 0; i < num_iterations; ++i)
-      m_vsa_l2.run_one_step();
-    m_vsa_l2.add_proxies(L2VSA::IncrementalInit, num_proxies - num_proxies / 2, num_iterations);
-    for (std::size_t i = 0; i < num_iterations; ++i)
-      m_vsa_l2.run_one_step();
+  switch (static_cast<L2VSA::Initialization>(init)) {
+    case L2VSA::RandomInit:
+      m_vsa_l2.seed_random(num_proxies);
+      break;
+    case L2VSA::IncrementalInit:
+      m_vsa_l2.seed_incremental(num_proxies, 5);
+      break;
+    case L2VSA::HierarchicalInit:
+      m_vsa_l2.seed_hierarchical(num_proxies, 5);
+      break;
+    default:
+      return;
   }
-  else {
-    m_vsa_l2.init_proxies(num_proxies, static_cast<L2VSA::Initialization>(init));
-    for (std::size_t i = 0; i < num_iterations; ++i)
-      m_vsa_l2.run_one_step();
-  }
+  for (std::size_t i = 0; i < num_iterations; ++i)
+    m_vsa_l2.run_one_step();
+
   m_vsa_l2.get_proxy_map(m_fidx_pmap);
   m_px_num = num_proxies;
   m_view_seg_boundary = true;
@@ -212,20 +216,22 @@ void Scene::compact_approximation(
 
   std::cout << "Compact approximation..." << std::endl;
 
-  if (static_cast<CompactVSA::Initialization>(init) == CompactVSA::IncrementalInit) {
-    // for comparision
-    m_vsa_compact.init_proxies(num_proxies / 2, CompactVSA::RandomInit);
-    for (std::size_t i = 0; i < num_iterations; ++i)
-      m_vsa_compact.run_one_step();
-    m_vsa_compact.add_proxies(CompactVSA::IncrementalInit, num_proxies - num_proxies / 2, num_iterations);
-    for (std::size_t i = 0; i < num_iterations; ++i)
-      m_vsa_compact.run_one_step();
+  switch (static_cast<CompactVSA::Initialization>(init)) {
+    case CompactVSA::RandomInit:
+      m_vsa_compact.seed_random(num_proxies);
+      break;
+    case CompactVSA::IncrementalInit:
+      m_vsa_compact.seed_incremental(num_proxies, 5);
+      break;
+    case CompactVSA::HierarchicalInit:
+      m_vsa_compact.seed_hierarchical(num_proxies, 5);
+      break;
+    default:
+      return;
   }
-  else {
-    m_vsa_compact.init_proxies(num_proxies, static_cast<CompactVSA::Initialization>(init));
-    for (std::size_t i = 0; i < num_iterations; ++i)
-      m_vsa_compact.run_one_step();
-  }
+  for (std::size_t i = 0; i < num_iterations; ++i)
+    m_vsa_compact.run_one_step();
+
   m_vsa_compact.get_proxy_map(m_fidx_pmap);
   m_px_num = num_proxies;
   m_view_seg_boundary = true;
