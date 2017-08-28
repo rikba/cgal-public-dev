@@ -149,7 +149,7 @@ void Scene::l21_approximation(
   std::cout << "L21 approximation..." << std::endl;
 
   m_vsa_l21.seeding_by_number(
-    static_cast<L21VSA::Initialization>(init), num_proxies);
+    static_cast<L21VSA::Method>(init), num_proxies);
   for (std::size_t i = 0; i < num_iterations; ++i)
     m_vsa_l21.run_one_step();
   
@@ -172,7 +172,7 @@ void Scene::l2_approximation(
   std::cout << "L2 approximation..." << std::endl;
 
   m_vsa_l2.seeding_by_number(
-    static_cast<L2VSA::Initialization>(init), num_proxies);
+    static_cast<L2VSA::Method>(init), num_proxies);
   for (std::size_t i = 0; i < num_iterations; ++i)
     m_vsa_l2.run_one_step();
 
@@ -195,7 +195,7 @@ void Scene::compact_approximation(
   std::cout << "Compact approximation..." << std::endl;
 
   m_vsa_compact.seeding_by_number(
-    static_cast<CompactVSA::Initialization>(init), num_proxies);
+    static_cast<CompactVSA::Method>(init), num_proxies);
   for (std::size_t i = 0; i < num_iterations; ++i)
     m_vsa_compact.run_one_step();
 
