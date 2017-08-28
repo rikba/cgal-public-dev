@@ -148,19 +148,8 @@ void Scene::l21_approximation(
 
   std::cout << "L21 approximation..." << std::endl;
 
-  switch (static_cast<L21VSA::Initialization>(init)) {
-    case L21VSA::RandomInit:
-      m_vsa_l21.seed_random(num_proxies);
-      break;
-    case L21VSA::IncrementalInit:
-      m_vsa_l21.seed_incremental(num_proxies, 5);
-      break;
-    case L21VSA::HierarchicalInit:
-      m_vsa_l21.seed_hierarchical(num_proxies, 5);
-      break;
-    default:
-      return;
-  }
+  m_vsa_l21.seeding_by_number(
+    static_cast<L21VSA::Initialization>(init), num_proxies);
   for (std::size_t i = 0; i < num_iterations; ++i)
     m_vsa_l21.run_one_step();
   
@@ -182,19 +171,8 @@ void Scene::l2_approximation(
 
   std::cout << "L2 approximation..." << std::endl;
 
-  switch (static_cast<L2VSA::Initialization>(init)) {
-    case L2VSA::RandomInit:
-      m_vsa_l2.seed_random(num_proxies);
-      break;
-    case L2VSA::IncrementalInit:
-      m_vsa_l2.seed_incremental(num_proxies, 5);
-      break;
-    case L2VSA::HierarchicalInit:
-      m_vsa_l2.seed_hierarchical(num_proxies, 5);
-      break;
-    default:
-      return;
-  }
+  m_vsa_l2.seeding_by_number(
+    static_cast<L2VSA::Initialization>(init), num_proxies);
   for (std::size_t i = 0; i < num_iterations; ++i)
     m_vsa_l2.run_one_step();
 
@@ -216,19 +194,8 @@ void Scene::compact_approximation(
 
   std::cout << "Compact approximation..." << std::endl;
 
-  switch (static_cast<CompactVSA::Initialization>(init)) {
-    case CompactVSA::RandomInit:
-      m_vsa_compact.seed_random(num_proxies);
-      break;
-    case CompactVSA::IncrementalInit:
-      m_vsa_compact.seed_incremental(num_proxies, 5);
-      break;
-    case CompactVSA::HierarchicalInit:
-      m_vsa_compact.seed_hierarchical(num_proxies, 5);
-      break;
-    default:
-      return;
-  }
+  m_vsa_compact.seeding_by_number(
+    static_cast<CompactVSA::Initialization>(init), num_proxies);
   for (std::size_t i = 0; i < num_iterations; ++i)
     m_vsa_compact.run_one_step();
 
