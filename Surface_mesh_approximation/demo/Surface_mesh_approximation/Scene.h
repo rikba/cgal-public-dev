@@ -39,27 +39,23 @@ typedef CGAL::L2ProxyFitting<Polyhedron_3> L2ProxyFitting;
 typedef CGAL::VSA_approximation<Polyhedron_3, VertexPointMap,
   L2Metric, L2ProxyFitting> L2VSA;
 
-// user defined compact metric
-struct PointProxy {
-  Point_3 center;
-};
-
+// user defined point-wise compact metric
 struct CompactMetric {
-  typedef PointProxy Proxy;
+  typedef Point_3 Proxy;
 
   CompactMetric(const FacetCenterMap &_center_pmap)
     : center_pmap(_center_pmap) {}
 
-  FT operator()(const Facet_handle &f, const PointProxy &px) const {
+  FT operator()(const Facet_handle &f, const Proxy &px) const {
     return FT(std::sqrt(CGAL::to_double(
-      CGAL::squared_distance(center_pmap[f], px.center))));
+      CGAL::squared_distance(center_pmap[f], px))));
   }
 
   const FacetCenterMap center_pmap;
 };
 
 struct PointProxyFitting {
-  typedef PointProxy Proxy;
+  typedef Point_3 Proxy;
 
   PointProxyFitting(const FacetCenterMap &_center_pmap,
     const FacetAreaMap &_area_pmap)
@@ -67,7 +63,7 @@ struct PointProxyFitting {
     area_pmap(_area_pmap) {}
 
   template<typename FacetIterator>
-  PointProxy operator()(const FacetIterator beg, const FacetIterator end) const {
+  Proxy operator()(const FacetIterator beg, const FacetIterator end) const {
     CGAL_assertion(beg != end);
 
     // fitting center
@@ -78,12 +74,7 @@ struct PointProxyFitting {
       area += area_pmap[*fitr];
     }
     center = center / area;
-
-    // construct proxy
-    PointProxy px;
-    px.center = CGAL::ORIGIN + center;
-
-    return px;
+    return CGAL::ORIGIN + center;
   }
 
   const FacetCenterMap center_pmap;
