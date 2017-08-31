@@ -56,63 +56,26 @@ int Scene::open(QString filename)
 
     delete m_pmesh;
     m_pmesh = NULL;
-
     return -1;
   }
 
-  // construct facet property maps
   m_fidx_map.clear();
-  m_facet_centers.clear();
-  m_facet_areas.clear();
-  for(Facet_iterator fitr = m_pmesh->facets_begin();
-    fitr != m_pmesh->facets_end(); ++fitr) {
+  for(Facet_iterator fitr = m_pmesh->facets_begin(); fitr != m_pmesh->facets_end(); ++fitr)
     m_fidx_map.insert(std::pair<Facet_handle, std::size_t>(fitr, 0));
 
-    const Halfedge_handle he = fitr->halfedge();
-    const Point_3 p1 = he->opposite()->vertex()->point();
-    const Point_3 p2 = he->vertex()->point();
-    const Point_3 p3 = he->next()->vertex()->point();
+  m_vsa.set_metric(VSA::L21);
+  m_vsa.set_mesh(*m_pmesh);
 
-    m_facet_centers.insert(std::pair<Facet_handle, Point_3>(fitr,
-      CGAL::centroid(p1, p2, p3)));
-
-    FT area(std::sqrt(CGAL::to_double(CGAL::squared_area(p1, p2, p3))));
-    m_facet_areas.insert(std::pair<Facet_handle, FT>(fitr, area));
-
-  }
-
-  if (m_pl21_metric)
-    delete m_pl21_metric;
-  if (m_pl21_proxy_fitting)
-    delete m_pl21_proxy_fitting;
-  if (m_pl2_metric)
-    delete m_pl2_metric;
-  if (m_pl2_proxy_fitting)
-    delete m_pl2_proxy_fitting;
-  if (m_pcompact_metric)
-    delete m_pcompact_metric;
-  if (m_pcompact_proxy_fitting)
-    delete m_pcompact_proxy_fitting;
-
-  m_pl21_metric = new L21Metric(*m_pmesh);
-  m_pl21_proxy_fitting = new L21ProxyFitting(*m_pmesh);
-  m_pl2_metric = new L2Metric(*m_pmesh);
-  m_pl2_proxy_fitting = new L2ProxyFitting(*m_pmesh);
-  m_pcompact_metric = new CompactMetric(m_center_pmap);
-  m_pcompact_proxy_fitting = new PointProxyFitting(m_center_pmap, m_area_pmap);
-  
-  VertexPointMap vpm = get(boost::vertex_point, const_cast<Polyhedron_3 &>(*m_pmesh));
-
-  m_vsa_l21.set_mesh(*m_pmesh, vpm);
-  m_vsa_l21.set_metric(*m_pl21_metric, *m_pl21_proxy_fitting);
-
-  m_vsa_l2.set_mesh(*m_pmesh, vpm);
-  m_vsa_l2.set_metric(*m_pl2_metric, *m_pl2_proxy_fitting);
-
-  m_vsa_compact.set_mesh(*m_pmesh, vpm);
-  m_vsa_compact.set_metric(*m_pcompact_metric, *m_pcompact_proxy_fitting);
+  m_tris.clear();
+  m_anchor_pos.clear();
+  m_anchor_vtx.clear();
+  m_bdrs.clear();
 
   m_view_polyhedron = true;
+  m_view_wireframe = false;
+  m_view_boundary = false;
+  m_view_anchors = false;
+  m_view_approximation = false;
 
   QApplication::restoreOverrideCursor();
   return 0;
@@ -138,73 +101,49 @@ void Scene::save_approximation(const std::string &filename)
   ofs.close();
 }
 
-void Scene::l21_approximation(
-  const int &init,
-  const std::size_t num_proxies,
-  const std::size_t num_iterations)
-{
-  if(!m_pmesh)
+void Scene::set_metric(const int m) {
+  if (m < 0 || m > 2) {
+    std::cout << "Error: unknown metric." << std::endl;
     return;
+  }
 
-  std::cout << "L21 approximation..." << std::endl;
-
-  m_vsa_l21.seeding_by_number(
-    static_cast<L21VSA::Method>(init), num_proxies);
-  for (std::size_t i = 0; i < num_iterations; ++i)
-    m_vsa_l21.run_one_step();
-  
-  m_vsa_l21.get_proxy_map(m_fidx_pmap);
-  m_px_num = num_proxies;
-  m_view_seg_boundary = true;
-  m_metric = L21;
-
-  std::cout << "Done." << std::endl;
+  switch(m) {
+    case 0: return m_vsa.set_metric(VSA::L21);
+    case 1: return m_vsa.set_metric(VSA::L2);
+    case 2: return m_vsa.set_metric(VSA::Compact);
+  }
 }
 
-void Scene::l2_approximation(
-  const int &init,
+void Scene::seeding_by_number(
+  const int init,
   const std::size_t num_proxies,
   const std::size_t num_iterations)
 {
   if(!m_pmesh)
     return;
-
-  std::cout << "L2 approximation..." << std::endl;
-
-  m_vsa_l2.seeding_by_number(
-    static_cast<L2VSA::Method>(init), num_proxies);
+  m_px_num = m_vsa.seeding_by_number(init, num_proxies, 5);
   for (std::size_t i = 0; i < num_iterations; ++i)
-    m_vsa_l2.run_one_step();
-
-  m_vsa_l2.get_proxy_map(m_fidx_pmap);
-  m_px_num = num_proxies;
-  m_view_seg_boundary = true;
-  m_metric = L2;
-
-  std::cout << "Done." << std::endl;
+    m_vsa.run_one_step();
+  m_vsa.get_proxy_map(m_fidx_pmap);
+  m_view_boundary = true;
 }
 
-void Scene::compact_approximation(
-  const int &init,
-  const std::size_t num_proxies,
-  const std::size_t num_iterations)
+void Scene::run_one_step()
 {
-  if(!m_pmesh)
-    return;
+  m_vsa.run_one_step();
+  m_vsa.get_proxy_map(m_fidx_pmap);
+}
 
-  std::cout << "Compact approximation..." << std::endl;
+void Scene::add_one_proxy()
+{
+  m_vsa.add_one_proxy();
+  m_vsa.get_proxy_map(m_fidx_pmap);
+}
 
-  m_vsa_compact.seeding_by_number(
-    static_cast<CompactVSA::Method>(init), num_proxies);
-  for (std::size_t i = 0; i < num_iterations; ++i)
-    m_vsa_compact.run_one_step();
-
-  m_vsa_compact.get_proxy_map(m_fidx_pmap);
-  m_px_num = num_proxies;
-  m_view_seg_boundary = true;
-  m_metric = Compact;
-
-  std::cout << "Done." << std::endl;
+void Scene::teleport_one_proxy()
+{
+  m_vsa.teleport_one_proxy();
+  m_vsa.get_proxy_map(m_fidx_pmap);
 }
 
 void Scene::meshing()
@@ -213,37 +152,18 @@ void Scene::meshing()
   m_tris.clear();
   m_anchor_pos.clear();
   m_anchor_vtx.clear();
-  switch(m_metric) {
-    case L21:
-      m_vsa_l21.meshing(out_mesh);
-      m_vsa_l21.get_indexed_triangles(std::back_inserter(m_tris));
-      m_vsa_l21.get_anchor_points(std::back_inserter(m_anchor_pos));
-      m_vsa_l21.get_anchor_vertices(std::back_inserter(m_anchor_vtx));
-      m_bdrs = m_vsa_l21.get_indexed_boundary_polygons();
-      break;
-    case L2:
-      m_vsa_l2.meshing(out_mesh);
-      m_vsa_l2.get_indexed_triangles(std::back_inserter(m_tris));
-      m_vsa_l2.get_anchor_points(std::back_inserter(m_anchor_pos));
-      m_vsa_l2.get_anchor_vertices(std::back_inserter(m_anchor_vtx));
-      m_bdrs = m_vsa_l2.get_indexed_boundary_polygons();
-      break;
-    case Compact:
-      m_vsa_compact.meshing(out_mesh);
-      m_vsa_compact.get_indexed_triangles(std::back_inserter(m_tris));
-      m_vsa_compact.get_anchor_points(std::back_inserter(m_anchor_pos));
-      m_vsa_compact.get_anchor_vertices(std::back_inserter(m_anchor_vtx));
-      m_bdrs = m_vsa_compact.get_indexed_boundary_polygons();
-      break;
-    default:
-      std::cerr << "Unknow metric." << std::endl;
-  }
+
+  m_vsa.meshing(out_mesh);
+  m_vsa.get_indexed_triangles(std::back_inserter(m_tris));
+  m_vsa.get_anchor_points(std::back_inserter(m_anchor_pos));
+  m_vsa.get_anchor_vertices(std::back_inserter(m_anchor_vtx));
+  m_bdrs = m_vsa.get_indexed_boundary_polygons();
 }
 
 void Scene::draw()
 {
   if (m_view_polyhedron) {
-    if(m_view_wireframe || m_view_seg_boundary) {
+    if(m_view_wireframe || m_view_boundary) {
       ::glEnable(GL_POLYGON_OFFSET_FILL);
       ::glPolygonOffset(3.0f, 1.0f);
     }
@@ -254,8 +174,8 @@ void Scene::draw()
   if(m_view_wireframe)
     render_wireframe();
   
-  if(m_view_seg_boundary)
-    render_segment_boundary();
+  if(m_view_boundary)
+    render_boundary();
 
   if (m_view_anchors) {
     render_anchors();
@@ -316,7 +236,7 @@ void Scene::render_wireframe()
   ::glEnd();
 }
 
-void Scene::render_segment_boundary()
+void Scene::render_boundary()
 {
   if(!m_pmesh || !m_px_num)
     return;

@@ -87,6 +87,16 @@ void MainWindow::open(QString filename)
       // update bbox
       updateViewerBBox();
       m_pViewer->update();
+
+      ui->actionViewPolyhedron->setChecked(true);
+      ui->actionViewWireframe->setChecked(false);
+      ui->actionViewBoundary->setChecked(false);
+      ui->actionViewAnchors->setChecked(false);
+      ui->actionViewApproximation->setChecked(false);
+
+      ui->actionL21->setChecked(true);
+      ui->actionL2->setChecked(false);
+      ui->actionCompact->setChecked(false);
     }
   }
 }
@@ -163,14 +173,14 @@ void MainWindow::on_actionSaveApproximation_triggered()
   QApplication::restoreOverrideCursor();
 }
 
-void MainWindow::on_actionSave_snapshot_triggered()
+void MainWindow::on_actionSaveSnapshot_triggered()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_pViewer->saveSnapshot(QString("snapshot.png"));
   QApplication::restoreOverrideCursor();
 }
 
-void MainWindow::on_actionCopy_snapshot_triggered()
+void MainWindow::on_actionCopySnapshot_triggered()
 {
   // copy snapshot to clipboard
   QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -182,43 +192,65 @@ void MainWindow::on_actionCopy_snapshot_triggered()
   QApplication::restoreOverrideCursor();
 }
 
-void MainWindow::on_action_l21_metric_triggered()
+void MainWindow::on_actionL21_triggered()
+{
+  ui->actionL2->setChecked(false);
+  ui->actionCompact->setChecked(false);
+  m_pScene->set_metric(0);
+}
+
+void MainWindow::on_actionL2_triggered()
+{
+  ui->actionL21->setChecked(false);
+  ui->actionCompact->setChecked(false);
+  m_pScene->set_metric(1);
+}
+
+void MainWindow::on_actionCompact_triggered()
+{
+  ui->actionL21->setChecked(false);
+  ui->actionL2->setChecked(false);
+  m_pScene->set_metric(2);
+}
+
+void MainWindow::on_actionSeeding_triggered()
 {
   SettingsDialog dial;
   if(dial.exec() == QDialog::Accepted) {
     QApplication::setOverrideCursor(Qt::WaitCursor);
     int init = dial.InitRandom->isChecked() ? 0 : (dial.InitIncremental->isChecked() ? 1 : 2);
-    m_pScene->l21_approximation(init, dial.NumSegments->value(), dial.NumIterations->value());
+    m_pScene->seeding_by_number(init, dial.NumSegments->value(), dial.NumIterations->value());
     m_pViewer->update();
     QApplication::restoreOverrideCursor();
+    ui->actionViewBoundary->setChecked(true);
   }
 }
 
-void MainWindow::on_action_compact_metric_triggered()
+void MainWindow::on_actionFit_triggered()
 {
-  SettingsDialog dial;
-  if(dial.exec() == QDialog::Accepted) {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    int init = dial.InitRandom->isChecked() ? 0 : (dial.InitIncremental->isChecked() ? 1 : 2);
-    m_pScene->compact_approximation(init, dial.NumSegments->value(), dial.NumIterations->value());
-    m_pViewer->update();
-    QApplication::restoreOverrideCursor();
-  }
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  m_pScene->run_one_step();
+  m_pViewer->update();
+  QApplication::restoreOverrideCursor();
 }
 
-void MainWindow::on_action_l2_metric_triggered()
+void MainWindow::on_actionAdd_triggered()
 {
-  SettingsDialog dial;
-  if(dial.exec() == QDialog::Accepted) {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    int init = dial.InitRandom->isChecked() ? 0 : (dial.InitIncremental->isChecked() ? 1 : 2);
-    m_pScene->l2_approximation(init, dial.NumSegments->value(), dial.NumIterations->value());
-    m_pViewer->update();
-    QApplication::restoreOverrideCursor();
-  }
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  m_pScene->add_one_proxy();
+  m_pViewer->update();
+  QApplication::restoreOverrideCursor();
 }
 
-void MainWindow::on_action_Meshing_triggered()
+void MainWindow::on_actionTeleport_triggered()
+{
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  m_pScene->teleport_one_proxy();
+  m_pViewer->update();
+  QApplication::restoreOverrideCursor();
+}
+
+void MainWindow::on_actionMeshing_triggered()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_pScene->meshing();
@@ -226,31 +258,31 @@ void MainWindow::on_action_Meshing_triggered()
   QApplication::restoreOverrideCursor();
 }
 
-void MainWindow::on_actionView_polyhedron_triggered()
+void MainWindow::on_actionViewPolyhedron_triggered()
 {
   m_pScene->toggle_view_polyhedron();
   m_pViewer->update();
 }
 
-void MainWindow::on_actionView_wireframe_triggered()
+void MainWindow::on_actionViewWireframe_triggered()
 {
   m_pScene->toggle_view_wireframe();
   m_pViewer->update();
 }
 
-void MainWindow::on_actionView_segboundary_triggered()
+void MainWindow::on_actionViewBoundary_triggered()
 {
-  m_pScene->toggle_view_seg_boundary();
+  m_pScene->toggle_view_boundary();
   m_pViewer->update();
 }
 
-void MainWindow::on_actionView_anchors_triggered()
+void MainWindow::on_actionViewAnchors_triggered()
 {
   m_pScene->toggle_view_anchors();
   m_pViewer->update();
 }
 
-void MainWindow::on_actionView_approximation_triggered()
+void MainWindow::on_actionViewApproximation_triggered()
 {
   m_pScene->toggle_view_approximation();
   m_pViewer->update();

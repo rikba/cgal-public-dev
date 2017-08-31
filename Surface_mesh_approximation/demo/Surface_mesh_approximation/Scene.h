@@ -10,7 +10,7 @@
 
 #include <CGAL/boost/graph/graph_traits_Polyhedron_3.h>
 #include <CGAL/property_map.h>
-#include <CGAL/VSA_approximation.h>
+#include "VSAWrapper.h"
 
 typedef CGAL::Simple_cartesian<double> Kernel;
 typedef Kernel::FT FT;
@@ -25,100 +25,23 @@ typedef Polyhedron_3::Facet_iterator Facet_iterator;
 typedef Polyhedron_3::Halfedge_around_facet_circulator Halfedge_around_facet_circulator;
 typedef CGAL::Bbox_3 Bbox_3;
 
-typedef boost::associative_property_map<std::map<Facet_handle, Vector_3> > FacetNormalMap;
-typedef boost::associative_property_map<std::map<Facet_handle, FT> > FacetAreaMap;
-typedef boost::associative_property_map<std::map<Facet_handle, Point_3> > FacetCenterMap;
-typedef boost::property_map<Polyhedron_3, boost::vertex_point_t>::type VertexPointMap;
-
-typedef CGAL::VSA_approximation<Polyhedron_3, VertexPointMap> L21VSA;
-typedef L21VSA::ErrorMetric L21Metric;
-typedef L21VSA::ProxyFitting L21ProxyFitting;
-
-typedef CGAL::L2Metric<Polyhedron_3> L2Metric;
-typedef CGAL::L2ProxyFitting<Polyhedron_3> L2ProxyFitting;
-typedef CGAL::VSA_approximation<Polyhedron_3, VertexPointMap,
-  L2Metric, L2ProxyFitting> L2VSA;
-
-// user defined point-wise compact metric
-struct CompactMetric {
-  typedef Point_3 Proxy;
-
-  CompactMetric(const FacetCenterMap &_center_pmap)
-    : center_pmap(_center_pmap) {}
-
-  FT operator()(const Facet_handle &f, const Proxy &px) const {
-    return FT(std::sqrt(CGAL::to_double(
-      CGAL::squared_distance(center_pmap[f], px))));
-  }
-
-  const FacetCenterMap center_pmap;
-};
-
-struct PointProxyFitting {
-  typedef Point_3 Proxy;
-
-  PointProxyFitting(const FacetCenterMap &_center_pmap,
-    const FacetAreaMap &_area_pmap)
-    : center_pmap(_center_pmap),
-    area_pmap(_area_pmap) {}
-
-  template<typename FacetIterator>
-  Proxy operator()(const FacetIterator beg, const FacetIterator end) const {
-    CGAL_assertion(beg != end);
-
-    // fitting center
-    Vector_3 center = CGAL::NULL_VECTOR;
-    FT area(0);
-    for (FacetIterator fitr = beg; fitr != end; ++fitr) {
-      center = center + (center_pmap[*fitr] - CGAL::ORIGIN) * area_pmap[*fitr];
-      area += area_pmap[*fitr];
-    }
-    center = center / area;
-    return CGAL::ORIGIN + center;
-  }
-
-  const FacetCenterMap center_pmap;
-  const FacetAreaMap area_pmap;
-};
-typedef CGAL::VSA_approximation<Polyhedron_3, VertexPointMap,
-  CompactMetric, PointProxyFitting> CompactVSA;
+typedef VSAWrapper<Polyhedron_3, Kernel> VSA;
 
 class Scene
 {
-  enum Metric { L21, L2, Compact };
-
 public:
   Scene() :
     m_pmesh(NULL),
     m_fidx_pmap(m_fidx_map),
-    m_center_pmap(m_facet_centers),
-    m_area_pmap(m_facet_areas),
-    m_pl21_metric(NULL),
-    m_pl21_proxy_fitting(NULL),
-    m_pl2_metric(NULL),
-    m_pl2_proxy_fitting(NULL),
-    m_pcompact_metric(NULL),
-    m_pcompact_proxy_fitting(NULL),
     m_px_num(0),
     m_view_polyhedron(false),
     m_view_wireframe(false),
-    m_view_seg_boundary(false),
+    m_view_boundary(false),
     m_view_anchors(false) {}
 
   ~Scene() {
-    delete m_pmesh;
-    if (m_pl21_metric)
-      delete m_pl21_metric;
-    if (m_pl21_proxy_fitting)
-      delete m_pl21_proxy_fitting;
-    if (m_pl2_metric)
-      delete m_pl2_metric;
-    if (m_pl2_proxy_fitting)
-      delete m_pl2_proxy_fitting;
-    if (m_pcompact_metric)
-      delete m_pcompact_metric;
-    if (m_pcompact_proxy_fitting)
-      delete m_pcompact_proxy_fitting;
+    if (m_pmesh)
+      delete m_pmesh;
   }
 
   void update_bbox();
@@ -129,9 +52,11 @@ public:
   void save_approximation(const std::string &filename);
 
   // algorithms
-  void l21_approximation(const int &init, const std::size_t num_proxies, const std::size_t num_iterations);
-  void l2_approximation(const int &init, const std::size_t num_proxies, const std::size_t num_iterations);
-  void compact_approximation(const int &init, const std::size_t num_proxies, const std::size_t num_iterations);
+  void set_metric(const int init);
+  void seeding_by_number(const int init, const std::size_t num_proxies, const std::size_t num_iterations);
+  void run_one_step();
+  void add_one_proxy();
+  void teleport_one_proxy();
   void meshing();
 
   // toggle view options
@@ -143,8 +68,8 @@ public:
     m_view_wireframe = !m_view_wireframe;
   }
 
-  void toggle_view_seg_boundary() {
-    m_view_seg_boundary = !m_view_seg_boundary;
+  void toggle_view_boundary() {
+    m_view_boundary = !m_view_boundary;
   }
 
   void toggle_view_anchors() {
@@ -165,7 +90,7 @@ private:
   // rendering
   void render_polyhedron();
   void render_wireframe();
-  void render_segment_boundary();
+  void render_boundary();
   void render_anchors();
   void render_borders();
   void render_approximation();
@@ -179,37 +104,19 @@ private:
   std::map<Facet_handle, std::size_t> m_fidx_map;
   boost::associative_property_map<std::map<Facet_handle, std::size_t> > m_fidx_pmap;
 
-  // facet property maps
-  std::map<Facet_handle, Point_3> m_facet_centers;
-  std::map<Facet_handle, FT> m_facet_areas;
-  FacetCenterMap m_center_pmap;
-  FacetAreaMap m_area_pmap;
-
   // algorithm instance
-  Metric m_metric; // current metric
-  L21Metric *m_pl21_metric;
-  L21ProxyFitting *m_pl21_proxy_fitting;
-  L21VSA m_vsa_l21;
-
-  L2Metric *m_pl2_metric;
-  L2ProxyFitting *m_pl2_proxy_fitting;
-  L2VSA m_vsa_l2;
-
-  CompactMetric *m_pcompact_metric;
-  PointProxyFitting *m_pcompact_proxy_fitting;
-  CompactVSA m_vsa_compact;
+  VSA m_vsa;
+  std::size_t m_px_num;
 
   std::vector<Point_3> m_anchor_pos;
   std::vector<Polyhedron_3::Vertex_handle> m_anchor_vtx;
   std::vector<std::vector<std::size_t> > m_bdrs; // anchor borders
   std::vector<int> m_tris;
 
-  std::size_t m_px_num;
-
   // view options
   bool m_view_polyhedron;
   bool m_view_wireframe;
-  bool m_view_seg_boundary;
+  bool m_view_boundary;
   bool m_view_anchors;
   bool m_view_approximation;
 }; // end class Scene

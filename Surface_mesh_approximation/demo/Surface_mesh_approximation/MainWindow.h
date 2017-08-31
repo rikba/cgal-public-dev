@@ -42,26 +42,32 @@ protected slots:
   void on_actionSaveApproximation_triggered();
 
   // edit menu
-  void on_actionSave_snapshot_triggered();
-  void on_actionCopy_snapshot_triggered();
+  void on_actionSaveSnapshot_triggered();
+  void on_actionCopySnapshot_triggered();
 
-  // algorithm menu
-  void on_action_l21_metric_triggered();
-  void on_action_compact_metric_triggered();
-  void on_action_l2_metric_triggered();
-  void on_action_Meshing_triggered();
+  // set metric menu
+  void on_actionL21_triggered();
+  void on_actionL2_triggered();
+  void on_actionCompact_triggered();
+
+  // approximation operation menu
+  void on_actionSeeding_triggered();
+  void on_actionFit_triggered();
+  void on_actionAdd_triggered();
+  void on_actionTeleport_triggered();
+  void on_actionMeshing_triggered();
 
   // view menu
-  void on_actionView_polyhedron_triggered();
-  void on_actionView_wireframe_triggered();
-  void on_actionView_segboundary_triggered();
-  void on_actionView_anchors_triggered();
-  void on_actionView_approximation_triggered();
+  void on_actionViewPolyhedron_triggered();
+  void on_actionViewWireframe_triggered();
+  void on_actionViewBoundary_triggered();
+  void on_actionViewAnchors_triggered();
+  void on_actionViewApproximation_triggered();
 
 private:
-  Scene* m_pScene;
-  Viewer* m_pViewer;
-  Ui::MainWindow* ui;
+  Scene *m_pScene;
+  Viewer *m_pViewer;
+  Ui::MainWindow *ui;
 };
 
 #endif // ifndef MAINWINDOW_H

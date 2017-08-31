@@ -53,33 +53,43 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
-    <addaction name="actionView_polyhedron"/>
-    <addaction name="actionView_wireframe"/>
-    <addaction name="actionView_segboundary"/>
+    <addaction name="actionViewPolyhedron"/>
+    <addaction name="actionViewWireframe"/>
+    <addaction name="actionViewBoundary"/>
     <addaction name="separator"/>
-    <addaction name="actionView_anchors"/>
-    <addaction name="actionView_approximation"/>
+    <addaction name="actionViewAnchors"/>
+    <addaction name="actionViewApproximation"/>
    </widget>
    <widget class="QMenu" name="menuAlgorithms">
     <property name="title">
-     <string>&amp;Approximation</string>
+     <string>&amp;Metric</string>
     </property>
-    <addaction name="action_l21_metric"/>
-    <addaction name="action_l2_metric"/>
-    <addaction name="action_compact_metric"/>
-    <addaction name="separator"/>
-    <addaction name="action_Meshing"/>
+    <addaction name="actionL21"/>
+    <addaction name="actionL2"/>
+    <addaction name="actionCompact"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
      <string>&amp;Edit</string>
     </property>
-    <addaction name="actionCopy_snapshot"/>
-    <addaction name="actionSave_snapshot"/>
+    <addaction name="actionCopySnapshot"/>
+    <addaction name="actionSaveSnapshot"/>
+   </widget>
+   <widget class="QMenu" name="menuOperation">
+    <property name="title">
+     <string>Operation</string>
+    </property>
+    <addaction name="actionSeeding"/>
+    <addaction name="actionFit"/>
+    <addaction name="actionAdd"/>
+    <addaction name="actionTeleport"/>
+    <addaction name="separator"/>
+    <addaction name="actionMeshing"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuAlgorithms"/>
+   <addaction name="menuOperation"/>
    <addaction name="menuView"/>
   </widget>
   <action name="actionQuit">
@@ -92,70 +102,147 @@
     <string>&amp;Load polyhedron</string>
    </property>
   </action>
-  <action name="actionView_wireframe">
+  <action name="actionViewWireframe">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Wireframe</string>
    </property>
    <property name="toolTip">
-    <string>Render wireframe</string>
+    <string>View wireframe</string>
    </property>
   </action>
-  <action name="actionSave_snapshot">
+  <action name="actionSaveSnapshot">
    <property name="text">
     <string>&amp;Save snapshot</string>
    </property>
   </action>
-  <action name="actionCopy_snapshot">
+  <action name="actionCopySnapshot">
    <property name="text">
     <string>&amp;Copy snapshot</string>
    </property>
   </action>
-  <action name="actionView_segboundary">
+  <action name="actionViewBoundary">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Segment &amp;Boundary</string>
+    <string>&amp;Boundary</string>
+   </property>
+   <property name="toolTip">
+    <string>View proxy boundary</string>
    </property>
   </action>
-  <action name="actionView_anchors">
+  <action name="actionViewAnchors">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Anchors</string>
    </property>
+   <property name="toolTip">
+    <string>View anchors</string>
+   </property>
   </action>
-  <action name="actionView_approximation">
+  <action name="actionViewApproximation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Appro&amp;ximation</string>
    </property>
+   <property name="toolTip">
+    <string>View approximation</string>
+   </property>
   </action>
-  <action name="actionView_polyhedron">
+  <action name="actionViewPolyhedron">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>&amp;Polyhedron</string>
+   </property>
+   <property name="toolTip">
+    <string>View polyhedron</string>
    </property>
   </action>
   <action name="actionSaveApproximation">
    <property name="text">
     <string>&amp;Save Approximation</string>
    </property>
-  </action>
-  <action name="action_l21_metric">
-   <property name="text">
-    <string>L2&amp;1 Metric</string>
-   </property>
    <property name="toolTip">
-    <string>Variational Shape Approximation</string>
+    <string>Save approximation</string>
    </property>
   </action>
-  <action name="action_compact_metric">
+  <action name="actionSeeding">
+   <property name="text">
+    <string>&amp;Seeding</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="actionFit">
+   <property name="text">
+    <string>&amp;Fit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
+  <action name="actionTeleport">
+   <property name="text">
+    <string>&amp;Teleport</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
+   </property>
+  </action>
+  <action name="actionAdd">
+   <property name="text">
+    <string>&amp;Add</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
+  </action>
+  <action name="actionMeshing">
+   <property name="text">
+    <string>Meshing</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
+   </property>
+  </action>
+  <action name="actionL21">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>L2&amp;1</string>
+   </property>
+  </action>
+  <action name="actionL2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>L&amp;2</string>
+   </property>
+  </action>
+  <action name="actionCompact">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Compact</string>
-   </property>
-  </action>
-  <action name="action_l2_metric">
-   <property name="text">
-    <string>L&amp;2 Metric</string>
-   </property>
-  </action>
-  <action name="action_Meshing">
-   <property name="text">
-    <string>&amp;Meshing</string>
    </property>
   </action>
  </widget>
