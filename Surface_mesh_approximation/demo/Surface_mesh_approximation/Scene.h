@@ -22,10 +22,12 @@ typedef Polyhedron_3::Halfedge_handle Halfedge_handle;
 typedef Polyhedron_3::Edge_iterator Edge_iterator;
 typedef Polyhedron_3::Facet_handle Facet_handle;
 typedef Polyhedron_3::Facet_iterator Facet_iterator;
-typedef Polyhedron_3::Halfedge_around_facet_circulator Halfedge_around_facet_circulator;
 typedef CGAL::Bbox_3 Bbox_3;
 
 typedef VSAWrapper<Polyhedron_3, Kernel> VSA;
+#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
+typedef VSA::L21Proxy L21Proxy;
+#endif
 
 class Scene
 {
@@ -33,7 +35,6 @@ public:
   Scene() :
     m_pmesh(NULL),
     m_fidx_pmap(m_fidx_map),
-    m_px_num(0),
     m_view_polyhedron(false),
     m_view_wireframe(false),
     m_view_boundary(false),
@@ -94,6 +95,9 @@ private:
   void render_anchors();
   void render_borders();
   void render_approximation();
+#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
+  void render_proxies();
+#endif
 
 private:
   // member data
@@ -106,8 +110,10 @@ private:
 
   // algorithm instance
   VSA m_vsa;
-  std::size_t m_px_num;
 
+#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
+  std::vector<L21Proxy> m_proxies;
+#endif
   std::vector<Point_3> m_anchor_pos;
   std::vector<Polyhedron_3::Vertex_handle> m_anchor_vtx;
   std::vector<std::vector<std::size_t> > m_bdrs; // anchor borders

@@ -71,6 +71,10 @@ class VSAWrapper {
 public:
   enum Metric { L21, L2, Compact };
 
+#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
+  typedef typename L21VSA::ProxyWrapper L21Proxy;
+#endif
+
   VSAWrapper()
     : m_metric(L21),
     m_center_pmap(m_facet_centers),
@@ -219,6 +223,16 @@ public:
     }
     return 0;
   }
+
+#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
+  template <typename OutputIterator>
+  void get_l21_proxies(OutputIterator outitr) {
+    switch (m_metric) {
+      case L21:
+        return m_vsa_l21.get_wrapped_proxies(outitr);
+    }
+  }
+#endif
 
   template <typename FacetProxyMap>
   void get_proxy_map(FacetProxyMap &fpmap) {

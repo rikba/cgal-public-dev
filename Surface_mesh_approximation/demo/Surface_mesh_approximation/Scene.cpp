@@ -59,6 +59,20 @@ int Scene::open(QString filename)
     return -1;
   }
 
+#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
+  // degeneracy check
+  std::cerr << "Degeneracy check." << std::endl;
+  for(Facet_iterator fitr = m_pmesh->facets_begin(); fitr != m_pmesh->facets_end(); ++fitr) {
+    Halfedge_handle he = fitr->halfedge();
+    if (CGAL::collinear(
+      he->opposite()->vertex()->point(),
+      he->vertex()->point(),
+      he->next()->vertex()->point()))
+      std::cerr << "Warning: degenerate facet" << std::endl;
+  }
+  std::cerr << "Done." << std::endl;
+#endif
+
   m_fidx_map.clear();
   for(Facet_iterator fitr = m_pmesh->facets_begin(); fitr != m_pmesh->facets_end(); ++fitr)
     m_fidx_map.insert(std::pair<Facet_handle, std::size_t>(fitr, 0));
@@ -66,10 +80,13 @@ int Scene::open(QString filename)
   m_vsa.set_metric(VSA::L21);
   m_vsa.set_mesh(*m_pmesh);
 
-  m_tris.clear();
+#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
+  m_proxies.clear();
+#endif
   m_anchor_pos.clear();
   m_anchor_vtx.clear();
   m_bdrs.clear();
+  m_tris.clear();
 
   m_view_polyhedron = true;
   m_view_wireframe = false;
@@ -121,10 +138,14 @@ void Scene::seeding_by_number(
 {
   if(!m_pmesh)
     return;
-  m_px_num = m_vsa.seeding_by_number(init, num_proxies, 5);
+  m_vsa.seeding_by_number(init, num_proxies, 5);
   for (std::size_t i = 0; i < num_iterations; ++i)
     m_vsa.run_one_step();
   m_vsa.get_proxy_map(m_fidx_pmap);
+#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
+  m_proxies.clear();
+  m_vsa.get_l21_proxies(std::back_inserter(m_proxies));
+#endif
   m_view_boundary = true;
 }
 
@@ -132,18 +153,30 @@ void Scene::run_one_step()
 {
   m_vsa.run_one_step();
   m_vsa.get_proxy_map(m_fidx_pmap);
+#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
+  m_proxies.clear();
+  m_vsa.get_l21_proxies(std::back_inserter(m_proxies));
+#endif
 }
 
 void Scene::add_one_proxy()
 {
   m_vsa.add_one_proxy();
   m_vsa.get_proxy_map(m_fidx_pmap);
+#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
+  m_proxies.clear();
+  m_vsa.get_l21_proxies(std::back_inserter(m_proxies));
+#endif
 }
 
 void Scene::teleport_one_proxy()
 {
   m_vsa.teleport_one_proxy();
   m_vsa.get_proxy_map(m_fidx_pmap);
+#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
+  m_proxies.clear();
+  m_vsa.get_l21_proxies(std::back_inserter(m_proxies));
+#endif
 }
 
 void Scene::meshing()
@@ -167,7 +200,6 @@ void Scene::draw()
       ::glEnable(GL_POLYGON_OFFSET_FILL);
       ::glPolygonOffset(3.0f, 1.0f);
     }
-    ::glEnable(GL_LIGHTING);
     render_polyhedron();
   }
 
@@ -184,6 +216,10 @@ void Scene::draw()
 
   if (m_view_approximation)
     render_approximation();
+
+#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
+  render_proxies();
+#endif
 }
 
 void Scene::render_polyhedron()
@@ -191,24 +227,24 @@ void Scene::render_polyhedron()
   if(!m_pmesh)
     return;
 
+  const std::size_t px_num = m_vsa.get_proxies_size();
+  ::glEnable(GL_LIGHTING);
   ::glColor3ub(200, 200, 200);
   ::glBegin(GL_TRIANGLES);
   for(Facet_iterator fitr = m_pmesh->facets_begin();
     fitr != m_pmesh->facets_end(); ++fitr) {
-    Halfedge_around_facet_circulator he = fitr->facet_begin();
-    const Point_3 &a = he->vertex()->point();
-    const Point_3 &b = he->next()->vertex()->point();
-    const Point_3 &c = he->prev()->vertex()->point();
+    Halfedge_handle he = fitr->halfedge();
+    const Point_3 &a = he->opposite()->vertex()->point();
+    const Point_3 &b = he->vertex()->point();
+    const Point_3 &c = he->next()->vertex()->point();
 
-    //Vector_3 norm = CGAL::normal(a, b, c);
-    Vector_3 norm = CGAL::unit_normal(a, b, c);
-    ::glNormal3d(norm.x(), norm.y(), norm.z());
-
-    if(m_px_num) {
-      std::size_t cidx = std::floor(static_cast<double>(m_fidx_pmap[fitr]) / static_cast<double>(m_px_num) * 256.0);
+    if(px_num) {
+      std::size_t cidx = std::floor(static_cast<double>(m_fidx_pmap[fitr]) / static_cast<double>(px_num) * 256.0);
       ::glColor3ub(ColorCheatSheet::r(cidx), ColorCheatSheet::g(cidx), ColorCheatSheet::b(cidx));
     }
 
+    Vector_3 norm = CGAL::unit_normal(a, b, c);
+    ::glNormal3d(norm.x(), norm.y(), norm.z());
     ::glVertex3d(a.x(), a.y(), a.z());
     ::glVertex3d(b.x(), b.y(), b.z());
     ::glVertex3d(c.x(), c.y(), c.z());
@@ -238,7 +274,7 @@ void Scene::render_wireframe()
 
 void Scene::render_boundary()
 {
-  if(!m_pmesh || !m_px_num)
+  if(!m_pmesh || !m_vsa.get_proxies_size())
     return;
 
   ::glDisable(GL_LIGHTING);
@@ -314,7 +350,6 @@ void Scene::render_borders()
 void Scene::render_approximation()
 {
   ::glEnable(GL_LIGHTING);
-  // ::glDisable(GL_LIGHTING);
   ::glPolygonOffset(3.0, 1.0);
   ::glLineWidth(1.0f);
   ::glColor3ub(0, 0, 255);
@@ -344,3 +379,25 @@ void Scene::render_approximation()
   }
   ::glEnd();
 }
+
+#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
+void Scene::render_proxies()
+{
+  ::glDisable(GL_LIGHTING);
+  ::glColor3ub(255, 0, 0);
+  ::glLineWidth(3.0f);
+  ::glBegin(GL_LINES);
+  for (std::vector<L21Proxy>::iterator itr = m_proxies.begin();
+    itr != m_proxies.end(); ++itr) {
+    Halfedge_handle he = itr->seed->halfedge();
+    Vector_3 norm = itr->px.normal;
+    Point_3 cen = CGAL::centroid(he->opposite()->vertex()->point(),
+      he->vertex()->point(),
+      he->next()->vertex()->point());
+    Point_3 end = cen + norm;
+    ::glVertex3d(cen.x(), cen.y(), cen.z());
+    ::glVertex3d(end.x(), end.y(), end.z());
+  }
+  ::glEnd();
+}
+#endif
