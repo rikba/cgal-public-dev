@@ -124,6 +124,23 @@ void Scene::set_metric(const int m) {
     return;
   }
 
+  for(Facet_iterator fitr = m_pmesh->facets_begin(); fitr != m_pmesh->facets_end(); ++fitr)
+    m_fidx_map[fitr] = 0;
+
+#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
+  m_proxies.clear();
+#endif
+  m_anchor_pos.clear();
+  m_anchor_vtx.clear();
+  m_bdrs.clear();
+  m_tris.clear();
+
+  m_view_polyhedron = true;
+  m_view_wireframe = false;
+  m_view_boundary = false;
+  m_view_anchors = false;
+  m_view_approximation = false;
+
   switch(m) {
     case 0: return m_vsa.set_metric(VSA::L21);
     case 1: return m_vsa.set_metric(VSA::L2);

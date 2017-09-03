@@ -196,21 +196,45 @@ void MainWindow::on_actionL21_triggered()
 {
   ui->actionL2->setChecked(false);
   ui->actionCompact->setChecked(false);
+
+  ui->actionViewPolyhedron->setChecked(true);
+  ui->actionViewWireframe->setChecked(false);
+  ui->actionViewBoundary->setChecked(false);
+  ui->actionViewAnchors->setChecked(false);
+  ui->actionViewApproximation->setChecked(false);
+
   m_pScene->set_metric(0);
+  m_pViewer->update();
 }
 
 void MainWindow::on_actionL2_triggered()
 {
   ui->actionL21->setChecked(false);
   ui->actionCompact->setChecked(false);
+
+  ui->actionViewPolyhedron->setChecked(true);
+  ui->actionViewWireframe->setChecked(false);
+  ui->actionViewBoundary->setChecked(false);
+  ui->actionViewAnchors->setChecked(false);
+  ui->actionViewApproximation->setChecked(false);
+
   m_pScene->set_metric(1);
+  m_pViewer->update();
 }
 
 void MainWindow::on_actionCompact_triggered()
 {
   ui->actionL21->setChecked(false);
   ui->actionL2->setChecked(false);
+
+  ui->actionViewPolyhedron->setChecked(true);
+  ui->actionViewWireframe->setChecked(false);
+  ui->actionViewBoundary->setChecked(false);
+  ui->actionViewAnchors->setChecked(false);
+  ui->actionViewApproximation->setChecked(false);
+  
   m_pScene->set_metric(2);
+  m_pViewer->update();
 }
 
 void MainWindow::on_actionSeeding_triggered()

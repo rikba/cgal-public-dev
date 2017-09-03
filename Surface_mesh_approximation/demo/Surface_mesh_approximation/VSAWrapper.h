@@ -149,7 +149,14 @@ public:
     m_vsa_compact.set_metric(*m_pcompact_metric, *m_pcompact_proxy_fitting);
   }
 
-  void set_metric(const Metric m) { m_metric = m; }
+  void set_metric(const Metric m) {
+    m_metric = m;
+    switch (m_metric) {
+      case L21: return m_vsa_l21.rebuild();
+      case L2: return m_vsa_l2.rebuild();
+      case Compact: return m_vsa_compact.rebuild();
+    }
+  }
 
   std::size_t seeding_by_number(const int init, const std::size_t num_seed, const std::size_t iterations) {
     switch (m_metric) {
