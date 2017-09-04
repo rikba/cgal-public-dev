@@ -77,8 +77,8 @@ int Scene::open(QString filename)
   for(Facet_iterator fitr = m_pmesh->facets_begin(); fitr != m_pmesh->facets_end(); ++fitr)
     m_fidx_map.insert(std::pair<Facet_handle, std::size_t>(fitr, 0));
 
-  m_vsa.set_metric(VSA::L21);
   m_vsa.set_mesh(*m_pmesh);
+  m_vsa.set_metric(VSA::L21);
 
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
   m_proxies.clear();
@@ -202,12 +202,13 @@ void Scene::meshing()
   m_tris.clear();
   m_anchor_pos.clear();
   m_anchor_vtx.clear();
+  m_bdrs.clear();
 
   m_vsa.meshing(out_mesh);
   m_vsa.get_indexed_triangles(std::back_inserter(m_tris));
   m_vsa.get_anchor_points(std::back_inserter(m_anchor_pos));
   m_vsa.get_anchor_vertices(std::back_inserter(m_anchor_vtx));
-  m_bdrs = m_vsa.get_indexed_boundary_polygons();
+  m_vsa.get_indexed_boundary_polygons(std::back_inserter(m_bdrs));
 }
 
 void Scene::draw()

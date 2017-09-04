@@ -289,16 +289,16 @@ public:
     }
   }
 
-  std::vector<std::vector<std::size_t> > get_indexed_boundary_polygons() {
+  template <typename OutputIterator>
+  void get_indexed_boundary_polygons(OutputIterator outitr) {
     switch (m_metric) {
       case L21:
-        return m_vsa_l21.get_indexed_boundary_polygons();
+        return m_vsa_l21.get_indexed_boundary_polygons(outitr);
       case L2:
-        return m_vsa_l2.get_indexed_boundary_polygons();
+        return m_vsa_l2.get_indexed_boundary_polygons(outitr);
       case Compact:
-        return m_vsa_compact.get_indexed_boundary_polygons();
+        return m_vsa_compact.get_indexed_boundary_polygons(outitr);
     }
-    return std::vector<std::vector<std::size_t> >();
   }
 
 private:
