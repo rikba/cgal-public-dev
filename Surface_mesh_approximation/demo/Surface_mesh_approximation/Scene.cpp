@@ -151,11 +151,31 @@ void Scene::set_metric(const int m) {
 void Scene::seeding_by_number(
   const int init,
   const std::size_t num_proxies,
+  const std::size_t num_inner_iterations,
   const std::size_t num_iterations)
 {
   if(!m_pmesh)
     return;
-  m_vsa.seeding_by_number(init, num_proxies, 5);
+  m_vsa.seeding_by_number(init, num_proxies, num_inner_iterations);
+  for (std::size_t i = 0; i < num_iterations; ++i)
+    m_vsa.run_one_step();
+  m_vsa.get_proxy_map(m_fidx_pmap);
+#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
+  m_proxies.clear();
+  m_vsa.get_l21_proxies(std::back_inserter(m_proxies));
+#endif
+  m_view_boundary = true;
+}
+
+void Scene::seeding_by_error(
+  const int init,
+  const FT drop,
+  const std::size_t num_inner_iterations,
+  const std::size_t num_iterations)
+{
+  if(!m_pmesh)
+    return;
+  m_vsa.seeding_by_error(init, drop, num_inner_iterations);
   for (std::size_t i = 0; i < num_iterations; ++i)
     m_vsa.run_one_step();
   m_vsa.get_proxy_map(m_fidx_pmap);

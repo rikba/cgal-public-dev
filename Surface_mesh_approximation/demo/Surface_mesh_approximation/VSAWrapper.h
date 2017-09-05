@@ -170,6 +170,18 @@ public:
     return 0;
   }
 
+  std::size_t seeding_by_error(const int init, const FT drop, const std::size_t iterations) {
+    switch (m_metric) {
+      case L21:
+        return m_vsa_l21.seeding_by_error(static_cast<typename L21VSA::Method>(init), drop, iterations);
+      case L2:
+        return m_vsa_l2.seeding_by_error(static_cast<typename L2VSA::Method>(init), drop, iterations);
+      case Compact:
+        return m_vsa_compact.seeding_by_error(static_cast<typename CompactVSA::Method>(init), drop, iterations);
+    }
+    return 0;
+  }
+
   std::size_t run_one_step() {
     switch (m_metric) {
       case L21:

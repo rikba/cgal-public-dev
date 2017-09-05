@@ -242,9 +242,19 @@ void MainWindow::on_actionSeeding_triggered()
   SettingsDialog dial;
   if(dial.exec() == QDialog::Accepted) {
     QApplication::setOverrideCursor(Qt::WaitCursor);
+
     int init = dial.InitRandom->isChecked() ? 0 : (dial.InitIncremental->isChecked() ? 1 : 2);
-    m_pScene->seeding_by_number(init, dial.NumSegments->value(), dial.NumIterations->value());
+    int inner_iterations = dial.NumInnerIterations->value();
+    int iterations = dial.NumIterations->value();
+    if(dial.checkBox_number->isChecked())
+      // seeding by number
+      m_pScene->seeding_by_number(init, dial.NumSegments->value(), inner_iterations, iterations);
+    else
+      // seeding by error
+      m_pScene->seeding_by_error(init, dial.ErrorDrop->value(), inner_iterations, iterations);
+    
     m_pViewer->update();
+
     QApplication::restoreOverrideCursor();
     ui->actionViewBoundary->setChecked(true);
   }
