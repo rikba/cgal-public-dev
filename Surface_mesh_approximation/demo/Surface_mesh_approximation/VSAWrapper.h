@@ -249,6 +249,8 @@ public:
     switch (m_metric) {
       case L21:
         return m_vsa_l21.get_wrapped_proxies(outitr);
+      default:
+        return;
     }
   }
 #endif
