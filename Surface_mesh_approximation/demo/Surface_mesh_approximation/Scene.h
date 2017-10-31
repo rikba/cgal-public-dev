@@ -118,7 +118,7 @@ private:
   std::vector<Point_3> m_anchor_pos;
   std::vector<Polyhedron_3::Vertex_handle> m_anchor_vtx;
   std::vector<std::vector<std::size_t> > m_bdrs; // anchor borders
-  std::vector<int> m_tris;
+  std::vector<std::size_t> m_tris;
 
   // view options
   bool m_view_polyhedron;
