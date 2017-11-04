@@ -1,4 +1,4 @@
-// Copyright (c) 2009 INRIA Sophia-Antipolis (France).
+// Copyright (c) 2017 INRIA Sophia-Antipolis (France).
 // All rights reserved.
 //
 // This file is part of CGAL (www.cgal.org).
@@ -26,9 +26,13 @@
 #include "MainWindow.h"
 #include <QApplication>
 #include <CGAL/Qt/resources.h>
+#include <cstdlib>
+#include <ctime>
 
 int main(int argc, char **argv)
 {
+  std::srand(time(0));
+
   QApplication app(argc, argv);
   app.setOrganizationDomain("inria.fr");
   app.setOrganizationName("INRIA");

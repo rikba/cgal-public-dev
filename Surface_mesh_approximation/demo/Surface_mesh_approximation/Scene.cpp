@@ -83,6 +83,7 @@ int Scene::open(QString filename)
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
   m_proxies.clear();
 #endif
+  m_px_color.clear();
   m_anchor_pos.clear();
   m_anchor_vtx.clear();
   m_bdrs.clear();
@@ -130,6 +131,7 @@ void Scene::set_metric(const int m) {
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
   m_proxies.clear();
 #endif
+  m_px_color.clear();
   m_anchor_pos.clear();
   m_anchor_vtx.clear();
   m_bdrs.clear();
@@ -164,7 +166,13 @@ void Scene::seeding_by_number(
   m_proxies.clear();
   m_vsa.get_l21_proxies(std::back_inserter(m_proxies));
 #endif
+  // TODO: update display options
   m_view_boundary = true;
+
+  // generate proxy color map
+  m_px_color.clear();
+  for (std::size_t i = 0; i < m_vsa.get_proxies_size(); i++)
+    m_px_color.push_back(rand_0_255());
 }
 
 void Scene::seeding_by_error(
@@ -183,7 +191,13 @@ void Scene::seeding_by_error(
   m_proxies.clear();
   m_vsa.get_l21_proxies(std::back_inserter(m_proxies));
 #endif
+  // TODO: update display options
   m_view_boundary = true;
+
+  // generate proxy color map
+  m_px_color.clear();
+  for (std::size_t i = 0; i < m_vsa.get_proxies_size(); i++)
+    m_px_color.push_back(rand_0_255());
 }
 
 void Scene::run_one_step()
@@ -198,12 +212,17 @@ void Scene::run_one_step()
 
 void Scene::add_one_proxy()
 {
-  m_vsa.add_one_proxy();
+  if (m_vsa.add_one_proxy() == 0)
+    return;
+
   m_vsa.get_proxy_map(m_fidx_pmap);
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
   m_proxies.clear();
   m_vsa.get_l21_proxies(std::back_inserter(m_proxies));
 #endif
+
+  // add on proxy color
+  m_px_color.push_back(rand_0_255());
 }
 
 void Scene::teleport_one_proxy()
@@ -276,8 +295,8 @@ void Scene::render_polyhedron()
     const Point_3 &b = he->vertex()->point();
     const Point_3 &c = he->next()->vertex()->point();
 
-    if(px_num) {
-      std::size_t cidx = std::floor(static_cast<double>(m_fidx_pmap[fitr]) / static_cast<double>(px_num) * 256.0);
+    if (px_num) {
+      std::size_t cidx = m_px_color[m_fidx_pmap[fitr]];
       ::glColor3ub(ColorCheatSheet::r(cidx), ColorCheatSheet::g(cidx), ColorCheatSheet::b(cidx));
     }
 

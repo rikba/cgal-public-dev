@@ -4,6 +4,7 @@
 #include <QtOpenGL/qgl.h>
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
 
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Polyhedron_3.h>
@@ -89,6 +90,11 @@ private:
     return v / std::sqrt(v * v);
   }
 
+  // pseudorandom number for proxy color mapping
+  std::size_t rand_0_255() {
+    return static_cast<std::size_t>(std::rand() % 255);
+  }
+
   // rendering
   void render_polyhedron();
   void render_wireframe();
@@ -115,6 +121,7 @@ private:
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
   std::vector<L21Proxy> m_proxies;
 #endif
+  std::vector<std::size_t> m_px_color;
   std::vector<Point_3> m_anchor_pos;
   std::vector<Polyhedron_3::Vertex_handle> m_anchor_vtx;
   std::vector<std::vector<std::size_t> > m_bdrs; // anchor borders
