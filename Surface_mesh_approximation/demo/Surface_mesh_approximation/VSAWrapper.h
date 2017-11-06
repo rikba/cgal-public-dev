@@ -209,11 +209,11 @@ public:
   std::size_t teleport_one_proxy() {
     switch (m_metric) {
       case L21:
-        return m_vsa_l21.teleport_proxies(1, true);
+        return m_vsa_l21.teleport_proxies(1, 0, true);
       case L2:
-        return m_vsa_l2.teleport_proxies(1, true);
+        return m_vsa_l2.teleport_proxies(1, 0, true);
       case Compact:
-        return m_vsa_compact.teleport_proxies(1, true);
+        return m_vsa_compact.teleport_proxies(1, 0, true);
     }
     return 0;
   }
