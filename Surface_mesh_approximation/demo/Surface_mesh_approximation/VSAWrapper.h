@@ -158,26 +158,26 @@ public:
     }
   }
 
-  std::size_t seeding_by_number(const int init, const std::size_t num_seed, const std::size_t iterations) {
+  std::size_t init_by_number(const int init, const std::size_t num_seed, const std::size_t iterations) {
     switch (m_metric) {
       case L21:
-        return m_vsa_l21.seeding_by_number(static_cast<typename L21VSA::Method>(init), num_seed, iterations);
+        return m_vsa_l21.init_by_number(static_cast<typename L21VSA::Method>(init), num_seed, iterations);
       case L2:
-        return m_vsa_l2.seeding_by_number(static_cast<typename L2VSA::Method>(init), num_seed, iterations);
+        return m_vsa_l2.init_by_number(static_cast<typename L2VSA::Method>(init), num_seed, iterations);
       case Compact:
-        return m_vsa_compact.seeding_by_number(static_cast<typename CompactVSA::Method>(init), num_seed, iterations);
+        return m_vsa_compact.init_by_number(static_cast<typename CompactVSA::Method>(init), num_seed, iterations);
     }
     return 0;
   }
 
-  std::size_t seeding_by_error(const int init, const FT drop, const std::size_t iterations) {
+  std::size_t init_by_error(const int init, const FT drop, const std::size_t iterations) {
     switch (m_metric) {
       case L21:
-        return m_vsa_l21.seeding_by_error(static_cast<typename L21VSA::Method>(init), drop, iterations);
+        return m_vsa_l21.init_by_error(static_cast<typename L21VSA::Method>(init), drop, iterations);
       case L2:
-        return m_vsa_l2.seeding_by_error(static_cast<typename L2VSA::Method>(init), drop, iterations);
+        return m_vsa_l2.init_by_error(static_cast<typename L2VSA::Method>(init), drop, iterations);
       case Compact:
-        return m_vsa_compact.seeding_by_error(static_cast<typename CompactVSA::Method>(init), drop, iterations);
+        return m_vsa_compact.init_by_error(static_cast<typename CompactVSA::Method>(init), drop, iterations);
     }
     return 0;
   }

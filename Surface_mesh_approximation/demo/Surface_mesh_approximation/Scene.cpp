@@ -158,7 +158,7 @@ void Scene::seeding_by_number(
 {
   if(!m_pmesh)
     return;
-  m_vsa.seeding_by_number(init, num_proxies, num_inner_iterations);
+  m_vsa.init_by_number(init, num_proxies, num_inner_iterations);
   for (std::size_t i = 0; i < num_iterations; ++i)
     m_vsa.run_one_step();
   m_vsa.get_proxy_map(m_fidx_pmap);
@@ -183,7 +183,7 @@ void Scene::seeding_by_error(
 {
   if(!m_pmesh)
     return;
-  m_vsa.seeding_by_error(init, drop, num_inner_iterations);
+  m_vsa.init_by_error(init, drop, num_inner_iterations);
   for (std::size_t i = 0; i < num_iterations; ++i)
     m_vsa.run_one_step();
   m_vsa.get_proxy_map(m_fidx_pmap);
