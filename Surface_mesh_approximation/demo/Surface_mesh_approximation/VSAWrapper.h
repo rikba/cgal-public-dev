@@ -14,6 +14,8 @@ class VSAWrapper {
   typedef boost::associative_property_map<std::map<face_descriptor, FT> > FacetAreaMap;
   typedef boost::associative_property_map<std::map<face_descriptor, Point_3> > FacetCenterMap;
 
+  typedef typename CGAL::VSA_seeding VSA_seeding;
+
   typedef CGAL::VSA_approximation<TriangleMesh, VertexPointMap,
     CGAL::Default, CGAL::Default, GeomTraits> L21VSA;
   typedef typename L21VSA::ErrorMetric L21Metric;
@@ -161,11 +163,11 @@ public:
   std::size_t init_by_number(const int init, const std::size_t num_seed, const std::size_t iterations) {
     switch (m_metric) {
       case L21:
-        return m_vsa_l21.init_by_number(static_cast<typename L21VSA::Method>(init), num_seed, iterations);
+        return m_vsa_l21.init_by_number(static_cast<VSA_seeding>(init), num_seed, iterations);
       case L2:
-        return m_vsa_l2.init_by_number(static_cast<typename L2VSA::Method>(init), num_seed, iterations);
+        return m_vsa_l2.init_by_number(static_cast<VSA_seeding>(init), num_seed, iterations);
       case Compact:
-        return m_vsa_compact.init_by_number(static_cast<typename CompactVSA::Method>(init), num_seed, iterations);
+        return m_vsa_compact.init_by_number(static_cast<VSA_seeding>(init), num_seed, iterations);
     }
     return 0;
   }
@@ -173,11 +175,11 @@ public:
   std::size_t init_by_error(const int init, const FT drop, const std::size_t iterations) {
     switch (m_metric) {
       case L21:
-        return m_vsa_l21.init_by_error(static_cast<typename L21VSA::Method>(init), drop, iterations);
+        return m_vsa_l21.init_by_error(static_cast<VSA_seeding>(init), drop, iterations);
       case L2:
-        return m_vsa_l2.init_by_error(static_cast<typename L2VSA::Method>(init), drop, iterations);
+        return m_vsa_l2.init_by_error(static_cast<VSA_seeding>(init), drop, iterations);
       case Compact:
-        return m_vsa_compact.init_by_error(static_cast<typename CompactVSA::Method>(init), drop, iterations);
+        return m_vsa_compact.init_by_error(static_cast<VSA_seeding>(init), drop, iterations);
     }
     return 0;
   }
