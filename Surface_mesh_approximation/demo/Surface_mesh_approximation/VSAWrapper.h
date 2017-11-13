@@ -1,4 +1,4 @@
-#include <CGAL/VSA_approximation.h>
+#include <CGAL/vsa_approximation.h>
 #include <CGAL/property_map.h>
 
 template <typename TriangleMesh, typename GeomTraits>
