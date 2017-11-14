@@ -287,7 +287,7 @@ void MainWindow::on_actionTeleport_triggered()
 void MainWindow::on_actionMeshing_triggered()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  m_pScene->meshing();
+  m_pScene->extract_mesh();
   m_pViewer->update();
   QApplication::restoreOverrideCursor();
 }

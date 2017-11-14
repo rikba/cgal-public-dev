@@ -60,7 +60,7 @@ public:
   void run_one_step();
   void add_one_proxy();
   void teleport_one_proxy();
-  void meshing();
+  void extract_mesh();
 
   // toggle view options
   void toggle_view_polyhedron() {

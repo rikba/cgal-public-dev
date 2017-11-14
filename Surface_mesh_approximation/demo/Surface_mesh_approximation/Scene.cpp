@@ -235,7 +235,7 @@ void Scene::teleport_one_proxy()
 #endif
 }
 
-void Scene::meshing()
+void Scene::extract_mesh()
 {
   Polyhedron_3 out_mesh;
   m_tris.clear();
@@ -243,7 +243,7 @@ void Scene::meshing()
   m_anchor_vtx.clear();
   m_bdrs.clear();
 
-  m_vsa.meshing(out_mesh);
+  m_vsa.extract_mesh(out_mesh);
   m_vsa.get_indexed_triangles(std::back_inserter(m_tris));
   m_vsa.get_anchor_points(std::back_inserter(m_anchor_pos));
   m_vsa.get_anchor_vertices(std::back_inserter(m_anchor_vtx));

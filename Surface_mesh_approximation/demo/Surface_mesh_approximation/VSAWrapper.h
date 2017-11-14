@@ -221,14 +221,14 @@ public:
   }
 
   template <typename PolyhedronSurface>
-  bool meshing(PolyhedronSurface &mesh_out, const FT split = FT(0.2), bool pca_plane = false) {
+  bool extract_mesh(PolyhedronSurface &mesh_out, const FT split = FT(0.2), bool pca_plane = false) {
     switch (m_metric) {
       case L21:
-        return m_vsa_l21.meshing(mesh_out, split, pca_plane);
+        return m_vsa_l21.extract_mesh(mesh_out, split, pca_plane);
       case L2:
-        return m_vsa_l2.meshing(mesh_out, split, pca_plane);
+        return m_vsa_l2.extract_mesh(mesh_out, split, pca_plane);
       case Compact:
-        return m_vsa_compact.meshing(mesh_out, split, pca_plane);
+        return m_vsa_compact.extract_mesh(mesh_out, split, pca_plane);
     }
     return false;
   }
