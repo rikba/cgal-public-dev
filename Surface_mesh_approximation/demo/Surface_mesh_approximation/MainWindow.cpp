@@ -76,9 +76,9 @@ void MainWindow::updateViewerBBox()
 void MainWindow::open(QString filename)
 {
   QFileInfo fileinfo(filename);
-  if(fileinfo.isFile() && fileinfo.isReadable()) {
+  if (fileinfo.isFile() && fileinfo.isReadable()) {
     int index = m_pScene->open(filename);
-    if(index >= 0) {
+    if (index >= 0) {
       QSettings settings;
       settings.setValue("OFF open directory",
         fileinfo.absoluteDir().absolutePath());
@@ -128,7 +128,7 @@ void MainWindow::dropEvent(QDropEvent *event)
 {
   Q_FOREACH(QUrl url, event->mimeData()->urls()) {
     QString filename = url.toLocalFile();
-    if(!filename.isEmpty()) {
+    if (!filename.isEmpty()) {
       QTextStream(stderr) << QString("dropEvent(\"%1\")\n").arg(filename);
       open(filename);
     }
@@ -153,7 +153,7 @@ void MainWindow::on_actionLoadPolyhedron_triggered()
     directory,
     tr("OFF files (*.off)\n"
     "All files (*)"));
-  if(!filenames.isEmpty()) {
+  if (!filenames.isEmpty()) {
     Q_FOREACH(QString filename, filenames) {
       open(filename);
     }
@@ -240,13 +240,13 @@ void MainWindow::on_actionCompact_triggered()
 void MainWindow::on_actionSeeding_triggered()
 {
   SettingsDialog dial;
-  if(dial.exec() == QDialog::Accepted) {
+  if (dial.exec() == QDialog::Accepted) {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     int init = dial.InitRandom->isChecked() ? 0 : (dial.InitIncremental->isChecked() ? 1 : 2);
     int inner_iterations = dial.NumInnerIterations->value();
     int iterations = dial.NumIterations->value();
-    if(dial.checkBox_number->isChecked())
+    if (dial.checkBox_number->isChecked())
       // seeding by number
       m_pScene->seeding_by_number(init, dial.NumSegments->value(), inner_iterations, iterations);
     else

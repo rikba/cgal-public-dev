@@ -11,7 +11,7 @@
 
 #include <CGAL/boost/graph/graph_traits_Polyhedron_3.h>
 #include <CGAL/property_map.h>
-#include "VSAWrapper.h"
+#include "Mesh_approximation_wrapper.h"
 
 typedef CGAL::Simple_cartesian<double> Kernel;
 typedef Kernel::FT FT;
@@ -25,9 +25,9 @@ typedef Polyhedron_3::Facet_handle Facet_handle;
 typedef Polyhedron_3::Facet_iterator Facet_iterator;
 typedef CGAL::Bbox_3 Bbox_3;
 
-typedef VSAWrapper<Polyhedron_3, Kernel> VSA;
+typedef Mesh_approximation_wrapper<Polyhedron_3, Kernel> Approximation_wrapper;
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
-typedef VSA::L21Proxy L21Proxy;
+typedef Approximation_wrapper::L21_proxy_wrapper L21_proxy_wrapper;
 #endif
 
 class Scene
@@ -116,16 +116,16 @@ private:
   boost::associative_property_map<std::map<Facet_handle, std::size_t> > m_fidx_pmap;
 
   // algorithm instance
-  VSA m_vsa;
+  Approximation_wrapper m_approx;
 
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
-  std::vector<L21Proxy> m_proxies;
+  std::vector<L21_proxy_wrapper> m_proxies;
 #endif
   std::vector<std::size_t> m_px_color;
   std::vector<Point_3> m_anchor_pos;
   std::vector<Polyhedron_3::Vertex_handle> m_anchor_vtx;
   std::vector<std::vector<std::size_t> > m_bdrs; // anchor borders
-  std::vector<std::size_t> m_tris;
+  std::vector<std::vector<std::size_t> > m_tris;
 
   // view options
   bool m_view_polyhedron;
