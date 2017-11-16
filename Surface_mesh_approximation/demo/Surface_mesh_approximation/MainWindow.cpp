@@ -286,10 +286,19 @@ void MainWindow::on_actionTeleport_triggered()
 
 void MainWindow::on_actionMeshing_triggered()
 {
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  m_pScene->extract_mesh();
-  m_pViewer->update();
-  QApplication::restoreOverrideCursor();
+  SettingsDialog dial;
+  dial.mesh_extraction->setEnabled(true);
+  if (dial.exec() == QDialog::Accepted) {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    m_pScene->extract_mesh(dial.chord_error->value(),
+      dial.pca_plane->isChecked());
+
+    m_pViewer->update();
+    QApplication::restoreOverrideCursor();
+    ui->actionViewAnchors->setChecked(true);
+    ui->actionViewApproximation->setChecked(true);
+  }
 }
 
 void MainWindow::on_actionViewPolyhedron_triggered()

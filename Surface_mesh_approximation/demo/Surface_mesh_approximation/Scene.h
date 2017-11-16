@@ -60,7 +60,7 @@ public:
   void run_one_step();
   void add_one_proxy();
   void teleport_one_proxy();
-  void extract_mesh();
+  void extract_mesh(const double chord_error, const bool pca_plane);
 
   // toggle view options
   void toggle_view_polyhedron() {

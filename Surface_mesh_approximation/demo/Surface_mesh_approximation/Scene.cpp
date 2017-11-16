@@ -158,6 +158,7 @@ void Scene::seeding_by_number(
 {
   if (!m_pmesh)
     return;
+
   m_approx.init_by_number(init, num_proxies, num_inner_iterations);
   for (std::size_t i = 0; i < num_iterations; ++i)
     m_approx.run_one_step();
@@ -166,13 +167,14 @@ void Scene::seeding_by_number(
   m_proxies.clear();
   m_approx.get_l21_proxies(std::back_inserter(m_proxies));
 #endif
-  // TODO: update display options
-  m_view_boundary = true;
 
   // generate proxy color map
   m_px_color.clear();
   for (std::size_t i = 0; i < m_approx.get_proxies_size(); i++)
     m_px_color.push_back(rand_0_255());
+
+  // update display options
+  m_view_boundary = true;
 }
 
 void Scene::seeding_by_error(
@@ -183,6 +185,7 @@ void Scene::seeding_by_error(
 {
   if (!m_pmesh)
     return;
+
   m_approx.init_by_error(init, drop, num_inner_iterations);
   for (std::size_t i = 0; i < num_iterations; ++i)
     m_approx.run_one_step();
@@ -191,13 +194,14 @@ void Scene::seeding_by_error(
   m_proxies.clear();
   m_approx.get_l21_proxies(std::back_inserter(m_proxies));
 #endif
-  // TODO: update display options
-  m_view_boundary = true;
 
   // generate proxy color map
   m_px_color.clear();
   for (std::size_t i = 0; i < m_approx.get_proxies_size(); i++)
     m_px_color.push_back(rand_0_255());
+
+  // update display options
+  m_view_boundary = true;
 }
 
 void Scene::run_one_step()
@@ -235,7 +239,7 @@ void Scene::teleport_one_proxy()
 #endif
 }
 
-void Scene::extract_mesh()
+void Scene::extract_mesh(const double chord_error, const bool pca_plane)
 {
   Polyhedron_3 out_mesh;
   m_tris.clear();
@@ -243,11 +247,15 @@ void Scene::extract_mesh()
   m_anchor_vtx.clear();
   m_bdrs.clear();
 
-  m_approx.extract_mesh(out_mesh);
+  m_approx.extract_mesh(out_mesh, chord_error, pca_plane);
   m_approx.get_indexed_triangles(std::back_inserter(m_tris));
   m_approx.get_anchor_points(std::back_inserter(m_anchor_pos));
   m_approx.get_anchor_vertices(std::back_inserter(m_anchor_vtx));
   m_approx.get_indexed_boundary_polygons(std::back_inserter(m_bdrs));
+
+  // update display options
+  m_view_anchors = true;
+  m_view_approximation = true;
 }
 
 void Scene::draw()
