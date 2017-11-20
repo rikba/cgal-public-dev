@@ -112,6 +112,9 @@
    <property name="toolTip">
     <string>View wireframe</string>
    </property>
+   <property name="shortcut">
+    <string>Alt+W</string>
+   </property>
   </action>
   <action name="actionSaveSnapshot">
    <property name="text">
@@ -133,6 +136,9 @@
    <property name="toolTip">
     <string>View proxy boundary</string>
    </property>
+   <property name="shortcut">
+    <string>Alt+B</string>
+   </property>
   </action>
   <action name="actionViewAnchors">
    <property name="checkable">
@@ -144,6 +150,9 @@
    <property name="toolTip">
     <string>View anchors</string>
    </property>
+   <property name="shortcut">
+    <string>Alt+A</string>
+   </property>
   </action>
   <action name="actionViewApproximation">
    <property name="checkable">
@@ -154,6 +163,9 @@
    </property>
    <property name="toolTip">
     <string>View approximation</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+X</string>
    </property>
   </action>
   <action name="actionViewPolyhedron">
@@ -168,6 +180,9 @@
    </property>
    <property name="toolTip">
     <string>View polyhedron</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+P</string>
    </property>
   </action>
   <action name="actionSaveApproximation">
