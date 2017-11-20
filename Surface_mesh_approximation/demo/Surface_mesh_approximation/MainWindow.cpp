@@ -237,21 +237,52 @@ void MainWindow::on_actionCompact_triggered()
   m_pViewer->update();
 }
 
-void MainWindow::on_actionSeeding_triggered()
+void MainWindow::on_actionApproximation_triggered()
 {
   SettingsDialog dial;
+  dial.initialization->setEnabled(true);
+  dial.mesh_extraction->setEnabled(true);
   if (dial.exec() == QDialog::Accepted) {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    int init = dial.InitRandom->isChecked() ? 0 : (dial.InitIncremental->isChecked() ? 1 : 2);
-    int inner_iterations = dial.NumInnerIterations->value();
-    int iterations = dial.NumIterations->value();
-    if (dial.checkBox_number->isChecked())
+    int init = dial.method_random->isChecked() ? 0 : (
+      dial.method_incremental->isChecked() ? 1 : 2);
+    int relaxations = dial.relaxations->value();
+    int iterations = dial.iterations->value();
+    if (dial.cb_nb_of_proxies->isChecked())
       // seeding by number
-      m_pScene->seeding_by_number(init, dial.NumSegments->value(), inner_iterations, iterations);
+      m_pScene->seeding_by_number(init, dial.nb_of_proxies->value(), relaxations, iterations);
     else
       // seeding by error
-      m_pScene->seeding_by_error(init, dial.ErrorDrop->value(), inner_iterations, iterations);
+      m_pScene->seeding_by_error(init, dial.error_drop->value(), relaxations, iterations);
+    m_pScene->extract_mesh(dial.chord_error->value(),
+      dial.pca_plane->isChecked());
+
+    m_pViewer->update();
+
+    QApplication::restoreOverrideCursor();
+    ui->actionViewBoundary->setChecked(true);
+    ui->actionViewAnchors->setChecked(true);
+    ui->actionViewApproximation->setChecked(true);
+  }
+}
+
+void MainWindow::on_actionInitialization_triggered()
+{
+  SettingsDialog dial;
+  dial.initialization->setEnabled(true);
+  if (dial.exec() == QDialog::Accepted) {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    int init = dial.method_random->isChecked() ? 0 : (dial.method_incremental->isChecked() ? 1 : 2);
+    int relaxations = dial.relaxations->value();
+    int iterations = dial.iterations->value();
+    if (dial.cb_nb_of_proxies->isChecked())
+      // seeding by number
+      m_pScene->seeding_by_number(init, dial.nb_of_proxies->value(), relaxations, iterations);
+    else
+      // seeding by error
+      m_pScene->seeding_by_error(init, dial.error_drop->value(), relaxations, iterations);
     
     m_pViewer->update();
 

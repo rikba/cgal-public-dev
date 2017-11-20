@@ -77,9 +77,11 @@
    </widget>
    <widget class="QMenu" name="menuOperation">
     <property name="title">
-     <string>Operation</string>
+     <string>&amp;Operations</string>
     </property>
-    <addaction name="actionSeeding"/>
+    <addaction name="actionApproximation"/>
+    <addaction name="separator"/>
+    <addaction name="actionInitialization"/>
     <addaction name="actionFit"/>
     <addaction name="actionAdd"/>
     <addaction name="actionTeleport"/>
@@ -193,9 +195,9 @@
     <string>Save approximation</string>
    </property>
   </action>
-  <action name="actionSeeding">
+  <action name="actionInitialization">
    <property name="text">
-    <string>&amp;Seeding</string>
+    <string>&amp;Initialization</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
@@ -227,7 +229,7 @@
   </action>
   <action name="actionMeshing">
    <property name="text">
-    <string>Meshing</string>
+    <string>&amp;Meshing</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+M</string>
@@ -258,6 +260,14 @@
    </property>
    <property name="text">
     <string>&amp;Compact</string>
+   </property>
+  </action>
+  <action name="actionApproximation">
+   <property name="text">
+    <string>Appro&amp;ximation</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
    </property>
   </action>
  </widget>

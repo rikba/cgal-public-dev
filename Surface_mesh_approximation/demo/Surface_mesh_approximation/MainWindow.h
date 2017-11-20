@@ -50,8 +50,9 @@ protected slots:
   void on_actionL2_triggered();
   void on_actionCompact_triggered();
 
-  // approximation operation menu
-  void on_actionSeeding_triggered();
+  // operations menu
+  void on_actionApproximation_triggered();
+  void on_actionInitialization_triggered();
   void on_actionFit_triggered();
   void on_actionAdd_triggered();
   void on_actionTeleport_triggered();
