@@ -163,11 +163,11 @@ public:
   std::size_t init_by_number(const int init, const std::size_t num_seed, const std::size_t iterations) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.init_by_number(static_cast<Seeding>(init), num_seed, iterations);
+        return m_l21_approx.init(static_cast<Seeding>(init), num_seed, boost::none, iterations);
       case L2:
-        return m_l2_approx.init_by_number(static_cast<Seeding>(init), num_seed, iterations);
+        return m_l2_approx.init(static_cast<Seeding>(init), num_seed, boost::none, iterations);
       case Compact:
-        return m_iso_approx.init_by_number(static_cast<Seeding>(init), num_seed, iterations);
+        return m_iso_approx.init(static_cast<Seeding>(init), num_seed, boost::none, iterations);
     }
     return 0;
   }
@@ -175,11 +175,11 @@ public:
   std::size_t init_by_error(const int init, const FT drop, const std::size_t iterations) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.init_by_error(static_cast<Seeding>(init), drop, iterations);
+        return m_l21_approx.init(static_cast<Seeding>(init), boost::none, drop, iterations);
       case L2:
-        return m_l2_approx.init_by_error(static_cast<Seeding>(init), drop, iterations);
+        return m_l2_approx.init(static_cast<Seeding>(init), boost::none, drop, iterations);
       case Compact:
-        return m_iso_approx.init_by_error(static_cast<Seeding>(init), drop, iterations);
+        return m_iso_approx.init(static_cast<Seeding>(init), boost::none, drop, iterations);
     }
     return 0;
   }
