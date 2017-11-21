@@ -55,8 +55,11 @@ public:
 
   // algorithms
   void set_metric(const int init);
-  void seeding_by_number(const int init, const std::size_t num_proxies, const std::size_t num_inner_iterations, const std::size_t num_iterations);
-  void seeding_by_error(const int init, const FT drop, const std::size_t num_inner_iterations, const std::size_t num_iterations);
+  void seeding(const CGAL::VSA::Seeding method,
+    const boost::optional<std::size_t> num_proxies,
+    const boost::optional<FT> min_error_drop,
+    const std::size_t nb_relaxations,
+    const std::size_t nb_iterations);
   void run_one_step();
   void add_one_proxy();
   void teleport_one_proxy();

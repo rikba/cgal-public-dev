@@ -81,7 +81,7 @@
     </property>
     <addaction name="actionApproximation"/>
     <addaction name="separator"/>
-    <addaction name="actionInitialization"/>
+    <addaction name="actionSeeding"/>
     <addaction name="actionFit"/>
     <addaction name="actionAdd"/>
     <addaction name="actionTeleport"/>
@@ -195,12 +195,12 @@
     <string>Save approximation</string>
    </property>
   </action>
-  <action name="actionInitialization">
+  <action name="actionSeeding">
    <property name="text">
-    <string>&amp;Initialization</string>
+    <string>&amp;Seeding</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+I</string>
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="actionFit">

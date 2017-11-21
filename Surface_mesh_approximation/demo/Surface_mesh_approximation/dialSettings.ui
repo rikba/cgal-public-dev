@@ -18,18 +18,18 @@
     <enum>QLayout::SetFixedSize</enum>
    </property>
    <item>
-    <widget class="QGroupBox" name="initialization">
+    <widget class="QGroupBox" name="seeding">
      <property name="enabled">
       <bool>false</bool>
      </property>
      <property name="title">
-      <string>Initialization</string>
+      <string>Seeding</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <widget class="QGroupBox" name="groupBox">
         <property name="title">
-         <string>Seeding Method</string>
+         <string>Method</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
@@ -69,7 +69,7 @@
          </widget>
         </item>
         <item row="3" column="2">
-         <widget class="QSpinBox" name="relaxations">
+         <widget class="QSpinBox" name="nb_relaxations">
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
@@ -120,7 +120,7 @@
          </widget>
         </item>
         <item row="0" column="0">
-         <widget class="QCheckBox" name="cb_nb_of_proxies">
+         <widget class="QCheckBox" name="cb_nb_proxies">
           <property name="text">
            <string>#proxies</string>
           </property>
@@ -133,7 +133,7 @@
          </widget>
         </item>
         <item row="0" column="2">
-         <widget class="QSpinBox" name="nb_of_proxies">
+         <widget class="QSpinBox" name="nb_proxies">
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
@@ -169,7 +169,7 @@
          </widget>
         </item>
         <item row="4" column="2">
-         <widget class="QSpinBox" name="iterations">
+         <widget class="QSpinBox" name="nb_iterations">
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
@@ -294,9 +294,9 @@
    </hints>
   </connection>
   <connection>
-   <sender>cb_nb_of_proxies</sender>
+   <sender>cb_nb_proxies</sender>
    <signal>toggled(bool)</signal>
-   <receiver>nb_of_proxies</receiver>
+   <receiver>nb_proxies</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">

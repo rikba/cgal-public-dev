@@ -25,21 +25,21 @@ void SettingsDialog::loadFromSettings()
   if (settings.contains("method_hierarchical"))
     method_hierarchical->setChecked(settings.value("method_hierarchical").toBool());
 
-  if (settings.contains("cb_nb_of_proxies"))
-    cb_nb_of_proxies->setChecked(settings.value("cb_nb_of_proxies").toBool());
-  if (settings.contains("nb_of_proxies"))
-    nb_of_proxies->setValue(settings.value("nb_of_proxies").toInt());
-  nb_of_proxies->setEnabled(cb_nb_of_proxies->isChecked());
+  if (settings.contains("cb_nb_proxies"))
+    cb_nb_proxies->setChecked(settings.value("cb_nb_proxies").toBool());
+  if (settings.contains("nb_proxies"))
+    nb_proxies->setValue(settings.value("nb_proxies").toInt());
+  nb_proxies->setEnabled(cb_nb_proxies->isChecked());
   if (settings.contains("cb_error_drop"))
     cb_error_drop->setChecked(settings.value("cb_error_drop").toBool());
   if (settings.contains("error_drop"))
     error_drop->setValue(settings.value("error_drop").toDouble());
   error_drop->setEnabled(cb_error_drop->isChecked());
 
-  if (settings.contains("relaxations"))
-    relaxations->setValue(settings.value("relaxations").toInt());
-  if (settings.contains("iterations"))
-    iterations->setValue(settings.value("iterations").toInt());
+  if (settings.contains("nb_relaxations"))
+    nb_relaxations->setValue(settings.value("nb_relaxations").toInt());
+  if (settings.contains("nb_iterations"))
+    nb_iterations->setValue(settings.value("nb_iterations").toInt());
 
   if (settings.contains("pca_plane"))
     pca_plane->setChecked(settings.value("pca_plane").toBool());
@@ -58,13 +58,13 @@ void SettingsDialog::saveToSettings()
   settings.setValue("method_incremental", method_incremental->isChecked());
   settings.setValue("method_hierarchical", method_hierarchical->isChecked());
 
-  settings.setValue("cb_nb_of_proxies", cb_nb_of_proxies->isChecked());
-  settings.setValue("nb_of_proxies", nb_of_proxies->value());
+  settings.setValue("cb_nb_proxies", cb_nb_proxies->isChecked());
+  settings.setValue("nb_proxies", nb_proxies->value());
   settings.setValue("cb_error_drop", cb_error_drop->isChecked());
   settings.setValue("error_drop", error_drop->value());
 
-  settings.setValue("relaxations", relaxations->value());
-  settings.setValue("iterations", iterations->value());
+  settings.setValue("nb_relaxations", nb_relaxations->value());
+  settings.setValue("nb_iterations", nb_iterations->value());
 
   settings.setValue("pca_plane", pca_plane->isChecked());
   settings.setValue("chord_error", chord_error->value());

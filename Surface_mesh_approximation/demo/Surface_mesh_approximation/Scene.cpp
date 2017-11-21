@@ -150,44 +150,18 @@ void Scene::set_metric(const int m) {
   }
 }
 
-void Scene::seeding_by_number(
-  const int init,
-  const std::size_t num_proxies,
-  const std::size_t num_inner_iterations,
-  const std::size_t num_iterations)
+void Scene::seeding(
+  const CGAL::VSA::Seeding method,
+  const boost::optional<std::size_t> max_nb_proxies,
+  const boost::optional<FT> min_error_drop,
+  const std::size_t nb_relaxations,
+  const std::size_t nb_iterations)
 {
   if (!m_pmesh)
     return;
 
-  m_approx.init_by_number(init, num_proxies, num_inner_iterations);
-  for (std::size_t i = 0; i < num_iterations; ++i)
-    m_approx.run_one_step();
-  m_approx.get_proxy_map(m_fidx_pmap);
-#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
-  m_proxies.clear();
-  m_approx.get_l21_proxies(std::back_inserter(m_proxies));
-#endif
-
-  // generate proxy color map
-  m_px_color.clear();
-  for (std::size_t i = 0; i < m_approx.get_proxies_size(); i++)
-    m_px_color.push_back(rand_0_255());
-
-  // update display options
-  m_view_boundary = true;
-}
-
-void Scene::seeding_by_error(
-  const int init,
-  const FT drop,
-  const std::size_t num_inner_iterations,
-  const std::size_t num_iterations)
-{
-  if (!m_pmesh)
-    return;
-
-  m_approx.init_by_error(init, drop, num_inner_iterations);
-  for (std::size_t i = 0; i < num_iterations; ++i)
+  m_approx.seeding(method, max_nb_proxies, min_error_drop, nb_relaxations);
+  for (std::size_t i = 0; i < nb_iterations; ++i)
     m_approx.run_one_step();
   m_approx.get_proxy_map(m_fidx_pmap);
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG

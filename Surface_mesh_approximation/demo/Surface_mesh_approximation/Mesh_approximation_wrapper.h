@@ -14,8 +14,6 @@ class Mesh_approximation_wrapper {
   typedef boost::associative_property_map<std::map<face_descriptor, FT> > Facet_area_map;
   typedef boost::associative_property_map<std::map<face_descriptor, Point_3> > Facet_center_map;
 
-  typedef typename CGAL::VSA::Seeding Seeding;
-
   typedef CGAL::VSA::Mesh_approximation<TriangleMesh, Vertex_point_map,
     CGAL::Default, CGAL::Default, GeomTraits> L21_approx;
   typedef typename L21_approx::Error_metric L21_metric;
@@ -160,26 +158,20 @@ public:
     }
   }
 
-  std::size_t init_by_number(const int init, const std::size_t num_seed, const std::size_t iterations) {
+  std::size_t seeding(const CGAL::VSA::Seeding method,
+    const boost::optional<std::size_t> max_nb_proxies,
+    const boost::optional<FT> min_error_drop,
+    const std::size_t nb_relaxations) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.seeding(static_cast<Seeding>(init), num_seed, boost::none, iterations);
+        return m_l21_approx.seeding(
+          method, max_nb_proxies, min_error_drop, nb_relaxations);
       case L2:
-        return m_l2_approx.seeding(static_cast<Seeding>(init), num_seed, boost::none, iterations);
+        return m_l2_approx.seeding(
+          method, max_nb_proxies, min_error_drop, nb_relaxations);
       case Compact:
-        return m_iso_approx.seeding(static_cast<Seeding>(init), num_seed, boost::none, iterations);
-    }
-    return 0;
-  }
-
-  std::size_t init_by_error(const int init, const FT drop, const std::size_t iterations) {
-    switch (m_metric) {
-      case L21:
-        return m_l21_approx.seeding(static_cast<Seeding>(init), boost::none, drop, iterations);
-      case L2:
-        return m_l2_approx.seeding(static_cast<Seeding>(init), boost::none, drop, iterations);
-      case Compact:
-        return m_iso_approx.seeding(static_cast<Seeding>(init), boost::none, drop, iterations);
+        return m_iso_approx.seeding(
+          method, max_nb_proxies, min_error_drop, nb_relaxations);
     }
     return 0;
   }

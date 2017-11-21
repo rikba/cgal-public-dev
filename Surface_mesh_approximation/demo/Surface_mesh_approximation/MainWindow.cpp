@@ -240,21 +240,20 @@ void MainWindow::on_actionCompact_triggered()
 void MainWindow::on_actionApproximation_triggered()
 {
   SettingsDialog dial;
-  dial.initialization->setEnabled(true);
+  dial.seeding->setEnabled(true);
   dial.mesh_extraction->setEnabled(true);
   if (dial.exec() == QDialog::Accepted) {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    int init = dial.method_random->isChecked() ? 0 : (
-      dial.method_incremental->isChecked() ? 1 : 2);
-    int relaxations = dial.relaxations->value();
-    int iterations = dial.iterations->value();
-    if (dial.cb_nb_of_proxies->isChecked())
-      // seeding by number
-      m_pScene->seeding_by_number(init, dial.nb_of_proxies->value(), relaxations, iterations);
-    else
-      // seeding by error
-      m_pScene->seeding_by_error(init, dial.error_drop->value(), relaxations, iterations);
+    CGAL::VSA::Seeding method = dial.method_random->isChecked() ? CGAL::VSA::Random : (
+      dial.method_incremental->isChecked() ? CGAL::VSA::Incremental : CGAL::VSA::Hierarchical);
+    std::size_t nb_relaxations = dial.nb_relaxations->value();
+    std::size_t nb_iterations = dial.nb_iterations->value();
+    m_pScene->seeding(method,
+      (dial.cb_nb_proxies->isChecked() ? boost::optional<std::size_t>(dial.nb_proxies->value()) : boost::none),
+      (dial.cb_error_drop->isChecked() ? boost::optional<FT>(dial.error_drop->value()) : boost::none),
+      nb_relaxations,
+      nb_iterations);
     m_pScene->extract_mesh(dial.chord_error->value(),
       dial.pca_plane->isChecked());
 
@@ -267,23 +266,23 @@ void MainWindow::on_actionApproximation_triggered()
   }
 }
 
-void MainWindow::on_actionInitialization_triggered()
+void MainWindow::on_actionSeeding_triggered()
 {
   SettingsDialog dial;
-  dial.initialization->setEnabled(true);
+  dial.seeding->setEnabled(true);
   if (dial.exec() == QDialog::Accepted) {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    int init = dial.method_random->isChecked() ? 0 : (dial.method_incremental->isChecked() ? 1 : 2);
-    int relaxations = dial.relaxations->value();
-    int iterations = dial.iterations->value();
-    if (dial.cb_nb_of_proxies->isChecked())
-      // seeding by number
-      m_pScene->seeding_by_number(init, dial.nb_of_proxies->value(), relaxations, iterations);
-    else
-      // seeding by error
-      m_pScene->seeding_by_error(init, dial.error_drop->value(), relaxations, iterations);
-    
+    CGAL::VSA::Seeding method = dial.method_random->isChecked() ? CGAL::VSA::Random : (
+      dial.method_incremental->isChecked() ? CGAL::VSA::Incremental : CGAL::VSA::Hierarchical);
+    std::size_t nb_relaxations = dial.nb_relaxations->value();
+    std::size_t nb_iterations = dial.nb_iterations->value();
+    m_pScene->seeding(method,
+      (dial.cb_nb_proxies->isChecked() ? boost::optional<std::size_t>(dial.nb_proxies->value()) : boost::none),
+      (dial.cb_error_drop->isChecked() ? boost::optional<FT>(dial.error_drop->value()) : boost::none),
+      nb_relaxations,
+      nb_iterations);
+
     m_pViewer->update();
 
     QApplication::restoreOverrideCursor();

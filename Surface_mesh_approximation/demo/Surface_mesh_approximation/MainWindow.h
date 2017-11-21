@@ -52,7 +52,7 @@ protected slots:
 
   // operations menu
   void on_actionApproximation_triggered();
-  void on_actionInitialization_triggered();
+  void on_actionSeeding_triggered();
   void on_actionFit_triggered();
   void on_actionAdd_triggered();
   void on_actionTeleport_triggered();
