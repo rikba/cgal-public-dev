@@ -39,7 +39,9 @@ public:
     m_view_polyhedron(false),
     m_view_wireframe(false),
     m_view_boundary(false),
-    m_view_anchors(false) {}
+    m_view_proxies(false),
+    m_view_anchors(false),
+    m_view_approximation(false) {}
 
   ~Scene() {
     if (m_pmesh)
@@ -76,6 +78,10 @@ public:
 
   void toggle_view_boundary() {
     m_view_boundary = !m_view_boundary;
+  }
+
+  void toggle_view_proxies() {
+    m_view_proxies = !m_view_proxies;
   }
 
   void toggle_view_anchors() {
@@ -134,6 +140,7 @@ private:
   bool m_view_polyhedron;
   bool m_view_wireframe;
   bool m_view_boundary;
+  bool m_view_proxies;
   bool m_view_anchors;
   bool m_view_approximation;
 }; // end class Scene

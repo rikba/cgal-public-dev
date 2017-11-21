@@ -57,6 +57,7 @@
     <addaction name="actionViewWireframe"/>
     <addaction name="actionViewBoundary"/>
     <addaction name="separator"/>
+    <addaction name="actionViewProxies"/>
     <addaction name="actionViewAnchors"/>
     <addaction name="actionViewApproximation"/>
    </widget>
@@ -268,6 +269,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+X</string>
+   </property>
+  </action>
+  <action name="actionViewProxies">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;L21 Proxies</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+L</string>
    </property>
   </action>
  </widget>

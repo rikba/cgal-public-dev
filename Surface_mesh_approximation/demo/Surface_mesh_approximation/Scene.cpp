@@ -92,6 +92,7 @@ int Scene::open(QString filename)
   m_view_polyhedron = true;
   m_view_wireframe = false;
   m_view_boundary = false;
+  m_view_proxies = false;
   m_view_anchors = false;
   m_view_approximation = false;
 
@@ -140,6 +141,7 @@ void Scene::set_metric(const int m) {
   m_view_polyhedron = true;
   m_view_wireframe = false;
   m_view_boundary = false;
+  m_view_proxies = false;
   m_view_anchors = false;
   m_view_approximation = false;
 
@@ -256,7 +258,8 @@ void Scene::draw()
     render_approximation();
 
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
-  render_proxies();
+  if (m_view_proxies)
+    render_proxies();
 #endif
 }
 

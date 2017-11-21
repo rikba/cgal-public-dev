@@ -62,6 +62,7 @@ protected slots:
   void on_actionViewPolyhedron_triggered();
   void on_actionViewWireframe_triggered();
   void on_actionViewBoundary_triggered();
+  void on_actionViewProxies_triggered();
   void on_actionViewAnchors_triggered();
   void on_actionViewApproximation_triggered();
 

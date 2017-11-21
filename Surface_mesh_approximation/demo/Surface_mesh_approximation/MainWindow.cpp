@@ -91,6 +91,7 @@ void MainWindow::open(QString filename)
       ui->actionViewPolyhedron->setChecked(true);
       ui->actionViewWireframe->setChecked(false);
       ui->actionViewBoundary->setChecked(false);
+      ui->actionViewProxies->setChecked(false);
       ui->actionViewAnchors->setChecked(false);
       ui->actionViewApproximation->setChecked(false);
 
@@ -200,6 +201,7 @@ void MainWindow::on_actionL21_triggered()
   ui->actionViewPolyhedron->setChecked(true);
   ui->actionViewWireframe->setChecked(false);
   ui->actionViewBoundary->setChecked(false);
+  ui->actionViewProxies->setChecked(false);
   ui->actionViewAnchors->setChecked(false);
   ui->actionViewApproximation->setChecked(false);
 
@@ -215,6 +217,7 @@ void MainWindow::on_actionL2_triggered()
   ui->actionViewPolyhedron->setChecked(true);
   ui->actionViewWireframe->setChecked(false);
   ui->actionViewBoundary->setChecked(false);
+  ui->actionViewProxies->setChecked(false);
   ui->actionViewAnchors->setChecked(false);
   ui->actionViewApproximation->setChecked(false);
 
@@ -230,6 +233,7 @@ void MainWindow::on_actionCompact_triggered()
   ui->actionViewPolyhedron->setChecked(true);
   ui->actionViewWireframe->setChecked(false);
   ui->actionViewBoundary->setChecked(false);
+  ui->actionViewProxies->setChecked(false);
   ui->actionViewAnchors->setChecked(false);
   ui->actionViewApproximation->setChecked(false);
   
@@ -346,6 +350,12 @@ void MainWindow::on_actionViewWireframe_triggered()
 void MainWindow::on_actionViewBoundary_triggered()
 {
   m_pScene->toggle_view_boundary();
+  m_pViewer->update();
+}
+
+void MainWindow::on_actionViewProxies_triggered()
+{
+  m_pScene->toggle_view_proxies();
   m_pViewer->update();
 }
 
