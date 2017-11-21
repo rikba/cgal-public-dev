@@ -176,16 +176,15 @@ public:
     return 0;
   }
 
-  std::size_t run_one_step() {
+  void run(const std::size_t nb_iterations) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.run();
+        return m_l21_approx.run(nb_iterations);
       case L2:
-        return m_l2_approx.run();
+        return m_l2_approx.run(nb_iterations);
       case Compact:
-        return m_iso_approx.run();
+        return m_iso_approx.run(nb_iterations);
     }
-    return 0;
   }
 
   std::size_t add_one_proxy() {

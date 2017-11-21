@@ -161,8 +161,7 @@ void Scene::seeding(
     return;
 
   m_approx.seeding(method, max_nb_proxies, min_error_drop, nb_relaxations);
-  for (std::size_t i = 0; i < nb_iterations; ++i)
-    m_approx.run_one_step();
+  m_approx.run(nb_iterations);
   m_approx.get_proxy_map(m_fidx_pmap);
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
   m_proxies.clear();
@@ -180,7 +179,7 @@ void Scene::seeding(
 
 void Scene::run_one_step()
 {
-  m_approx.run_one_step();
+  m_approx.run(1);
   m_approx.get_proxy_map(m_fidx_pmap);
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
   m_proxies.clear();
