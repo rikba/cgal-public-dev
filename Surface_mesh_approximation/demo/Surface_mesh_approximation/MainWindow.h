@@ -54,9 +54,10 @@ protected slots:
   void on_actionApproximation_triggered();
   void on_actionSeeding_triggered();
   void on_actionFit_triggered();
+  void on_actionMeshing_triggered();
   void on_actionAdd_triggered();
   void on_actionTeleport_triggered();
-  void on_actionMeshing_triggered();
+  void on_actionSplit_triggered();
 
   // view menu
   void on_actionViewPolyhedron_triggered();

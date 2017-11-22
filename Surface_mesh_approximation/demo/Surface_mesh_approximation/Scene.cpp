@@ -200,13 +200,30 @@ void Scene::add_one_proxy()
   m_approx.get_l21_proxies(std::back_inserter(m_proxies));
 #endif
 
-  // add on proxy color
+  // add one proxy color
   m_px_color.push_back(rand_0_255());
 }
 
 void Scene::teleport_one_proxy()
 {
   m_approx.teleport_one_proxy();
+  m_approx.get_proxy_map(m_fidx_pmap);
+#ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
+  m_proxies.clear();
+  m_approx.get_l21_proxies(std::back_inserter(m_proxies));
+#endif
+}
+
+void Scene::split(const std::size_t px_idx, const std::size_t n, const std::size_t nb_relaxations)
+{
+  if (m_approx.split(px_idx, n, nb_relaxations)) {
+    std::cerr << "split succeeded" << std::endl;
+    // add colors
+    for (std::size_t i = 1; i < n; ++i)
+      m_px_color.push_back(rand_0_255());
+  }
+  else
+    std::cerr << "split failed" << std::endl;
   m_approx.get_proxy_map(m_fidx_pmap);
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
   m_proxies.clear();

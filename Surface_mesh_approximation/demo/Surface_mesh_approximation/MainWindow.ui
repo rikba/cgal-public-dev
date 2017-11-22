@@ -84,10 +84,11 @@
     <addaction name="separator"/>
     <addaction name="actionSeeding"/>
     <addaction name="actionFit"/>
+    <addaction name="actionMeshing"/>
+    <addaction name="separator"/>
     <addaction name="actionAdd"/>
     <addaction name="actionTeleport"/>
-    <addaction name="separator"/>
-    <addaction name="actionMeshing"/>
+    <addaction name="actionSplit"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -280,6 +281,11 @@
    </property>
    <property name="shortcut">
     <string>Alt+L</string>
+   </property>
+  </action>
+  <action name="actionSplit">
+   <property name="text">
+    <string>Split</string>
    </property>
   </action>
  </widget>

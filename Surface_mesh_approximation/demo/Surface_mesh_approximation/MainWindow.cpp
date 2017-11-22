@@ -302,22 +302,6 @@ void MainWindow::on_actionFit_triggered()
   QApplication::restoreOverrideCursor();
 }
 
-void MainWindow::on_actionAdd_triggered()
-{
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  m_pScene->add_one_proxy();
-  m_pViewer->update();
-  QApplication::restoreOverrideCursor();
-}
-
-void MainWindow::on_actionTeleport_triggered()
-{
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  m_pScene->teleport_one_proxy();
-  m_pViewer->update();
-  QApplication::restoreOverrideCursor();
-}
-
 void MainWindow::on_actionMeshing_triggered()
 {
   SettingsDialog dial;
@@ -334,6 +318,40 @@ void MainWindow::on_actionMeshing_triggered()
     ui->actionViewApproximation->setChecked(true);
   }
 }
+
+void MainWindow::on_actionAdd_triggered()
+{
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  m_pScene->add_one_proxy();
+  m_pViewer->update();
+  QApplication::restoreOverrideCursor();
+}
+
+void MainWindow::on_actionTeleport_triggered()
+{
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  m_pScene->teleport_one_proxy();
+  m_pViewer->update();
+  QApplication::restoreOverrideCursor();
+}
+
+void MainWindow::on_actionSplit_triggered()
+{
+  SettingsDialog dial;
+  dial.operations->setEnabled(true);
+  dial.operations->setCurrentIndex(0);
+  if (dial.exec() == QDialog::Accepted) {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    m_pScene->split(dial.split_proxy_idx->value(),
+      dial.split_nb_sections->value(),
+      dial.split_nb_relaxations->value());
+
+    m_pViewer->update();
+    QApplication::restoreOverrideCursor();
+  }
+}
+
 
 void MainWindow::on_actionViewPolyhedron_triggered()
 {

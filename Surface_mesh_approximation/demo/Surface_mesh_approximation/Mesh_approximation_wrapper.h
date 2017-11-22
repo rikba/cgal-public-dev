@@ -228,6 +228,18 @@ public:
     return 0;
   }
 
+  bool split(const std::size_t px_idx, const std::size_t n, const std::size_t nb_relaxations) {
+    switch (m_metric) {
+      case L21:
+        return m_l21_approx.split(px_idx, n, nb_relaxations);
+      case L2:
+        return m_l2_approx.split(px_idx, n, nb_relaxations);
+      case Compact:
+        return m_iso_approx.split(px_idx, n, nb_relaxations);
+    }
+    return false;
+  }
+
   template <typename PolyhedronSurface>
   bool extract_mesh(PolyhedronSurface &mesh_out, const FT chord_error, bool pca_plane) {
     switch (m_metric) {
