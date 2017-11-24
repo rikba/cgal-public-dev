@@ -41,10 +41,21 @@ void SettingsDialog::loadFromSettings()
   if (settings.contains("nb_iterations"))
     nb_iterations->setValue(settings.value("nb_iterations").toInt());
 
+  if (settings.contains("is_relative_to_chord"))
+    is_relative_to_chord->setChecked(settings.value("is_relative_to_chord").toBool());
+  if (settings.contains("with_dihedral_angle"))
+    with_dihedral_angle->setChecked(settings.value("with_dihedral_angle").toBool());
   if (settings.contains("pca_plane"))
     pca_plane->setChecked(settings.value("pca_plane").toBool());
   if (settings.contains("chord_error"))
     chord_error->setValue(settings.value("chord_error").toDouble());
+
+  if (settings.contains("split_proxy_idx"))
+    split_proxy_idx->setValue(settings.value("split_proxy_idx").toInt());
+  if (settings.contains("split_nb_sections"))
+    split_nb_sections->setValue(settings.value("split_nb_sections").toInt());
+  if (settings.contains("split_nb_relaxations"))
+    split_nb_relaxations->setValue(settings.value("split_nb_relaxations").toInt());
 
   settings.endGroup();
 }
@@ -66,8 +77,14 @@ void SettingsDialog::saveToSettings()
   settings.setValue("nb_relaxations", nb_relaxations->value());
   settings.setValue("nb_iterations", nb_iterations->value());
 
+  settings.setValue("is_relative_to_chord", is_relative_to_chord->isChecked());
+  settings.setValue("with_dihedral_angle", with_dihedral_angle->isChecked());
   settings.setValue("pca_plane", pca_plane->isChecked());
   settings.setValue("chord_error", chord_error->value());
+
+  settings.setValue("split_proxy_idx", split_proxy_idx->value());
+  settings.setValue("split_nb_sections", split_nb_sections->value());
+  settings.setValue("split_nb_relaxations", split_nb_relaxations->value());
 
   settings.endGroup();
 }

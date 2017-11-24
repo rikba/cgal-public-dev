@@ -259,6 +259,8 @@ void MainWindow::on_actionApproximation_triggered()
       nb_relaxations,
       nb_iterations);
     m_pScene->extract_mesh(dial.chord_error->value(),
+      dial.is_relative_to_chord->isChecked(),
+      dial.with_dihedral_angle->isChecked(),
       dial.pca_plane->isChecked());
 
     m_pViewer->update();
@@ -310,6 +312,8 @@ void MainWindow::on_actionMeshing_triggered()
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     m_pScene->extract_mesh(dial.chord_error->value(),
+      dial.is_relative_to_chord->isChecked(),
+      dial.with_dihedral_angle->isChecked(),
       dial.pca_plane->isChecked());
 
     m_pViewer->update();

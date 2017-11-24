@@ -62,7 +62,10 @@ public:
     const boost::optional<FT> min_error_drop,
     const std::size_t nb_relaxations,
     const std::size_t nb_iterations);
-  void extract_mesh(const double chord_error, const bool pca_plane);
+  void extract_mesh(const double chord_error,
+    const bool is_relative_to_chord,
+    const bool with_dihedral_angle,
+    const bool pca_plane);
   void run_one_step();
   void add_one_proxy();
   void teleport_one_proxy();

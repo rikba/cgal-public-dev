@@ -231,7 +231,10 @@ void Scene::split(const std::size_t px_idx, const std::size_t n, const std::size
 #endif
 }
 
-void Scene::extract_mesh(const double chord_error, const bool pca_plane)
+void Scene::extract_mesh(const double chord_error,
+  const bool is_relative_to_chord,
+  const bool with_dihedral_angle,
+  const bool pca_plane)
 {
   Polyhedron_3 out_mesh;
   m_tris.clear();
@@ -239,7 +242,8 @@ void Scene::extract_mesh(const double chord_error, const bool pca_plane)
   m_anchor_vtx.clear();
   m_bdrs.clear();
 
-  m_approx.extract_mesh(out_mesh, chord_error, pca_plane);
+  m_approx.extract_mesh(out_mesh,
+    chord_error, is_relative_to_chord, with_dihedral_angle, pca_plane);
   m_approx.get_indexed_triangles(std::back_inserter(m_tris));
   m_approx.get_anchor_points(std::back_inserter(m_anchor_pos));
   m_approx.get_anchor_vertices(std::back_inserter(m_anchor_vtx));

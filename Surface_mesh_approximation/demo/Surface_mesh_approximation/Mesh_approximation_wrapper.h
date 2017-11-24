@@ -241,14 +241,21 @@ public:
   }
 
   template <typename PolyhedronSurface>
-  bool extract_mesh(PolyhedronSurface &mesh_out, const FT chord_error, bool pca_plane) {
+  bool extract_mesh(PolyhedronSurface &mesh_out,
+    const FT chord_error,
+    const bool is_relative_to_chord,
+    const bool with_dihedral_angle,
+    const bool pca_plane) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.extract_mesh(mesh_out, chord_error, pca_plane);
+        return m_l21_approx.extract_mesh(mesh_out,
+          chord_error, is_relative_to_chord, with_dihedral_angle, pca_plane);
       case L2:
-        return m_l2_approx.extract_mesh(mesh_out, chord_error, pca_plane);
+        return m_l2_approx.extract_mesh(mesh_out,
+          chord_error, is_relative_to_chord, with_dihedral_angle, pca_plane);
       case Compact:
-        return m_iso_approx.extract_mesh(mesh_out, chord_error, pca_plane);
+        return m_iso_approx.extract_mesh(mesh_out,
+          chord_error, is_relative_to_chord, with_dihedral_angle, pca_plane);
     }
     return false;
   }
