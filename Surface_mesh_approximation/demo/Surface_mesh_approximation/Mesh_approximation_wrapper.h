@@ -178,28 +178,15 @@ public:
 
   void run(const std::size_t nb_iterations) {
     FT err(0.0);
-    static std::size_t count = 0;
     switch (m_metric) {
       case L21:
-        for (std::size_t i = 0; i < nb_iterations; ++i) {
-          m_l21_approx.run(nb_iterations);
-          err = m_l21_approx.compute_fitting_error();
-          std::cerr << '#' << count++ << ": " << err << std::endl;
-        }
+        m_l21_approx.run(nb_iterations);
         break;
       case L2:
-        for (std::size_t i = 0; i < nb_iterations; ++i) {
-          m_l2_approx.run(nb_iterations);
-          err = m_l2_approx.compute_fitting_error();
-          std::cerr << '#' << count++ << ": " << err << std::endl;
-        }
+        m_l2_approx.run(nb_iterations);
         break;
       case Compact:
-        for (std::size_t i = 0; i < nb_iterations; ++i) {
-          m_iso_approx.run(nb_iterations);
-          err = m_iso_approx.compute_fitting_error();
-          std::cerr << '#' << count++ << ": " << err << std::endl;
-        }
+        m_l2_approx.run(nb_iterations);
         break;
     }
   }
