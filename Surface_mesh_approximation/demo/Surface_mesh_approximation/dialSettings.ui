@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>275</width>
-    <height>604</height>
+    <height>630</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -209,6 +209,13 @@
        <widget class="QCheckBox" name="with_dihedral_angle">
         <property name="text">
          <string>With dihedral angle</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="if_optimize_anchor_location">
+        <property name="text">
+         <string>Optimize anchor location</string>
         </property>
        </widget>
       </item>
