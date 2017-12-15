@@ -261,6 +261,7 @@ void MainWindow::on_actionApproximation_triggered()
     m_pScene->extract_mesh(dial.chord_error->value(),
       dial.is_relative_to_chord->isChecked(),
       dial.with_dihedral_angle->isChecked(),
+      dial.if_optimize_anchor_location->isChecked(),
       dial.pca_plane->isChecked());
 
     m_pViewer->update();
@@ -314,6 +315,7 @@ void MainWindow::on_actionMeshing_triggered()
     m_pScene->extract_mesh(dial.chord_error->value(),
       dial.is_relative_to_chord->isChecked(),
       dial.with_dihedral_angle->isChecked(),
+      dial.if_optimize_anchor_location->isChecked(),
       dial.pca_plane->isChecked());
 
     m_pViewer->update();

@@ -45,6 +45,8 @@ void SettingsDialog::loadFromSettings()
     is_relative_to_chord->setChecked(settings.value("is_relative_to_chord").toBool());
   if (settings.contains("with_dihedral_angle"))
     with_dihedral_angle->setChecked(settings.value("with_dihedral_angle").toBool());
+  if (settings.contains("if_optimize_anchor_location"))
+    if_optimize_anchor_location->setChecked(settings.value("if_optimize_anchor_location").toBool());
   if (settings.contains("pca_plane"))
     pca_plane->setChecked(settings.value("pca_plane").toBool());
   if (settings.contains("chord_error"))
@@ -79,6 +81,7 @@ void SettingsDialog::saveToSettings()
 
   settings.setValue("is_relative_to_chord", is_relative_to_chord->isChecked());
   settings.setValue("with_dihedral_angle", with_dihedral_angle->isChecked());
+  settings.setValue("if_optimize_anchor_location", if_optimize_anchor_location->isChecked());
   settings.setValue("pca_plane", pca_plane->isChecked());
   settings.setValue("chord_error", chord_error->value());
 

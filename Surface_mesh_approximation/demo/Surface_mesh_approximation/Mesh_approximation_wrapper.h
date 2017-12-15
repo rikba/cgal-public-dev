@@ -178,28 +178,15 @@ public:
 
   void run(const std::size_t nb_iterations) {
     FT err(0.0);
-    static std::size_t count = 0;
     switch (m_metric) {
       case L21:
-        for (std::size_t i = 0; i < nb_iterations; ++i) {
-          m_l21_approx.run(nb_iterations);
-          err = m_l21_approx.compute_fitting_error();
-          std::cerr << '#' << count++ << ": " << err << std::endl;
-        }
+        m_l21_approx.run(nb_iterations);
         break;
       case L2:
-        for (std::size_t i = 0; i < nb_iterations; ++i) {
-          m_l2_approx.run(nb_iterations);
-          err = m_l2_approx.compute_fitting_error();
-          std::cerr << '#' << count++ << ": " << err << std::endl;
-        }
+        m_l2_approx.run(nb_iterations);
         break;
       case Compact:
-        for (std::size_t i = 0; i < nb_iterations; ++i) {
-          m_iso_approx.run(nb_iterations);
-          err = m_iso_approx.compute_fitting_error();
-          std::cerr << '#' << count++ << ": " << err << std::endl;
-        }
+        m_l2_approx.run(nb_iterations);
         break;
     }
   }
@@ -245,17 +232,18 @@ public:
     const FT chord_error,
     const bool is_relative_to_chord,
     const bool with_dihedral_angle,
+    const bool if_optimize_anchor_location,
     const bool pca_plane) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.extract_mesh(mesh_out,
-          chord_error, is_relative_to_chord, with_dihedral_angle, pca_plane);
+        return m_l21_approx.extract_mesh(mesh_out, chord_error,
+          is_relative_to_chord, with_dihedral_angle, if_optimize_anchor_location, pca_plane);
       case L2:
-        return m_l2_approx.extract_mesh(mesh_out,
-          chord_error, is_relative_to_chord, with_dihedral_angle, pca_plane);
+        return m_l2_approx.extract_mesh(mesh_out, chord_error,
+          is_relative_to_chord, with_dihedral_angle, if_optimize_anchor_location, pca_plane);
       case Compact:
-        return m_iso_approx.extract_mesh(mesh_out,
-          chord_error, is_relative_to_chord, with_dihedral_angle, pca_plane);
+        return m_iso_approx.extract_mesh(mesh_out, chord_error,
+          is_relative_to_chord, with_dihedral_angle, if_optimize_anchor_location, pca_plane);
     }
     return false;
   }
