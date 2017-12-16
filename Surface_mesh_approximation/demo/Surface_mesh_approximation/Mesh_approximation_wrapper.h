@@ -14,15 +14,25 @@ class Mesh_approximation_wrapper {
   typedef boost::associative_property_map<std::map<face_descriptor, FT> > Facet_area_map;
   typedef boost::associative_property_map<std::map<face_descriptor, Point_3> > Facet_center_map;
 
+#ifdef CGAL_LINKED_WITH_TBB
+  typedef CGAL::VSA::Mesh_approximation<TriangleMesh, Vertex_point_map,
+    CGAL::Default, CGAL::Default, GeomTraits, CGAL::Parallel_tag> L21_approx;
+#else
   typedef CGAL::VSA::Mesh_approximation<TriangleMesh, Vertex_point_map,
     CGAL::Default, CGAL::Default, GeomTraits> L21_approx;
+#endif
   typedef typename L21_approx::Error_metric L21_metric;
   typedef typename L21_approx::Proxy_fitting L21_proxy_fitting;
 
   typedef CGAL::VSA::L2_metric<TriangleMesh> L2_metric;
   typedef CGAL::VSA::L2_proxy_fitting<TriangleMesh> L2_proxy_fitting;
+#ifdef CGAL_LINKED_WITH_TBB
+  typedef CGAL::VSA::Mesh_approximation<TriangleMesh, Vertex_point_map,
+    L2_metric, L2_proxy_fitting, GeomTraits, CGAL::Parallel_tag> L2_approx;
+#else
   typedef CGAL::VSA::Mesh_approximation<TriangleMesh, Vertex_point_map,
     L2_metric, L2_proxy_fitting, GeomTraits> L2_approx;
+#endif
 
   // user defined point-wise compact metric
   struct Compact_metric {
@@ -65,8 +75,13 @@ class Mesh_approximation_wrapper {
     const Facet_center_map center_pmap;
     const Facet_area_map area_pmap;
   };
+#ifdef CGAL_LINKED_WITH_TBB
+  typedef CGAL::VSA::Mesh_approximation<TriangleMesh, Vertex_point_map,
+    Compact_metric, Point_proxy_fitting, GeomTraits, CGAL::Parallel_tag> Compact_approx;
+#else
   typedef CGAL::VSA::Mesh_approximation<TriangleMesh, Vertex_point_map,
     Compact_metric, Point_proxy_fitting, GeomTraits> Compact_approx;
+#endif
 
 public:
   enum Metric { L21, L2, Compact };

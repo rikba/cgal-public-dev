@@ -11,17 +11,23 @@ if(POLICY CMP0043)
   cmake_policy(SET CMP0043 OLD)
 endif()
 
+# Activate concurrency?
+option(ACTIVATE_CONCURRENCY
+  "Enable concurrency"
+  ON)
+
 # Find TBB
 # Tested version: tbb2018_20171205oss
 # Find TBB by setting $ENV{TBB_DIR} to the directory where TBBConfig.cmake resides.
 # Placed before `include(${CGAL_USE_FILE})` to avoid using the CGAL Installation/cmake/modules/FindTBB.cmake module.
 # Reference: $ENV{TBB_DIR}/README.rst
 # find_package will search for available TBBConfig using variables CMAKE_PREFIX_PATH and TBB_DIR.
-find_package(TBB REQUIRED tbb)
-
-if(TBB_DIR)
-  message(${TBB_DIR})
-endif(TBB_DIR)
+if(ACTIVATE_CONCURRENCY)
+  # add definition required by CGAL
+  # https://github.com/CGAL/cgal/wiki/Concurrency-in-CGAL#which-mechanism-to-enable-or-disable-parallelism
+  add_definitions(-DCGAL_LINKED_WITH_TBB)
+  find_package(TBB REQUIRED tbb)
+endif()
 
 # Include this package's headers first
 include_directories( BEFORE ./ ./include ../../include )
@@ -110,4 +116,8 @@ endif (CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWE
 # Reference: $ENV{TBB_DIR}/README.rst
 # Link Intel TBB imported targets to the executable;
 # "TBB::tbb" can be used instead of "${TBB_IMPORTED_TARGETS}".
-target_link_libraries(VSA_demo ${TBB_IMPORTED_TARGETS})
+if(ACTIVATE_CONCURRENCY)
+  if(TBB_FOUND)
+    target_link_libraries(VSA_demo ${TBB_IMPORTED_TARGETS})
+  endif()
+endif()
