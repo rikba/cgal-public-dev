@@ -11,6 +11,18 @@ if(POLICY CMP0043)
   cmake_policy(SET CMP0043 OLD)
 endif()
 
+# Find TBB
+# Tested version: tbb2018_20171205oss
+# Find TBB by setting $ENV{TBB_DIR} to the directory where TBBConfig.cmake resides.
+# Placed before `include(${CGAL_USE_FILE})` to avoid using the CGAL Installation/cmake/modules/FindTBB.cmake module.
+# Reference: $ENV{TBB_DIR}/README.rst
+# find_package will search for available TBBConfig using variables CMAKE_PREFIX_PATH and TBB_DIR.
+find_package(TBB REQUIRED tbb)
+
+if(TBB_DIR)
+  message(${TBB_DIR})
+endif(TBB_DIR)
+
 # Include this package's headers first
 include_directories( BEFORE ./ ./include ../../include )
 
@@ -94,3 +106,8 @@ else (CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER
   message(STATUS "NOTICE: This demo requires ${VSA_MISSING_DEPS} and will not be compiled.")
 
 endif (CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND)
+
+# Reference: $ENV{TBB_DIR}/README.rst
+# Link Intel TBB imported targets to the executable;
+# "TBB::tbb" can be used instead of "${TBB_IMPORTED_TARGETS}".
+target_link_libraries(VSA_demo ${TBB_IMPORTED_TARGETS})
