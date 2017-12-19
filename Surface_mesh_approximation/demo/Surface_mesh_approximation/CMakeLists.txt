@@ -2,9 +2,13 @@
 
 project( Surface_mesh_approximation_Demo )
 
-cmake_minimum_required(VERSION 2.8.11)
-if(POLICY CMP0043)
-  cmake_policy(SET CMP0043 OLD)
+cmake_minimum_required(VERSION 3.1)
+if(NOT POLICY CMP0070 AND POLICY CMP0053)
+  # Only set CMP0053 to OLD with CMake<3.10, otherwise there is a warning.
+  cmake_policy(SET CMP0053 OLD)
+endif()
+if(POLICY CMP0071)
+  cmake_policy(SET CMP0071 NEW)
 endif()
 
 # Find includes in corresponding build directories
@@ -27,6 +31,15 @@ find_package(OpenGL)
 if(Qt5_FOUND)
   find_package(QGLViewer)
 endif(Qt5_FOUND)
+
+# Active verbose output ? (turned ON by default)
+option(ACTIVATE_VERBOSE_OUTPUT
+  "Enable verbose output"
+  ON)
+
+if(ACTIVATE_VERBOSE_OUTPUT)
+  add_definitions(-DCGAL_SURFACE_MESH_APPROXIMATION_DEBUG)
+endif()
 
 # Activate concurrency ? (turned OFF by default)
 option(ACTIVATE_CONCURRENCY
@@ -55,25 +68,16 @@ if(CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FO
   # qrc files (resources files, that contain icons, at least)
   qt5_add_resources ( CGAL_Qt5_RESOURCE_FILES VSA_demo.qrc )
 
-  include(AddFileDependencies)
-
-  qt5_generate_moc( "MainWindow.h" "${CMAKE_CURRENT_BINARY_DIR}/MainWindow_moc.cpp" )
-  add_file_dependencies( MainWindow_moc.cpp "${CMAKE_CURRENT_SOURCE_DIR}/MainWindow.h" )
-
-  qt5_generate_moc( "dialSettings.h" "${CMAKE_CURRENT_BINARY_DIR}/dialSettings_moc.cpp" )
-  add_file_dependencies( dialSettings_moc.cpp "${CMAKE_CURRENT_SOURCE_DIR}/dialSettings.h" )
-
-  qt5_generate_moc( "Viewer.h" "${CMAKE_CURRENT_BINARY_DIR}/Viewer_moc.cpp" )
-  add_file_dependencies( Viewer_moc.cpp "${CMAKE_CURRENT_SOURCE_DIR}/Viewer.h" )
-
-  add_file_dependencies( VSA_demo.cpp "${CMAKE_CURRENT_BINARY_DIR}/MainWindow_moc.cpp"
-                                       "${CMAKE_CURRENT_BINARY_DIR}/Viewer_moc.cpp"
-                                       "${CMAKE_CURRENT_BINARY_DIR}/dialSettings_moc.cpp")
-
   # cpp files
-  add_executable( VSA_demo VSA_demo.cpp ${UI_FILES} ${CGAL_Qt5_RESOURCE_FILES} ${CGAL_Qt5_MOC_FILES})
+  add_executable( VSA_demo
+    VSA_demo.cpp
+    MainWindow.cpp Viewer.cpp
+    dialSettings.cpp
+    Scene.cpp
+    ColorCheatSheet.cpp
+    ${UI_FILES} ${CGAL_Qt5_RESOURCE_FILES} ${CGAL_Qt5_MOC_FILES} )
 
-  qt5_use_modules(VSA_demo Xml Script OpenGL)
+  qt5_use_modules( VSA_demo Xml Script OpenGL )
 
   # Link with Qt libraries
   target_link_libraries( VSA_demo ${QT_LIBRARIES} )

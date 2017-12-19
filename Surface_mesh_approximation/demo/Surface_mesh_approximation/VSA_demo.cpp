@@ -47,12 +47,3 @@ int main(int argc, char **argv)
   
   return app.exec();
 }
-
-#include "Scene.cpp"
-#include "Viewer.cpp"
-#include "Viewer_moc.cpp"
-#include "MainWindow.cpp"
-#include "MainWindow_moc.cpp"
-#include "dialSettings.cpp"
-#include "dialSettings_moc.cpp"
-#include "ColorCheatSheet.cpp"

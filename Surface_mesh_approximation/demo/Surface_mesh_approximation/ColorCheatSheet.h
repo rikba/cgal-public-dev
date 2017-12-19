@@ -1,6 +1,8 @@
 #ifndef COLOR_CHEAT_SHEET_H
 #define COLOR_CHEAT_SHEET_H
 
+#include <cstddef>
+
 // 256 color cheat sheet
 // Source: https://jonasjacek.github.io/colors/
 
