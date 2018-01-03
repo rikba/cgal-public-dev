@@ -201,7 +201,7 @@ public:
         m_l2_approx.run(nb_iterations);
         break;
       case Compact:
-        m_l2_approx.run(nb_iterations);
+        m_iso_approx.run(nb_iterations);
         break;
     }
   }
