@@ -263,14 +263,14 @@ public:
     return false;
   }
 
-  std::size_t get_proxies_size() {
+  std::size_t proxies_size() {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.get_proxies_size();
+        return m_l21_approx.proxies_size();
       case L2:
-        return m_l2_approx.get_proxies_size();
+        return m_l2_approx.proxies_size();
       case Compact:
-        return m_iso_approx.get_proxies_size();
+        return m_iso_approx.proxies_size();
     }
     return 0;
   }
@@ -280,7 +280,7 @@ public:
   void get_l21_proxies(OutputIterator outitr) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.get_wrapped_proxies(outitr);
+        return m_l21_approx.wrapped_proxies(outitr);
       default:
         return;
     }
@@ -288,62 +288,62 @@ public:
 #endif
 
   template <typename FacetProxyMap>
-  void get_proxy_map(FacetProxyMap &fpmap) {
+  void proxy_map(FacetProxyMap &fpmap) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.get_proxy_map(fpmap);
+        return m_l21_approx.proxy_map(fpmap);
       case L2:
-        return m_l2_approx.get_proxy_map(fpmap);
+        return m_l2_approx.proxy_map(fpmap);
       case Compact:
-        return m_iso_approx.get_proxy_map(fpmap);
+        return m_iso_approx.proxy_map(fpmap);
     }
   }
 
   template <typename OutputIterator>
-  void get_indexed_triangles(OutputIterator outitr) {
+  void indexed_triangles(OutputIterator outitr) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.get_indexed_triangles(outitr);
+        return m_l21_approx.indexed_triangles(outitr);
       case L2:
-        return m_l2_approx.get_indexed_triangles(outitr);
+        return m_l2_approx.indexed_triangles(outitr);
       case Compact:
-        return m_iso_approx.get_indexed_triangles(outitr);
+        return m_iso_approx.indexed_triangles(outitr);
     }
   }
 
   template <typename OutputIterator>
-  void get_anchor_points(OutputIterator outitr) {
+  void anchor_points(OutputIterator outitr) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.get_anchor_points(outitr);
+        return m_l21_approx.anchor_points(outitr);
       case L2:
-        return m_l2_approx.get_anchor_points(outitr);
+        return m_l2_approx.anchor_points(outitr);
       case Compact:
-        return m_iso_approx.get_anchor_points(outitr);
+        return m_iso_approx.anchor_points(outitr);
     }
   }
 
   template <typename OutputIterator>
-  void get_anchor_vertices(OutputIterator outitr) {
+  void anchor_vertices(OutputIterator outitr) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.get_anchor_vertices(outitr);
+        return m_l21_approx.anchor_vertices(outitr);
       case L2:
-        return m_l2_approx.get_anchor_vertices(outitr);
+        return m_l2_approx.anchor_vertices(outitr);
       case Compact:
-        return m_iso_approx.get_anchor_vertices(outitr);
+        return m_iso_approx.anchor_vertices(outitr);
     }
   }
 
   template <typename OutputIterator>
-  void get_indexed_boundary_polygons(OutputIterator outitr) {
+  void indexed_boundary_polygons(OutputIterator outitr) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.get_indexed_boundary_polygons(outitr);
+        return m_l21_approx.indexed_boundary_polygons(outitr);
       case L2:
-        return m_l2_approx.get_indexed_boundary_polygons(outitr);
+        return m_l2_approx.indexed_boundary_polygons(outitr);
       case Compact:
-        return m_iso_approx.get_indexed_boundary_polygons(outitr);
+        return m_iso_approx.indexed_boundary_polygons(outitr);
     }
   }
 

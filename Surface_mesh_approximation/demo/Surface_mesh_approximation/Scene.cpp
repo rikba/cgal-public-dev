@@ -165,7 +165,7 @@ void Scene::seeding(
 
   m_approx.seeding(method, max_nb_proxies, min_error_drop, nb_relaxations);
   m_approx.run(nb_iterations);
-  m_approx.get_proxy_map(m_fidx_pmap);
+  m_approx.proxy_map(m_fidx_pmap);
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
   m_proxies.clear();
   m_approx.get_l21_proxies(std::back_inserter(m_proxies));
@@ -173,7 +173,7 @@ void Scene::seeding(
 
   // generate proxy color map
   m_px_color.clear();
-  for (std::size_t i = 0; i < m_approx.get_proxies_size(); i++)
+  for (std::size_t i = 0; i < m_approx.proxies_size(); i++)
     m_px_color.push_back(rand_0_255());
 
   // update display options
@@ -183,7 +183,7 @@ void Scene::seeding(
 void Scene::run_one_step()
 {
   m_approx.run(1);
-  m_approx.get_proxy_map(m_fidx_pmap);
+  m_approx.proxy_map(m_fidx_pmap);
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
   m_proxies.clear();
   m_approx.get_l21_proxies(std::back_inserter(m_proxies));
@@ -195,7 +195,7 @@ void Scene::add_one_proxy()
   if (m_approx.add_one_proxy() == 0)
     return;
 
-  m_approx.get_proxy_map(m_fidx_pmap);
+  m_approx.proxy_map(m_fidx_pmap);
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
   m_proxies.clear();
   m_approx.get_l21_proxies(std::back_inserter(m_proxies));
@@ -208,7 +208,7 @@ void Scene::add_one_proxy()
 void Scene::teleport_one_proxy()
 {
   m_approx.teleport_one_proxy();
-  m_approx.get_proxy_map(m_fidx_pmap);
+  m_approx.proxy_map(m_fidx_pmap);
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
   m_proxies.clear();
   m_approx.get_l21_proxies(std::back_inserter(m_proxies));
@@ -225,7 +225,7 @@ void Scene::split(const std::size_t px_idx, const std::size_t n, const std::size
   }
   else
     std::cerr << "split failed" << std::endl;
-  m_approx.get_proxy_map(m_fidx_pmap);
+  m_approx.proxy_map(m_fidx_pmap);
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
   m_proxies.clear();
   m_approx.get_l21_proxies(std::back_inserter(m_proxies));
@@ -246,10 +246,10 @@ void Scene::extract_mesh(const double chord_error,
 
   m_approx.extract_mesh(out_mesh, chord_error,
     is_relative_to_chord, with_dihedral_angle, if_optimize_anchor_location, pca_plane);
-  m_approx.get_indexed_triangles(std::back_inserter(m_tris));
-  m_approx.get_anchor_points(std::back_inserter(m_anchor_pos));
-  m_approx.get_anchor_vertices(std::back_inserter(m_anchor_vtx));
-  m_approx.get_indexed_boundary_polygons(std::back_inserter(m_bdrs));
+  m_approx.indexed_triangles(std::back_inserter(m_tris));
+  m_approx.anchor_points(std::back_inserter(m_anchor_pos));
+  m_approx.anchor_vertices(std::back_inserter(m_anchor_vtx));
+  m_approx.indexed_boundary_polygons(std::back_inserter(m_bdrs));
 
   // update display options
   m_view_anchors = true;
@@ -291,7 +291,7 @@ void Scene::render_polyhedron()
   if (!m_pmesh)
     return;
 
-  const std::size_t px_num = m_approx.get_proxies_size();
+  const std::size_t px_num = m_approx.proxies_size();
   ::glEnable(GL_LIGHTING);
   ::glColor3ub(200, 200, 200);
   ::glBegin(GL_TRIANGLES);
@@ -337,7 +337,7 @@ void Scene::render_wireframe()
 
 void Scene::render_boundary()
 {
-  if (!m_pmesh || !m_approx.get_proxies_size())
+  if (!m_pmesh || !m_approx.proxies_size())
     return;
 
   ::glDisable(GL_LIGHTING);
