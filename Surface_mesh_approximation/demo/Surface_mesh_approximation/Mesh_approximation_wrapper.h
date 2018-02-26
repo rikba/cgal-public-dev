@@ -24,8 +24,8 @@ class Mesh_approximation_wrapper {
   typedef typename L21_approx::Error_metric L21_metric;
   typedef typename L21_approx::Proxy_fitting L21_proxy_fitting;
 
-  typedef CGAL::VSA::L2_metric<TriangleMesh> L2_metric;
-  typedef CGAL::VSA::L2_proxy_fitting<TriangleMesh> L2_proxy_fitting;
+  typedef CGAL::L2_metric<TriangleMesh> L2_metric;
+  typedef CGAL::L2_proxy_fitting<TriangleMesh> L2_proxy_fitting;
 #ifdef CGAL_LINKED_WITH_TBB
   typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
     L2_metric, L2_proxy_fitting, GeomTraits, CGAL::Parallel_tag> L2_approx;
