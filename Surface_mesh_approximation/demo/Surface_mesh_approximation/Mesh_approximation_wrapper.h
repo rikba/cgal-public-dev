@@ -1,4 +1,4 @@
-#include <CGAL/vsa_approximation.h>
+#include <CGAL/VSA_approximation.h>
 #include <CGAL/property_map.h>
 
 template <typename TriangleMesh, typename GeomTraits>
@@ -15,10 +15,10 @@ class Mesh_approximation_wrapper {
   typedef boost::associative_property_map<std::map<face_descriptor, Point_3> > Facet_center_map;
 
 #ifdef CGAL_LINKED_WITH_TBB
-  typedef CGAL::VSA::Mesh_approximation<TriangleMesh, Vertex_point_map,
+  typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
     CGAL::Default, CGAL::Default, GeomTraits, CGAL::Parallel_tag> L21_approx;
 #else
-  typedef CGAL::VSA::Mesh_approximation<TriangleMesh, Vertex_point_map,
+  typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
     CGAL::Default, CGAL::Default, GeomTraits> L21_approx;
 #endif
   typedef typename L21_approx::Error_metric L21_metric;
@@ -27,10 +27,10 @@ class Mesh_approximation_wrapper {
   typedef CGAL::VSA::L2_metric<TriangleMesh> L2_metric;
   typedef CGAL::VSA::L2_proxy_fitting<TriangleMesh> L2_proxy_fitting;
 #ifdef CGAL_LINKED_WITH_TBB
-  typedef CGAL::VSA::Mesh_approximation<TriangleMesh, Vertex_point_map,
+  typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
     L2_metric, L2_proxy_fitting, GeomTraits, CGAL::Parallel_tag> L2_approx;
 #else
-  typedef CGAL::VSA::Mesh_approximation<TriangleMesh, Vertex_point_map,
+  typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
     L2_metric, L2_proxy_fitting, GeomTraits> L2_approx;
 #endif
 
@@ -76,10 +76,10 @@ class Mesh_approximation_wrapper {
     const Facet_area_map area_pmap;
   };
 #ifdef CGAL_LINKED_WITH_TBB
-  typedef CGAL::VSA::Mesh_approximation<TriangleMesh, Vertex_point_map,
+  typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
     Compact_metric, Point_proxy_fitting, GeomTraits, CGAL::Parallel_tag> Compact_approx;
 #else
-  typedef CGAL::VSA::Mesh_approximation<TriangleMesh, Vertex_point_map,
+  typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
     Compact_metric, Point_proxy_fitting, GeomTraits> Compact_approx;
 #endif
 
@@ -173,7 +173,7 @@ public:
     }
   }
 
-  std::size_t seeding(const CGAL::VSA::Seeding method,
+  std::size_t seeding(const CGAL::Approximation_seeding_tag method,
     const boost::optional<std::size_t> max_nb_proxies,
     const boost::optional<FT> min_error_drop,
     const std::size_t nb_relaxations) {
