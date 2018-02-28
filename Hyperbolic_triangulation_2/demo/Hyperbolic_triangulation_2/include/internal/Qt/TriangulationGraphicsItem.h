@@ -52,16 +52,6 @@ public:
   
   virtual void operator()(typename T::Face_handle fh);
 
-  const QPen& verticesPen() const
-  {
-    return vertices_pen;
-  }
-
-  const QPen& edgesPen() const
-  {
-    return edges_pen;
-  }
-
   void setVerticesPen(const QPen& pen)
   {
     vertices_pen = pen;
@@ -97,7 +87,6 @@ public:
 protected:
   virtual void drawAll(QPainter *painter);
   void paintVertices(QPainter *painter);
-  void paintOneVertex(const typename T::Point& point);
   virtual void paintVertex(typename T::Vertex_handle vh);
   void updateBoundingBox();
 
@@ -124,7 +113,6 @@ TriangulationGraphicsItem<T>::TriangulationGraphicsItem(T * t_)
      bb(0,0,0,0), bb_initialized(false),
      visible_edges(true), visible_vertices(true)
 {
-  setVerticesPen(QPen(::Qt::red, 3.));
   if(t->number_of_vertices() == 0){
     this->hide();
   }
@@ -147,7 +135,6 @@ TriangulationGraphicsItem<T>::operator()(typename T::Face_handle fh)
   if(visible_edges) {
     for (int i=0; i<3; i++) {
       if (fh < fh->neighbor(i) || t->is_infinite(fh->neighbor(i))){
-        m_painter->setPen(this->edgesPen());
         painterostream << t->segment(fh,i);
       }
     }
@@ -163,6 +150,10 @@ template <typename T>
 void 
 TriangulationGraphicsItem<T>::drawAll(QPainter *painter)
 {
+  QPen pen;
+  pen.setWidthF(0.005);
+  pen.setBrush(::Qt::black);
+  painter->setPen(edges_pen);
   painterostream = PainterOstream<Geom_traits>(painter);
  
   if(visibleEdges()) {
@@ -182,7 +173,7 @@ TriangulationGraphicsItem<T>::paintVertices(QPainter *painter)
   if(visibleVertices()) {
     Converter<Geom_traits> convert;
 
-    painter->setPen(verticesPen());
+    painter->setPen(vertices_pen);
     QMatrix matrix = painter->matrix();
     painter->resetMatrix();
     for(typename T::Finite_vertices_iterator it = t->finite_vertices_begin();
@@ -196,24 +187,10 @@ TriangulationGraphicsItem<T>::paintVertices(QPainter *painter)
 
 template <typename T>
 void 
-TriangulationGraphicsItem<T>::paintOneVertex(const typename T::Point& point)
-{
-  Converter<Geom_traits> convert;
-
-  m_painter->setPen(this->verticesPen());
-  QMatrix matrix = m_painter->matrix();
-  m_painter->resetMatrix();
-  m_painter->drawPoint(matrix.map(convert(point)));
-  m_painter->setMatrix(matrix);
-}
-
-template <typename T>
-void 
 TriangulationGraphicsItem<T>::paintVertex(typename T::Vertex_handle vh)
 {
   Converter<Geom_traits> convert;
-
-  m_painter->setPen(this->verticesPen());
+  m_painter->setPen(vertices_pen);
   QMatrix matrix = m_painter->matrix();
   m_painter->resetMatrix();
   m_painter->drawPoint(matrix.map(convert(vh->point())));
@@ -226,8 +203,6 @@ TriangulationGraphicsItem<T>::paint(QPainter *painter,
                                     const QStyleOptionGraphicsItem *option,
                                     QWidget * /*widget*/)
 {
-  painter->setPen(this->edgesPen());
-   //painter->drawRect(boundingRect());
   if ( t->dimension()<2 || option->exposedRect.contains(boundingRect()) ) {
     drawAll(painter);
   } else {
