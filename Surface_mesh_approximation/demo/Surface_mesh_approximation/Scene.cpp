@@ -238,14 +238,16 @@ void Scene::extract_mesh(const double chord_error,
   const bool if_optimize_anchor_location,
   const bool pca_plane)
 {
-  Polyhedron_3 out_mesh;
   m_tris.clear();
   m_anchor_pos.clear();
   m_anchor_vtx.clear();
   m_bdrs.clear();
 
-  m_approx.extract_mesh(out_mesh, chord_error,
-    is_relative_to_chord, with_dihedral_angle, if_optimize_anchor_location, pca_plane);
+  m_approx.extract_mesh(chord_error,
+    is_relative_to_chord,
+    with_dihedral_angle,
+    if_optimize_anchor_location,
+    pca_plane);
   m_approx.indexed_triangles(std::back_inserter(m_tris));
   m_approx.anchor_points(std::back_inserter(m_anchor_pos));
   m_approx.anchor_vertices(std::back_inserter(m_anchor_vtx));
