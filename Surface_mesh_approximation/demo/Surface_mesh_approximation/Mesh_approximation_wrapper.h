@@ -1,4 +1,5 @@
 #include <CGAL/VSA_approximation.h>
+#include <CGAL/Approximation_l2_traits.h>
 #include <CGAL/property_map.h>
 
 template <typename TriangleMesh, typename GeomTraits>
@@ -16,49 +17,37 @@ class Mesh_approximation_wrapper {
 
 #ifdef CGAL_LINKED_WITH_TBB
   typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
-    CGAL::Default, CGAL::Default, GeomTraits, CGAL::Parallel_tag> L21_approx;
+    CGAL::Default, GeomTraits, CGAL::Parallel_tag> L21_approx;
 #else
   typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
-    CGAL::Default, CGAL::Default, GeomTraits> L21_approx;
+    CGAL::Default, GeomTraits> L21_approx;
 #endif
-  typedef typename L21_approx::Error_metric L21_metric;
-  typedef typename L21_approx::Proxy_fitting L21_proxy_fitting;
+  typedef typename L21_approx::Approximation_traits L21_metric;
 
-  typedef CGAL::L2_metric<TriangleMesh> L2_metric;
-  typedef CGAL::L2_proxy_fitting<TriangleMesh> L2_proxy_fitting;
+  typedef CGAL::Approximation_l2_traits<TriangleMesh> L2_metric;
 #ifdef CGAL_LINKED_WITH_TBB
   typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
-    L2_metric, L2_proxy_fitting, GeomTraits, CGAL::Parallel_tag> L2_approx;
+    L2_metric, GeomTraits, CGAL::Parallel_tag> L2_approx;
 #else
   typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
-    L2_metric, L2_proxy_fitting, GeomTraits> L2_approx;
+    L2_metric, GeomTraits> L2_approx;
 #endif
 
   // user defined point-wise compact metric
   struct Compact_metric {
     typedef Point_3 Proxy;
 
-    Compact_metric(const Facet_center_map &_center_pmap)
-      : center_pmap(_center_pmap) {}
+    Compact_metric(const Facet_center_map &_center_pmap,
+      const Facet_area_map &_area_pmap)
+      : center_pmap(_center_pmap), area_pmap(_area_pmap) {}
 
-    FT operator()(const face_descriptor &f, const Proxy &px) const {
+    FT compute_error(const face_descriptor &f, const Proxy &px) const {
       return FT(std::sqrt(CGAL::to_double(
         CGAL::squared_distance(center_pmap[f], px))));
     }
 
-    const Facet_center_map center_pmap;
-  };
-
-  struct Point_proxy_fitting {
-    typedef Point_3 Proxy;
-
-    Point_proxy_fitting(const Facet_center_map &_center_pmap,
-      const Facet_area_map &_area_pmap)
-      : center_pmap(_center_pmap),
-      area_pmap(_area_pmap) {}
-
     template <typename FacetIterator>
-    Proxy operator()(const FacetIterator beg, const FacetIterator end) const {
+    Proxy fit_proxy(const FacetIterator beg, const FacetIterator end) const {
       CGAL_assertion(beg != end);
 
       // fitting center
@@ -75,12 +64,13 @@ class Mesh_approximation_wrapper {
     const Facet_center_map center_pmap;
     const Facet_area_map area_pmap;
   };
+
 #ifdef CGAL_LINKED_WITH_TBB
   typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
-    Compact_metric, Point_proxy_fitting, GeomTraits, CGAL::Parallel_tag> Compact_approx;
+    Compact_metric, GeomTraits, CGAL::Parallel_tag> Compact_approx;
 #else
   typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
-    Compact_metric, Point_proxy_fitting, GeomTraits> Compact_approx;
+    Compact_metric, GeomTraits> Compact_approx;
 #endif
 
 public:
@@ -95,25 +85,16 @@ public:
     m_center_pmap(m_facet_centers),
     m_area_pmap(m_facet_areas),
     m_pl21_metric(NULL),
-    m_pl21_proxy_fitting(NULL),
     m_pl2_metric(NULL),
-    m_pl2_proxy_fitting(NULL),
-    m_pcompact_metric(NULL),
-    m_pcompact_proxy_fitting(NULL) {}
+    m_pcompact_metric(NULL) {}
 
   ~Mesh_approximation_wrapper() {
     if (m_pl21_metric)
       delete m_pl21_metric;
-    if (m_pl21_proxy_fitting)
-      delete m_pl21_proxy_fitting;
     if (m_pl2_metric)
       delete m_pl2_metric;
-    if (m_pl2_proxy_fitting)
-      delete m_pl2_proxy_fitting;
     if (m_pcompact_metric)
       delete m_pcompact_metric;
-    if (m_pcompact_proxy_fitting)
-      delete m_pcompact_proxy_fitting;
   }
 
   void set_mesh(const TriangleMesh &mesh) {
@@ -136,32 +117,23 @@ public:
 
     if (m_pl21_metric)
       delete m_pl21_metric;
-    if (m_pl21_proxy_fitting)
-      delete m_pl21_proxy_fitting;
     if (m_pl2_metric)
       delete m_pl2_metric;
-    if (m_pl2_proxy_fitting)
-      delete m_pl2_proxy_fitting;
     if (m_pcompact_metric)
       delete m_pcompact_metric;
-    if (m_pcompact_proxy_fitting)
-      delete m_pcompact_proxy_fitting;
 
-    m_pl21_metric = new L21_metric(mesh);
-    m_pl21_proxy_fitting = new L21_proxy_fitting(mesh);
-    m_pl2_metric = new L2_metric(mesh);
-    m_pl2_proxy_fitting = new L2_proxy_fitting(mesh);
-    m_pcompact_metric = new Compact_metric(m_center_pmap);
-    m_pcompact_proxy_fitting = new Point_proxy_fitting(m_center_pmap, m_area_pmap);
+    m_pl21_metric = new L21_metric(mesh, vpm);
+    m_pl2_metric = new L2_metric(mesh, vpm);
+    m_pcompact_metric = new Compact_metric(m_center_pmap, m_area_pmap);
 
     m_l21_approx.set_mesh(mesh, vpm);
-    m_l21_approx.set_metric(*m_pl21_metric, *m_pl21_proxy_fitting);
+    m_l21_approx.set_metric(*m_pl21_metric);
 
     m_l2_approx.set_mesh(mesh, vpm);
-    m_l2_approx.set_metric(*m_pl2_metric, *m_pl2_proxy_fitting);
+    m_l2_approx.set_metric(*m_pl2_metric);
 
     m_iso_approx.set_mesh(mesh, vpm);
-    m_iso_approx.set_metric(*m_pcompact_metric, *m_pcompact_proxy_fitting);
+    m_iso_approx.set_metric(*m_pcompact_metric);
   }
 
   void set_metric(const Metric m) {
@@ -364,14 +336,11 @@ private:
   Facet_area_map m_area_pmap;
 
   L21_metric *m_pl21_metric;
-  L21_proxy_fitting *m_pl21_proxy_fitting;
   L21_approx m_l21_approx;
 
   L2_metric *m_pl2_metric;
-  L2_proxy_fitting *m_pl2_proxy_fitting;
   L2_approx m_l2_approx;
 
   Compact_metric *m_pcompact_metric;
-  Point_proxy_fitting *m_pcompact_proxy_fitting;
   Compact_approx m_iso_approx;
 };

@@ -453,7 +453,7 @@ void Scene::render_proxies()
   ::glBegin(GL_LINES);
   BOOST_FOREACH(const L21_proxy_wrapper &pxw, m_proxies) {
     const Halfedge_handle he = pxw.seed->halfedge();
-    const Vector_3 norm = pxw.px.normal;
+    const Vector_3 norm = pxw.px;
     const Point_3 cen = CGAL::centroid(he->opposite()->vertex()->point(),
       he->vertex()->point(),
       he->next()->vertex()->point());
