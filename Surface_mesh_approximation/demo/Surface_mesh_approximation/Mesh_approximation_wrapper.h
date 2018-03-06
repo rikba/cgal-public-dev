@@ -1,5 +1,5 @@
 #include <CGAL/VSA_approximation.h>
-#include <CGAL/Approximation_l2_traits.h>
+#include <CGAL/L2_metric.h>
 #include <CGAL/property_map.h>
 
 template <typename TriangleMesh, typename GeomTraits>
@@ -22,9 +22,9 @@ class Mesh_approximation_wrapper {
   typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
     CGAL::Default, GeomTraits> L21_approx;
 #endif
-  typedef typename L21_approx::Approximation_traits L21_metric;
+  typedef typename L21_approx::Error_metric L21_metric;
 
-  typedef CGAL::Approximation_l2_traits<TriangleMesh> L2_metric;
+  typedef CGAL::L2_metric<TriangleMesh> L2_metric;
 #ifdef CGAL_LINKED_WITH_TBB
   typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
     L2_metric, GeomTraits, CGAL::Parallel_tag> L2_approx;
