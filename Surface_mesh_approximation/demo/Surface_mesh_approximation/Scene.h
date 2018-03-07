@@ -11,7 +11,7 @@
 
 #include <CGAL/boost/graph/graph_traits_Polyhedron_3.h>
 #include <CGAL/property_map.h>
-#include "Mesh_approximation_wrapper.h"
+#include "VSA_approximation_wrapper.h"
 
 typedef CGAL::Simple_cartesian<double> Kernel;
 typedef Kernel::FT FT;
@@ -25,7 +25,7 @@ typedef Polyhedron_3::Facet_handle Facet_handle;
 typedef Polyhedron_3::Facet_iterator Facet_iterator;
 typedef CGAL::Bbox_3 Bbox_3;
 
-typedef Mesh_approximation_wrapper<Polyhedron_3, Kernel> Approximation_wrapper;
+typedef VSA_approximation_wrapper<Polyhedron_3, Kernel> Approximation_wrapper;
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
 typedef Approximation_wrapper::L21_proxy_wrapper L21_proxy_wrapper;
 #endif

@@ -1,9 +1,12 @@
+#ifndef VSA_APPROXIMAITON_WRAPPER_H
+#define VSA_APPROXIMAITON_WRAPPER_H
+
 #include <CGAL/VSA_approximation.h>
 #include <CGAL/L2_metric.h>
 #include <CGAL/property_map.h>
 
 template <typename TriangleMesh, typename GeomTraits>
-class Mesh_approximation_wrapper {
+class VSA_approximation_wrapper {
   typedef typename GeomTraits::FT FT;
   typedef typename GeomTraits::Point_3 Point_3;
   typedef typename GeomTraits::Vector_3 Vector_3;
@@ -82,7 +85,7 @@ public:
   typedef typename L21_approx::Proxy_wrapper L21_proxy_wrapper;
 #endif
 
-  Mesh_approximation_wrapper()
+  VSA_approximation_wrapper()
     : m_metric(L21),
     m_center_pmap(m_facet_centers),
     m_area_pmap(m_facet_areas),
@@ -90,7 +93,7 @@ public:
     m_pl2_metric(NULL),
     m_pcompact_metric(NULL) {}
 
-  ~Mesh_approximation_wrapper() {
+  ~VSA_approximation_wrapper() {
     if (m_pl21_metric)
       delete m_pl21_metric;
     if (m_pl2_metric)
@@ -346,3 +349,5 @@ private:
   Compact_metric *m_pcompact_metric;
   Compact_approx m_iso_approx;
 };
+
+#endif // VSA_APPROXIMAITON_WRAPPER_H
