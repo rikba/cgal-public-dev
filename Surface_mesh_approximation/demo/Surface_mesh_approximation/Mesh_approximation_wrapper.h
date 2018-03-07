@@ -76,6 +76,8 @@ class Mesh_approximation_wrapper {
 public:
   enum Metric { L21, L2, Compact };
 
+  typedef CGAL::cpp11::array<std::size_t, 3> Indexed_triangle;
+
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG
   typedef typename L21_approx::Proxy_wrapper L21_proxy_wrapper;
 #endif

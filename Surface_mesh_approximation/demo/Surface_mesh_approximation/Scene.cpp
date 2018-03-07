@@ -115,7 +115,7 @@ void Scene::save_approximation(const std::string &filename)
   ofs << "OFF\n" << m_anchor_pos.size() << ' ' << m_tris.size() << ' ' << "0\n";
   BOOST_FOREACH(const Point_3 &pt, m_anchor_pos)
     ofs << pt.x() << ' ' << pt.y() << ' ' << pt.z() << ' ' << '\n';
-  BOOST_FOREACH(const std::vector<std::size_t> &t, m_tris)
+  BOOST_FOREACH(const Indexed_triangle &t, m_tris)
     ofs << 3 << ' ' << t[0] << ' ' << t[1] << ' ' << t[2] << '\n';
   ofs.flush();
   ofs.close();
@@ -417,7 +417,7 @@ void Scene::render_approximation()
   ::glPolygonOffset(3.0, 1.0);
   ::glLineWidth(1.0f);
   ::glColor3ub(0, 0, 255);
-  BOOST_FOREACH(const std::vector<std::size_t> &t, m_tris) {
+  BOOST_FOREACH(const Indexed_triangle &t, m_tris) {
     ::glBegin(GL_LINE_LOOP);
     const Point_3 &p0 = m_anchor_pos[t[0]];
     ::glVertex3d(p0.x(), p0.y(), p0.z());
@@ -431,7 +431,7 @@ void Scene::render_approximation()
   ::glColor3ub(200, 200, 200);
   // ::glPolygonMode(GL_FRONT, GL_FILL);
   ::glBegin(GL_TRIANGLES);
-  BOOST_FOREACH(const std::vector<std::size_t> &t, m_tris) {
+  BOOST_FOREACH(const Indexed_triangle &t, m_tris) {
     const Point_3 &p0 = m_anchor_pos[t[0]];
     const Point_3 &p1 = m_anchor_pos[t[1]];
     const Point_3 &p2 = m_anchor_pos[t[2]];

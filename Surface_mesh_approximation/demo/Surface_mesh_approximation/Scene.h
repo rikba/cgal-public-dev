@@ -30,6 +30,8 @@ typedef Mesh_approximation_wrapper<Polyhedron_3, Kernel> Approximation_wrapper;
 typedef Approximation_wrapper::L21_proxy_wrapper L21_proxy_wrapper;
 #endif
 
+typedef Approximation_wrapper::Indexed_triangle Indexed_triangle;
+
 class Scene
 {
 public:
@@ -139,7 +141,7 @@ private:
   std::vector<Point_3> m_anchor_pos;
   std::vector<Polyhedron_3::Vertex_handle> m_anchor_vtx;
   std::vector<std::vector<std::size_t> > m_bdrs; // anchor borders
-  std::vector<std::vector<std::size_t> > m_tris;
+  std::vector<Indexed_triangle> m_tris;
 
   // view options
   bool m_view_polyhedron;
