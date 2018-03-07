@@ -186,11 +186,11 @@ public:
   std::size_t add_one_proxy() {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.add_proxies_furthest(1, 0);
+        return m_l21_approx.add_to_furthest_proxies(1, 0);
       case L2:
-        return m_l2_approx.add_proxies_furthest(1, 0);
+        return m_l2_approx.add_to_furthest_proxies(1, 0);
       case Compact:
-        return m_iso_approx.add_proxies_furthest(1, 0);
+        return m_iso_approx.add_to_furthest_proxies(1, 0);
     }
     return 0;
   }
