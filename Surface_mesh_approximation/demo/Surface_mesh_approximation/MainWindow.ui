@@ -74,7 +74,6 @@
      <string>&amp;Edit</string>
     </property>
     <addaction name="actionCopySnapshot"/>
-    <addaction name="actionSaveSnapshot"/>
    </widget>
    <widget class="QMenu" name="menuOperation">
     <property name="title">
@@ -103,7 +102,7 @@
   </action>
   <action name="actionLoadPolyhedron">
    <property name="text">
-    <string>&amp;Load polyhedron</string>
+    <string>&amp;Load polyhedron...</string>
    </property>
   </action>
   <action name="actionViewWireframe">
@@ -191,7 +190,7 @@
   </action>
   <action name="actionSaveApproximation">
    <property name="text">
-    <string>&amp;Save Approximation</string>
+    <string>&amp;Save approximation</string>
    </property>
    <property name="toolTip">
     <string>Save approximation</string>
