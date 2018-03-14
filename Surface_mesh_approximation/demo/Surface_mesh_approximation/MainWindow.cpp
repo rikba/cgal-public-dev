@@ -181,17 +181,6 @@ void MainWindow::on_actionSaveSnapshot_triggered()
   QApplication::restoreOverrideCursor();
 }
 
-void MainWindow::on_actionCopySnapshot_triggered()
-{
-  // copy snapshot to clipboard
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  QClipboard *qb = QApplication::clipboard();
-  m_pViewer->makeCurrent();
-  m_pViewer->raise();
-  QImage snapshot = m_pViewer->grabFrameBuffer(true);
-  qb->setImage(snapshot);
-  QApplication::restoreOverrideCursor();
-}
 
 void MainWindow::on_actionL21_triggered()
 {

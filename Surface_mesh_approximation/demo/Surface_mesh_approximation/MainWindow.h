@@ -43,7 +43,6 @@ protected slots:
 
   // edit menu
   void on_actionSaveSnapshot_triggered();
-  void on_actionCopySnapshot_triggered();
 
   // set metric menu
   void on_actionL21_triggered();
