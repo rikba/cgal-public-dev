@@ -2,7 +2,7 @@
 #define VSA_APPROXIMAITON_WRAPPER_H
 
 #include <CGAL/VSA_approximation.h>
-#include <CGAL/L2_metric.h>
+#include <CGAL/L2_metric_plane_proxy.h>
 #include <CGAL/property_map.h>
 
 template <typename TriangleMesh, typename GeomTraits>
@@ -27,13 +27,13 @@ class VSA_approximation_wrapper {
 #endif
   typedef typename L21_approx::Error_metric L21_metric;
 
-  typedef CGAL::L2_metric<TriangleMesh> L2_metric;
+  typedef CGAL::VSA::L2_metric_plane_proxy<TriangleMesh> L2_metric_plane_proxy;
 #ifdef CGAL_LINKED_WITH_TBB
   typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
-    L2_metric, GeomTraits, CGAL::Parallel_tag> L2_approx;
+    L2_metric_plane_proxy, GeomTraits, CGAL::Parallel_tag> L2_approx;
 #else
   typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
-    L2_metric, GeomTraits> L2_approx;
+    L2_metric_plane_proxy, GeomTraits> L2_approx;
 #endif
 
   // user defined point-wise compact metric
@@ -128,7 +128,7 @@ public:
       delete m_pcompact_metric;
 
     m_pl21_metric = new L21_metric(mesh, vpm);
-    m_pl2_metric = new L2_metric(mesh, vpm);
+    m_pl2_metric = new L2_metric_plane_proxy(mesh, vpm);
     m_pcompact_metric = new Compact_metric(m_center_pmap, m_area_pmap);
 
     m_l21_approx.set_mesh(mesh, vpm);
@@ -343,7 +343,7 @@ private:
   L21_metric *m_pl21_metric;
   L21_approx m_l21_approx;
 
-  L2_metric *m_pl2_metric;
+  L2_metric_plane_proxy *m_pl2_metric;
   L2_approx m_l2_approx;
 
   Compact_metric *m_pcompact_metric;
