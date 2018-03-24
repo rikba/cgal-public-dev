@@ -226,23 +226,26 @@ public:
     const bool pca_plane) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.extract_mesh(chord_error,
-          is_relative_to_chord,
-          with_dihedral_angle,
-          if_optimize_anchor_location,
-          pca_plane);
+        return m_l21_approx.extract_mesh(
+          CGAL::Surface_mesh_approximation::parameters::mesh_chord_error(chord_error).
+          is_relative_to_chord(is_relative_to_chord).
+          with_dihedral_angle(with_dihedral_angle).
+          optimize_anchor_location(if_optimize_anchor_location).
+          pca_plane(pca_plane));
       case L2:
-        return m_l2_approx.extract_mesh(chord_error,
-          is_relative_to_chord,
-          with_dihedral_angle,
-          if_optimize_anchor_location,
-          pca_plane);
+        return m_l2_approx.extract_mesh(
+          CGAL::Surface_mesh_approximation::parameters::mesh_chord_error(chord_error).
+          is_relative_to_chord(is_relative_to_chord).
+          with_dihedral_angle(with_dihedral_angle).
+          optimize_anchor_location(if_optimize_anchor_location).
+          pca_plane(pca_plane));
       case Compact:
-        return m_iso_approx.extract_mesh(chord_error,
-          is_relative_to_chord,
-          with_dihedral_angle,
-          if_optimize_anchor_location,
-          pca_plane);
+        return m_iso_approx.extract_mesh(
+          CGAL::Surface_mesh_approximation::parameters::mesh_chord_error(chord_error).
+          is_relative_to_chord(is_relative_to_chord).
+          with_dihedral_angle(with_dihedral_angle).
+          optimize_anchor_location(if_optimize_anchor_location).
+          pca_plane(pca_plane));
     }
     return false;
   }
