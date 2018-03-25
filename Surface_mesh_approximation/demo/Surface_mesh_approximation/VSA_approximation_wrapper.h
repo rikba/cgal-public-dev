@@ -219,32 +219,32 @@ public:
     return false;
   }
 
-  bool extract_mesh(const FT chord_error,
-    const bool is_relative_to_chord,
+  bool extract_mesh(const FT subdivision_ratio,
+    const bool relative_to_chord,
     const bool with_dihedral_angle,
-    const bool if_optimize_anchor_location,
+    const bool optimize_anchor_location,
     const bool pca_plane) {
     switch (m_metric) {
       case L21:
         return m_l21_approx.extract_mesh(
-          CGAL::Surface_mesh_approximation::parameters::mesh_chord_error(chord_error).
-          is_relative_to_chord(is_relative_to_chord).
+          CGAL::Surface_mesh_approximation::parameters::subdivision_ratio(subdivision_ratio).
+          relative_to_chord(relative_to_chord).
           with_dihedral_angle(with_dihedral_angle).
-          optimize_anchor_location(if_optimize_anchor_location).
+          optimize_anchor_location(optimize_anchor_location).
           pca_plane(pca_plane));
       case L2:
         return m_l2_approx.extract_mesh(
-          CGAL::Surface_mesh_approximation::parameters::mesh_chord_error(chord_error).
-          is_relative_to_chord(is_relative_to_chord).
+          CGAL::Surface_mesh_approximation::parameters::subdivision_ratio(subdivision_ratio).
+          relative_to_chord(relative_to_chord).
           with_dihedral_angle(with_dihedral_angle).
-          optimize_anchor_location(if_optimize_anchor_location).
+          optimize_anchor_location(optimize_anchor_location).
           pca_plane(pca_plane));
       case Compact:
         return m_iso_approx.extract_mesh(
-          CGAL::Surface_mesh_approximation::parameters::mesh_chord_error(chord_error).
-          is_relative_to_chord(is_relative_to_chord).
+          CGAL::Surface_mesh_approximation::parameters::subdivision_ratio(subdivision_ratio).
+          relative_to_chord(relative_to_chord).
           with_dihedral_angle(with_dihedral_angle).
-          optimize_anchor_location(if_optimize_anchor_location).
+          optimize_anchor_location(optimize_anchor_location).
           pca_plane(pca_plane));
     }
     return false;
