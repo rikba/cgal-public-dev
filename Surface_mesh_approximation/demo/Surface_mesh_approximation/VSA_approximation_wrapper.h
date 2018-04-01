@@ -44,21 +44,21 @@ class VSA_approximation_wrapper {
       const Facet_area_map &_area_pmap)
       : center_pmap(_center_pmap), area_pmap(_area_pmap) {}
 
-    FT compute_error(const face_descriptor &f, const Proxy &px) const {
+    FT compute_error(const TriangleMesh &tm, const face_descriptor &f, const Proxy &px) const {
       return FT(std::sqrt(CGAL::to_double(
         CGAL::squared_distance(center_pmap[f], px))));
     }
 
-    template <typename FacetIterator>
-    Proxy fit_proxy(const FacetIterator beg, const FacetIterator end) const {
-      CGAL_assertion(beg != end);
+    template <typename FaceRange>
+    Proxy fit_proxy(const TriangleMesh &tm, const FaceRange &faces) const {
+      CGAL_assertion(!faces.empty());
 
       // fitting center
       Vector_3 center = CGAL::NULL_VECTOR;
-      FT area(0);
-      for (FacetIterator fitr = beg; fitr != end; ++fitr) {
-        center = center + (center_pmap[*fitr] - CGAL::ORIGIN) * area_pmap[*fitr];
-        area += area_pmap[*fitr];
+      FT area(0.0);
+      BOOST_FOREACH(const face_descriptor &f, faces) {
+        center = center + (center_pmap[f] - CGAL::ORIGIN) * area_pmap[f];
+        area += area_pmap[f];
       }
       center = center / area;
       return CGAL::ORIGIN + center;
