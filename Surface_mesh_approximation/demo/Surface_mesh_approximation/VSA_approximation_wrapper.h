@@ -27,20 +27,20 @@ class VSA_approximation_wrapper {
 #endif
   typedef typename L21_approx::Error_metric L21_metric;
 
-  typedef CGAL::VSA::L2_metric_plane_proxy<TriangleMesh> L2_metric_plane_proxy;
+  typedef CGAL::VSA::L2_metric_plane_proxy<TriangleMesh> L2_metric;
 #ifdef CGAL_LINKED_WITH_TBB
   typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
-    L2_metric_plane_proxy, GeomTraits, CGAL::Parallel_tag> L2_approx;
+    L2_metric, GeomTraits, CGAL::Parallel_tag> L2_approx;
 #else
   typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
-    L2_metric_plane_proxy, GeomTraits> L2_approx;
+    L2_metric, GeomTraits> L2_approx;
 #endif
 
   // user defined point-wise compact metric
-  struct Compact_metric {
+  struct Compact_metric_point_proxy {
     typedef Point_3 Proxy;
 
-    Compact_metric(const Facet_center_map &_center_pmap,
+    Compact_metric_point_proxy(const Facet_center_map &_center_pmap,
       const Facet_area_map &_area_pmap)
       : center_pmap(_center_pmap), area_pmap(_area_pmap) {}
 
@@ -67,6 +67,7 @@ class VSA_approximation_wrapper {
     const Facet_center_map center_pmap;
     const Facet_area_map area_pmap;
   };
+  typedef Compact_metric_point_proxy Compact_metric;
 
 #ifdef CGAL_LINKED_WITH_TBB
   typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
@@ -128,7 +129,7 @@ public:
       delete m_pcompact_metric;
 
     m_pl21_metric = new L21_metric(mesh, vpm);
-    m_pl2_metric = new L2_metric_plane_proxy(mesh, vpm);
+    m_pl2_metric = new L2_metric(mesh, vpm);
     m_pcompact_metric = new Compact_metric(m_center_pmap, m_area_pmap);
 
     m_l21_approx.set_mesh(mesh, vpm);
@@ -346,7 +347,7 @@ private:
   L21_metric *m_pl21_metric;
   L21_approx m_l21_approx;
 
-  L2_metric_plane_proxy *m_pl2_metric;
+  L2_metric *m_pl2_metric;
   L2_approx m_l2_approx;
 
   Compact_metric *m_pcompact_metric;
