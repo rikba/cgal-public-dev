@@ -45,12 +45,14 @@ class VSA_approximation_wrapper {
       : center_pmap(_center_pmap), area_pmap(_area_pmap) {}
 
     FT compute_error(const TriangleMesh &tm, const face_descriptor &f, const Proxy &px) const {
+      (void)(tm);
       return FT(std::sqrt(CGAL::to_double(
         CGAL::squared_distance(center_pmap[f], px))));
     }
 
     template <typename FaceRange>
     Proxy fit_proxy(const TriangleMesh &tm, const FaceRange &faces) const {
+      (void)(tm);
       CGAL_assertion(!faces.empty());
 
       // fitting center
