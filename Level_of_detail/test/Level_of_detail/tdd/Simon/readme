@@ -19,7 +19,7 @@ In this directory, I create a few folders:
 
 C --------
 
-I need to define one environment variable "LOD_LOG_PATH" - path to the "logs" folder above as "path_to/logs/", should have "/" at the end
+I need to define one environment variable "LOD_LOGS_PATH" - path to the "logs" folder above as "path_to/logs/", should have "/" at the end
 
 D --------
 

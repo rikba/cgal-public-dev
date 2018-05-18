@@ -26,7 +26,7 @@ namespace CGAL {
 
 		public:
 
-            Level_of_detail_segment_regularizer_debugger() : m_prefix_path(std::string(std::getenv("LOD_LOG_PATH"))) { }
+            Level_of_detail_segment_regularizer_debugger() : m_prefix_path(std::string(std::getenv("LOD_LOGS_PATH"))) { }
 
 			void clear() {
 				out.str(std::string());
@@ -118,7 +118,7 @@ namespace CGAL {
 				return out.str();
 			}
 
-			void save(const std::string &filename, const std::string &extension = ".log", const std::string ending = ("logs" + std::string(PSR) + "tmp" + std::string(PSR))) const {
+			void save(const std::string &filename, const std::string &extension = ".log", const std::string ending = ("tmp" + std::string(PSR))) const {
 				const std::string default_path = m_prefix_path + ending;
 
 				const std::string final_path = default_path + filename + extension;

@@ -17,7 +17,7 @@ In this directory, I create three folders:
 
 C --------
 
-I need to define one environment variable "LOD_LOG_PATH" - path to the "logs" folder above as "path_to/logs/", should have "/" at the end and the "tmp" folder inside
+I need to define one environment variable "LOD_LOGS_PATH" - path to the "logs" folder above as "path_to/logs/", should have "/" at the end and the "tmp" folder inside
 
 D --------
 

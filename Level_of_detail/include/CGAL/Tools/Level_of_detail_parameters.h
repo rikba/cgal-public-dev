@@ -242,7 +242,7 @@ namespace CGAL {
 				if (auto path = get_log_path()) {
 					const std::string data_path = static_cast<std::string>(path);
 
-					const std::string full_path = data_path + "logs" + std::string(PSR) + "params.lod";
+					const std::string full_path = data_path + "params.lod";
 					save_input_parameters(full_path, input_parameters, exceptions);
 
 					std::cout << std::endl << "Parameters are saved in : " << full_path << std::endl << std::endl;
@@ -254,7 +254,7 @@ namespace CGAL {
 			}
 
 			char* get_log_path() {
-				return std::getenv("LOD_LOG_PATH");
+				return std::getenv("LOD_LOGS_PATH");
 			}
 
 			void save_input_parameters(const std::string &filePath, const Input_parameters &input_parameters, const std::vector<std::string> &exceptions) {
