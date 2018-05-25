@@ -19,20 +19,20 @@ class VSA_approximation_wrapper {
   typedef boost::associative_property_map<std::map<face_descriptor, Point_3> > Facet_center_map;
 
 #ifdef CGAL_LINKED_WITH_TBB
-  typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
+  typedef CGAL::Variational_shape_approximation<TriangleMesh, Vertex_point_map,
     CGAL::Default, GeomTraits, CGAL::Parallel_tag> L21_approx;
 #else
-  typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
+  typedef CGAL::Variational_shape_approximation<TriangleMesh, Vertex_point_map,
     CGAL::Default, GeomTraits> L21_approx;
 #endif
   typedef typename L21_approx::Error_metric L21_metric;
 
   typedef CGAL::VSA::L2_metric_plane_proxy<TriangleMesh> L2_metric;
 #ifdef CGAL_LINKED_WITH_TBB
-  typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
+  typedef CGAL::Variational_shape_approximation<TriangleMesh, Vertex_point_map,
     L2_metric, GeomTraits, CGAL::Parallel_tag> L2_approx;
 #else
-  typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
+  typedef CGAL::Variational_shape_approximation<TriangleMesh, Vertex_point_map,
     L2_metric, GeomTraits> L2_approx;
 #endif
 
@@ -72,10 +72,10 @@ class VSA_approximation_wrapper {
   typedef Compact_metric_point_proxy Compact_metric;
 
 #ifdef CGAL_LINKED_WITH_TBB
-  typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
+  typedef CGAL::Variational_shape_approximation<TriangleMesh, Vertex_point_map,
     Compact_metric, GeomTraits, CGAL::Parallel_tag> Compact_approx;
 #else
-  typedef CGAL::VSA_approximation<TriangleMesh, Vertex_point_map,
+  typedef CGAL::Variational_shape_approximation<TriangleMesh, Vertex_point_map,
     Compact_metric, GeomTraits> Compact_approx;
 #endif
 
