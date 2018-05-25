@@ -1,7 +1,7 @@
 #ifndef VSA_APPROXIMAITON_WRAPPER_H
 #define VSA_APPROXIMAITON_WRAPPER_H
 
-#include <CGAL/VSA_approximation.h>
+#include <CGAL/Variational_shape_approximation.h>
 #include <CGAL/L2_metric_plane_proxy.h>
 #include <CGAL/property_map.h>
 
