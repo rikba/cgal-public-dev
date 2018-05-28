@@ -34,7 +34,7 @@ namespace CGAL {
                             m_regions.push_back(region); // Add the region grown
                         else {
                             // Revert the process
-                            // Region::iterator is a double iterator
+                            // NOTE: Region::iterator is a double iterator
                             for (Region::iterator it = region.begin(); it != region.end(); ++it)
                                 m_visited[*it] = false;
                         }
@@ -49,10 +49,10 @@ namespace CGAL {
         private:
             void grow_region(Iterator seed_iter, Region& region) {
                 region.clear();
-                // The queue of elements that will propagate through their neighbors later
+                // Use a queue to keep track of the elements whose neighbors will be visited later.
                 std::queue<Iterator> elem_queue;
 
-                // Once an element is pushed to the queue, it is pushed to the region too
+                // Once an element is pushed to the queue, it is pushed to the region too.
                 elem_queue.push(seed_iter);
                 m_visited[elem_iter] = true;
                 region.push(elem_iter);
@@ -60,23 +60,20 @@ namespace CGAL {
                 while (!elem_queue.empty()) {
 
                     // Call the next element of the queue and remove it from the queue
-                    // but the element is not removed from the region
+                    // but the element is not removed from the region.
                     Iterator elem_iter = elem_queue.front();
                     elem_queue.pop();
-                    
-                    // Add the element to the (temporary) region 
-                    region.push_back(elem_iter);
 
                     // Get neighbors
                     Neighbors neighbors;
                     m_connectivity.get_neighbors(elem_iter, neighbors);
 
-                    // Add to the queue the neighbors which don't belong to any regions
-                    // so that we can visit them later
-                    //
-                    // Neighbors::iterator is a double pointer
+                    // Visit the neighbors;
+                    // NOTE: Neighbors::iterator is a double pointer
                     for (Neighbors::iterator nb_iter = neighbors.begin(); nb_iter != neighbors.end(); nb_iter++) {
                         if (!m_visited[*nb_iter] && m_conditions.is_in_same_region(elem_iter, *nb_iter, elem_map)) {
+                            // Add to the queue the neighbor which doesn't belong to any regions
+                            // so that we can visit the neighbor's neighbors later.
                             elem_queue.push(*nb_iter);
                             region.push(*nb_iter);
                             m_visited[*nb_iter] = true;
