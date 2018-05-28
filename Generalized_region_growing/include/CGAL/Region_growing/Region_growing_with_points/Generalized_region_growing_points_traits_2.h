@@ -8,10 +8,13 @@
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
 
+template <class InputRange, class ElementMap, class NormalMap>
 class Generalized_region_growing_point_traits_2 {
 public:
     typedef Kernel::Point_2 Element;
-    typedef Iterator_range<std::vector<Element>::iterator> InputRange;
+    typedef InputRange Input_range;
+    typedef ElementMap Element_map;
+    typedef NormalMap Normal_map;
 }
 
 #endif
