@@ -10,16 +10,18 @@ namespace CGAL {
             typedef typename Traits::InputRange Input_range;
             typedef typename Traits::Element_map Element_map;
 
-            typedef typename InputRange::iterator Iterator;
+            typedef typename InputRange::const_iterator Iterator;
             typedef typename Connectivity::Neighbor_range Neighbors;
             typedef typename std::vector<Iterator> Region;
             typedef typename std::vector<Region> Regions;
-            typedef typename Iterator_range<Regions::iterator> Region_range;
+            typedef typename Iterator_range<Regions::const_iterator> Region_range;
 
-            Generalized_region_growing(Input_range input_range) : 
+            Generalized_region_growing(const Input_range& input_range, 
+                                        const Connectivity& connectivity, 
+                                        const Conditions& conditions) : 
                 m_input_range(input_range),
-                m_connectivity(Connectivity(input_range)),
-                m_conditions(Conditions(input_range))
+                m_connectivity(connectivity),
+                m_conditions(conditions)
             {}
             
             void find_regions() {
@@ -34,8 +36,8 @@ namespace CGAL {
                             m_regions.push_back(region); // Add the region grown
                         else {
                             // Revert the process
-                            // NOTE: Region::iterator is a double iterator
-                            for (Region::iterator it = region.begin(); it != region.end(); ++it)
+                            // NOTE: Region::const_iterator is a double iterator
+                            for (Region::const_iterator it = region.begin(); it != region.end(); ++it)
                                 m_visited[*it] = false;
                         }
                     }
@@ -47,7 +49,7 @@ namespace CGAL {
                 return m_output;
             }
         private:
-            void grow_region(Iterator seed_iter, Region& region) {
+            void grow_region(const Iterator& seed_iter, Region& region) {
                 region.clear();
                 // Use a queue to keep track of the elements whose neighbors will be visited later.
                 std::queue<Iterator> elem_queue;
@@ -69,8 +71,8 @@ namespace CGAL {
                     m_connectivity.get_neighbors(elem_iter, neighbors);
 
                     // Visit the neighbors;
-                    // NOTE: Neighbors::iterator is a double pointer
-                    for (Neighbors::iterator nb_iter = neighbors.begin(); nb_iter != neighbors.end(); nb_iter++) {
+                    // NOTE: Neighbors::const_iterator is a double pointer
+                    for (Neighbors::const_iterator nb_iter = neighbors.begin(); nb_iter != neighbors.end(); nb_iter++) {
                         if (!m_visited[*nb_iter] && m_conditions.is_in_same_region(elem_iter, *nb_iter, elem_map)) {
                             // Add to the queue the neighbor which doesn't belong to any regions
                             // so that we can visit the neighbor's neighbors later.
@@ -82,12 +84,12 @@ namespace CGAL {
                 }
             }
         private:
-            Input_range m_input_range;
-            Element_map m_elem_map;
+            const Input_range& m_input_range;
+            const Element_map m_elem_map;
             Regions m_regions;
             Region_range m_output;
-            Connectivity m_connectivity;
-            Conditions m_conditions;
+            const Connectivity& m_connectivity;
+            const Conditions& m_conditions;
             std::map<Iterator, bool> m_visited; // Keep track of available elements
         }
     }
