@@ -230,21 +230,21 @@ public:
     switch (m_metric) {
       case L21:
         return m_l21_approx.extract_mesh(
-          CGAL::Surface_mesh_approximation::parameters::subdivision_ratio(subdivision_ratio).
+          CGAL::VSA::parameters::subdivision_ratio(subdivision_ratio).
           relative_to_chord(relative_to_chord).
           with_dihedral_angle(with_dihedral_angle).
           optimize_anchor_location(optimize_anchor_location).
           pca_plane(pca_plane));
       case L2:
         return m_l2_approx.extract_mesh(
-          CGAL::Surface_mesh_approximation::parameters::subdivision_ratio(subdivision_ratio).
+          CGAL::VSA::parameters::subdivision_ratio(subdivision_ratio).
           relative_to_chord(relative_to_chord).
           with_dihedral_angle(with_dihedral_angle).
           optimize_anchor_location(optimize_anchor_location).
           pca_plane(pca_plane));
       case Compact:
         return m_iso_approx.extract_mesh(
-          CGAL::Surface_mesh_approximation::parameters::subdivision_ratio(subdivision_ratio).
+          CGAL::VSA::parameters::subdivision_ratio(subdivision_ratio).
           relative_to_chord(relative_to_chord).
           with_dihedral_angle(with_dihedral_angle).
           optimize_anchor_location(optimize_anchor_location).
