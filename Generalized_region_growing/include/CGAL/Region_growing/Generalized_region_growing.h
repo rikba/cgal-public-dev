@@ -28,7 +28,7 @@ namespace CGAL {
                 for (Iterator iter = m_input_range.begin(); iter != m_input_range.end(); ++iter) {
                     if (!m_visited[iter]) { // Available element
                         Region region;
-                        Element elem = get(m_elem_map, iter);
+                        Element elem = get(m_elem_map, *iter);
                         // Grow a region from that element
                         grow_region(iter, region);
                         // Check global condition
@@ -38,7 +38,7 @@ namespace CGAL {
                             // Revert the process
                             // NOTE: Region::const_iterator is a double iterator
                             for (Region::const_iterator it = region.begin(); it != region.end(); ++it)
-                                m_visited[*it] = false;
+                                m_visited[*(*it)] = false;
                         }
                     }
                 }
