@@ -7,10 +7,8 @@ namespace CGAL {
             template <class Traits, class NormalMap>
             class Generalized_region_growing_points_conditions_2 {
             public:
-                typedef typename Traits::Element Element;
-                typedef typename Traits::Element_map Element_map;
-                typedef typename Traits::Input_range Input_range;
-                typedef typename Input_range::const_iterator Iterator;
+                using Element       = Traits::Element;
+                using Element_map   = Traits::Element_map;
                 
                 typedef NormalMap Normal_map;
 
@@ -19,9 +17,7 @@ namespace CGAL {
                 {}
 
                 // Local condition
-                bool is_in_same_region(const Iterator& elem_iter1, const Iterator& elem_iter2) const {
-                    Element elem1 = get(m_elem_map, elem_iter1);
-                    Element elem2 = get(m_elem_map, elem_iter2);
+                bool is_in_same_region(const Element& elem1, const Element& elem2) const {
                     // ...
                     return true; // or false
                 }
