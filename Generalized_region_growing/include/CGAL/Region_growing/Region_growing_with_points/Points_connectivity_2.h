@@ -12,17 +12,17 @@ namespace CGAL {
             template <class Traits>
             class Generalized_region_growing_points_connectivity_2 {
             public:
-                using Element     = Traits::Element;
-                using Input_range = Traits::Input_range;
-                using Kernel      = Traits::Kernel;
-                using Element_map = Traits::Element_map;
+                using Element                 = Traits::Element;
+                using Input_range             = Traits::Input_range;
+                using Kernel                  = Traits::Kernel;
+                using Element_map             = Traits::Element_map;
+                using Element_with_properties = Traits::Element_with_properties;
 
-                // ElementMap::key_type must be std::iterator_traits<Input_range::iterator>::value_type
-                using Neighbors      = std::vector<Element_map::key_type>;
+                using Neighbors      = std::vector<Element_with_properties>;
                 using Neighbor_range = Iterator_range<Neighbors::const_iterator>;
 
                 // Primary template
-                template<class PointType, class ElementMapValueType>
+                template<class PointType, class ElementWithProperties>
                 struct Search_structures {
                     using Search_base           = CGAL::Search_traits_2<Kernel>;
                     using Search_traits_adapter = CGAL::Search_traits_adapter<Element, Element_map, Search_base>;
@@ -30,17 +30,17 @@ namespace CGAL {
                     using Tree                  = CGAL::Kd_tree<Search_traits_adapter>;
                 }
 
-                // Partial specialization when PointType and ElementMapValueType are the same
+                // Partial specialization when PointType and ElementWithProperties are the same
                 template<class PointType>
                 struct Search_structures<PointType, PointType> {
                     using Search_base   = CGAL::Search_traits_2<Kernel>;
                     using Fuzzy_circle  = CGAL::Fuzzy_sphere<Search_base>;
                     using Tree          = CGAL::Kd_tree<Search_base>;
                 }
-
+                
+                // Element == Point_2
                 using Point_2           = Kernel::Point_2;
-                // Element_map::value_type must be Element
-                using Search_structures = Search_structures<Point_2, Element_map::value_type>;
+                using Search_structures = Search_structures<Point_2, Element_with_properties>;
                 using Fuzzy_circle      = Search_structures::Fuzzy_circle;
                 using Tree              = Search_structures::Tree;
 
@@ -49,12 +49,7 @@ namespace CGAL {
                     m_tree(Tree(input_range.begin(), input_range.end()))
                 { }
 
-                void get_neighbors(const Element& center, Neighbor_range& output) const {
-                    // The map must suit the input given
-                    CGAL_precondition(std::is_same<
-                                        Element_map::key_type, 
-                                        std::iterator_traits<Input_range::iterator>::value_type
-                                    >::value);
+                void get_neighbors(const Element_with_properties& center, Neighbor_range& output) const {
                     m_neighbors.clear();
                     Fuzzy_circle circle(center);
                     tree.search(std::back_inserter(m_neighbors), circle);

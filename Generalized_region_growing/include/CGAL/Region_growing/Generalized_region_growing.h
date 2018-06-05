@@ -6,10 +6,9 @@ namespace CGAL {
         template <class Traits, class Connectivity, class Conditions>
         class Generalized_region_growing {
         public:
-            using Element     = Traits::Element;
-            using Input_range = Traits::Input_range;
-            // Element_map::value_type is Element -- a geometry object
-            using Element_map = Traits::Element_map;
+            using Input_range             = Traits::Input_range;
+            using Element_map             = Traits::Element_map;
+            using Element_with_properties = Traits::Element_with_properties;
 
             using Iterator      = InputRange::const_iterator;
             using Neighbors     = Connectivity::Neighbor_range;
@@ -27,10 +26,12 @@ namespace CGAL {
             
             void find_regions() {
                 for (Iterator iter = m_input_range.begin(); iter != m_input_range.end(); ++iter) {
-                    if (!m_visited[get(m_elem_map, *iter)]) { // Available element
+                    Element_with_properties ewp = *iter;
+                    Element elem = m_elem_map[ewp];
+                    if (!m_visited[elem]) { // Available element
                         Region region;
                         // Grow a region from that element
-                        grow_region(get(m_elem_map, *iter), region);
+                        grow_region(ewp, region);
                         // Check global condition
                         if (m_conditions.is_valid(region))
                             m_regions.push_back(region); // Add the region grown
@@ -48,13 +49,15 @@ namespace CGAL {
                 return m_output;
             }
         private:
-            void grow_region(const Element& seed, Region& region) {
+            void grow_region(const Element_with_properties& seed_with_properties, Region& region) {
                 region.clear();
                 // Use a queue to keep track of the elements whose neighbors will be visited later.
-                std::queue<Element> elem_queue;
+                // The queue keeps properties too, but region and state map don't use it.
+                std::queue<Element_with_properties> ewp_queue;
+                Element seed = m_elem_map[seed_with_properties];
 
                 // Once an element is pushed to the queue, it is pushed to the region too.
-                elem_queue.push(seed);
+                ewp_queue.push(seed_with_properties);
                 m_visited[seed] = true;
                 region.push(seed);
 
@@ -62,33 +65,35 @@ namespace CGAL {
 
                     // Call the next element of the queue and remove it from the queue
                     // but the element is not removed from the region.
-                    Element elem = elem_queue.front();
-                    elem_queue.pop();
+                    Element_with_properties ewp = ewp_queue.front();
+                    ewp_queue.pop();
 
                     // Get neighbors
                     Neighbors neighbors;
-                    m_connectivity.get_neighbors(elem, neighbors);
+                    m_connectivity.get_neighbors(ewp, neighbors);
 
                     // Visit the neighbors;
                     for (Neighbors::const_iterator iter = neighbors.begin(); iter != neighbors.end(); iter++) {
-                        nb = get(m_elem_map, *iter); // neighbor
-                        if (!m_visited[nb] && m_conditions.is_in_same_region(elem, nb)) {
+                        Element_with_properties nwp = *iter; // neighbor with properties
+                        Element neighbor = m_elem_map[nwp]; // neighbor
+
+                        if (!m_visited[neighbor] && m_conditions.is_in_same_region(ewp, nwp, region)) {
                             // Add to the queue the neighbor which doesn't belong to any regions
                             // so that we can visit the neighbor's neighbors later.
-                            elem_queue.push(nb);
-                            region.push(nb);
-                            m_visited[nb] = true;
+                            ewp_queue.push(nwp);
+                            region.push(neighbor);
+                            m_visited[neighbor] = true;
                         }
                     }
                 }
             }
         private:
-            const Input_range& m_input_range;
-            Regions m_regions;
-            Region_range m_output;
-            const Connectivity& m_connectivity;
-            const Conditions& m_conditions;
-            std::map<Element, bool> m_visited; // Keep track of available elements
+            const Input_range&                      m_input_range;
+            Regions                                 m_regions;
+            Region_range                            m_output;
+            const Connectivity&                     m_connectivity;
+            const Conditions&                       m_conditions;
+            std::map<Element, bool>                 m_visited; // Keep track of available elements
         }
     }
 }
