@@ -29,15 +29,15 @@ namespace CGAL {
 
                 // Local condition
                 template<class Region>
-                bool is_in_same_region(const Element_with_properties &assigned_element_with_properties,
-                                       const Element_with_properties &unassigned_element_with_properties,
+                bool is_in_same_region(const Element_with_properties &assigned_element,
+                                       const Element_with_properties &unassigned_element,
                                        const Region &region) {
 
-                    update(assigned_element_with_properties, region);
+                    update(assigned_element, region);
 
-                    Point_2 point_unassigned = get(m_elem_map, unassigned_element_with_properties);
+                    Point_2 point_unassigned = get(m_elem_map, unassigned_element);
 
-                    Vector_2 normal = get(m_normal_map, unassigned_element_with_properties);
+                    Vector_2 normal = get(m_normal_map, unassigned_element);
                     const FT normal_length = CGAL::sqrt(normal.squared_length());
 
                     Vector_2 normal_unassigned = normal / normal_length;
@@ -73,8 +73,14 @@ namespace CGAL {
                         m_normal_of_best_fit = normal / normal_length;
 
                     } else {
+
+                        // Extract the geometric Element (Point_2)
+                        std::vector<Point_2> points;
+                        for (typename Region::const_iterator it = region.begin(); it != region.end(); ++it)
+                            points.push_back(get(m_elem_map, *it));
+
                         // Fit the region to a line
-                        linear_least_squares_fitting_2(region.begin(), region.end(), m_line_of_best_fit,
+                        linear_least_squares_fitting_2(points.begin(), points.end(), m_line_of_best_fit,
                                                        CGAL::Dimension_tag<0>());
 
                         Vector_2 normal = m_line_of_best_fit.perpendicular(Point_2(0, 0)).to_vector();

@@ -12,7 +12,6 @@ namespace CGAL {
             template<class Traits>
             class Points_connectivity_2 {
             public:
-                using Element                 = typename Traits::Element;
                 using Input_range             = typename Traits::Input_range;
                 using Kernel                  = typename Traits::Kernel;
                 using Element_map             = typename Traits::Element_map;
@@ -53,7 +52,6 @@ namespace CGAL {
                 }
 
                 Neighbor_range get_neighbors(const Element_with_properties &center) {
-//                    Tree tree(m_input_range.begin(), m_input_range.end());
                     m_neighbors.clear();
                     Fuzzy_circle circle(center, m_radius);
                     m_tree.search(std::back_inserter(m_neighbors), circle);
