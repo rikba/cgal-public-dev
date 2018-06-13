@@ -21,7 +21,8 @@ if (CGAL_FOUND)
     include_directories(BEFORE "include")
 
     create_single_source_cgal_program("Simple_example.cpp")
-    create_single_source_cgal_program("Region_growing_with_points.cpp")
+    create_single_source_cgal_program("Region_growing_with_points_2.cpp")
+    create_single_source_cgal_program("Region_growing_with_points_3.cpp")
 
 else ()
 
