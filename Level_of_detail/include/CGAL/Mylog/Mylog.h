@@ -853,6 +853,33 @@ namespace CGAL {
 				save(filename);
 			}
 
+			template<class CDT, class Buildings>
+			void save_roofs_based_cdt(const Buildings &buildings, const std::string &file_name) {
+				clear();
+
+				typedef typename CDT::Vertex_handle    		   Vertex_handle;
+				typedef typename CDT::Finite_faces_iterator    Faces_iterator;
+				typedef typename CDT::Finite_vertices_iterator Vertices_iterator;
+				typedef typename Buildings::const_iterator     Buildings_iterator;
+
+				for (Buildings_iterator bit = buildings.begin(); bit != buildings.end(); ++bit) {
+					const CDT &cdt = (*bit).second.cdt;
+
+					size_t count = 0;
+					CGAL::Unique_hash_map<Vertex_handle, int> V;
+					for (Vertices_iterator vit = cdt.finite_vertices_begin(); vit != cdt.finite_vertices_end(); ++vit) {
+
+						out << "v " << *vit << " " << 0 << std::endl;
+						V[vit] = count++;
+					}
+
+					for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit)
+						out << "f " << V[(*fit).vertex(0)] + 1 << " " << V[(*fit).vertex(1)] + 1 << " " << V[(*fit).vertex(2)] + 1 << std::endl;
+				}
+
+				save(file_name, ".obj");
+			}
+
 			template<class Points>
 			void export_points(const std::string &name, Points &points) {
 

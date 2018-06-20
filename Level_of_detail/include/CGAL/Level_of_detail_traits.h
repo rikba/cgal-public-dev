@@ -113,8 +113,8 @@ namespace CGAL {
 
 			typedef CGAL::LOD::Level_of_detail_visibility_from_classification_2<Kernel, Container_2D, CDT> Visibility_2;
 			
-			typedef CGAL::LOD::Building<Kernel, typename CDT::Vertex_handle, typename CDT::Face_handle> Building;
-			typedef std::map<int, Building> 															Buildings;
+			typedef CGAL::LOD::Building<Kernel, CDT> Building;
+			typedef std::map<int, Building>          Buildings;
 
 			typedef CGAL::Polyhedron_3<Kernel> 											    Mesh;
 			typedef CGAL::LOD::Level_of_detail_reconstruction<Kernel, CDT, Buildings, Mesh> Lods;
@@ -161,6 +161,9 @@ namespace CGAL {
 			typedef CGAL::LOD::Level_of_detail_building_roof_estimator<Kernel, Building, Buildings> 				     Roof_estimator;
 
 			typedef CGAL::LOD::Level_of_detail_lod2<Kernel, Building, Buildings, Mesh> LOD2_reconstruction;
+
+			typedef CGAL::LOD::Level_of_detail_building_roofs_based_cdt_creator<Kernel, Building, Buildings> Roofs_based_cdt_creator;
+			typedef CGAL::LOD::Level_of_detail_building_roofs_based_cdt_cleaner<Kernel, Building, Buildings> Roofs_based_cdt_cleaner;
 		};
 	}
 }

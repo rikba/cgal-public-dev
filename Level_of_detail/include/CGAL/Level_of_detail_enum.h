@@ -89,7 +89,7 @@ namespace CGAL {
 		};
 
 		// Building structure.
-		template<class Kernel, class Vertex_handle, class Face_handle>
+		template<class Kernel, class InputCDT>
 		struct Building {
 
 		public:
@@ -99,6 +99,11 @@ namespace CGAL {
 			using Segment_2  = typename Kernel::Segment_2;
 			using Segment_3  = typename Kernel::Segment_3;
 			using Plane_3    = typename Kernel::Plane_3;
+
+			using CDT = InputCDT;
+
+			using Face_handle   = typename CDT::Face_handle;
+			using Vertex_handle = typename CDT::Vertex_handle;
 
 			FT height 		  = FT(0); 				  // height of the building
 			CGAL::Color color = CGAL::Color(0, 0, 0); // color of the building
@@ -160,6 +165,8 @@ namespace CGAL {
 			Partition_input    partition_input;    // input for the roof partitioning
 			Planes 			   planes;			   // all roof planes associated with this building
 			Partition_segments partition_segments; // 2D segments used to compute roof partition
+
+			CDT cdt; // cdt used for roofs
 
 			bool is_valid = true; // flag to check if we should output this building or not, if it is a valid building or not
 

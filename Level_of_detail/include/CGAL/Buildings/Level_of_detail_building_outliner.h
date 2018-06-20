@@ -38,7 +38,7 @@ namespace CGAL {
 			typedef typename CDT::Edge 			Edge;
 
 			// Extra.
-			using Building  = CGAL::LOD::Building<Kernel, Vertex_handle, Face_handle>;
+			using Building  = CGAL::LOD::Building<Kernel, CDT>;
 			using Buildings = std::map<int, Building>;
 
 			using Building_iterator = typename Buildings::iterator;

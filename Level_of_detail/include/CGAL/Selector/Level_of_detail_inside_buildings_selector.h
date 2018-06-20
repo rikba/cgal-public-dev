@@ -43,7 +43,7 @@ namespace CGAL {
 
             using Faces = std::vector<Face_handle>;
 
-            using Building          = CGAL::LOD::Building<Kernel, Vertex_handle, Face_handle>;
+            using Building          = CGAL::LOD::Building<Kernel, CDT>;
             using Building_iterator = typename Buildings::iterator;
 
             using Log = CGAL::LOD::Mylog;

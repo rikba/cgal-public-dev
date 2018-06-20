@@ -124,6 +124,9 @@ namespace CGAL {
 			typedef typename Traits::Roof_estimator    Roof_estimator;
 			
 			typedef typename Traits::LOD2_reconstruction LOD2_reconstruction;
+			
+			typedef typename Traits::Roofs_based_cdt_creator Roofs_based_cdt_creator;
+			typedef typename Traits::Roofs_based_cdt_cleaner Roofs_based_cdt_cleaner;
 
 
 			// Extra typedefs.
@@ -1183,6 +1186,32 @@ namespace CGAL {
 				}
 			}
 
+			void creating_roofs_based_cdt(Buildings &buildings, const size_t exec_step) {
+
+				// Create CDT for each roof partitioning.
+				std::cout << "(" << exec_step << ") creating roofs based CDT;" << std::endl;
+
+				Roofs_based_cdt_creator roofs_based_cdt_creator(buildings);
+				roofs_based_cdt_creator.create();
+
+				if (!m_silent) {
+					Log exporter; exporter.save_roofs_based_cdt<CDT, Buildings>(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "roofs_cdt_before_cleaning");
+				}
+			}
+
+			void cleaning_roofs_based_cdt(Buildings &buildings, const size_t exec_step) {
+
+				// Cleaning CDT for each roof partitioning.
+				std::cout << "(" << exec_step << ") cleaning roofs based CDT;" << std::endl;
+
+				Roofs_based_cdt_cleaner roofs_based_cdt_cleaner(buildings);
+				roofs_based_cdt_cleaner.clean();
+
+				if (!m_silent) {
+					Log exporter; exporter.save_roofs_based_cdt<CDT, Buildings>(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "roofs_cdt_after_cleaning");
+				}
+			}
+
 			void estimating_initial_roofs(const FT ground_height, Buildings &buildings, const size_t exec_step) {
 
 				// Estimate initial roofs by lifting up the 2D diagram obtained from the 3D envelope.
@@ -1427,12 +1456,20 @@ namespace CGAL {
 				applying_partitioning(input, ground_height, buildings, ++exec_step);
 				clear_shapes(buildings);
 
-
+				
 				// (07) ----------------------------------
-				estimating_initial_roofs(ground_height, buildings, ++exec_step);
+				creating_roofs_based_cdt(buildings, ++exec_step);
 
 
 				// (08) ----------------------------------
+				cleaning_roofs_based_cdt(buildings, ++exec_step);
+
+
+				// (09) ----------------------------------
+				estimating_initial_roofs(ground_height, buildings, ++exec_step);
+
+
+				// (10) ----------------------------------
 				reconstructing_lod2(buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
 			}
 
