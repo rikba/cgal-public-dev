@@ -241,7 +241,8 @@ namespace CGAL {
 			m_region_growing_normal_threshold_3d(-FT(1)),
 			m_region_growing_min_points_3d(0),
 			m_roof_cleaner_scale(-FT(1)),
-			m_roof_cleaner_max_percentage(-FT(1))
+			m_roof_cleaner_max_percentage(-FT(1)),
+			m_no_roofs_cdt(false)
 			{ }
 
 
@@ -450,6 +451,7 @@ namespace CGAL {
 				m_visibility_angle_eps = 0.18; // do not use this ad-hoc, but when using the value about 0.15 - 0.20 is enough
 
 				m_line_regularizer_max_angle_in_degrees = FT(25); // max regularization angle
+				m_no_roofs_cdt 						    = false;  // build roofs using triangulation
 			}
 
 			void set_the_most_important_options() {
@@ -517,6 +519,8 @@ namespace CGAL {
 				bool remove_alpha = false;
 				add_bool_parameter("-remove_alpha"   , remove_alpha   		, m_parameters);
 				if (remove_alpha && m_use_alpha_shapes) m_use_alpha_shapes = !m_use_alpha_shapes;
+
+				add_bool_parameter("-no_roofs_cdt", m_no_roofs_cdt, m_parameters);
 
 
 				// Important.
@@ -1199,16 +1203,20 @@ namespace CGAL {
 				}
 			}
 
-			void cleaning_roofs_based_cdt(Buildings &buildings, const size_t exec_step) {
+			void cleaning_roofs_based_cdt(const Container_3D &input, const FT ground_height, Buildings &buildings, const size_t exec_step) {
 
 				// Cleaning CDT for each roof partitioning.
 				std::cout << "(" << exec_step << ") cleaning roofs based CDT;" << std::endl;
 
-				Roofs_based_cdt_cleaner roofs_based_cdt_cleaner(buildings);
+				Roofs_based_cdt_cleaner roofs_based_cdt_cleaner(input, ground_height, buildings);
 				roofs_based_cdt_cleaner.clean();
 
 				if (!m_silent) {
-					Log exporter; exporter.save_roofs_based_cdt<CDT, Buildings>(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "roofs_cdt_after_cleaning");
+					Log exporter; 
+					exporter.save_roofs_based_cdt<CDT, Buildings>(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "roofs_cdt_after_cleaning");
+					
+					exporter.clear();
+					exporter.save_partition_diagram<Buildings, FT, Point_3>(buildings, ground_height, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "cdt_based_lifted_partition_diagram", true);
 				}
 			}
 
@@ -1454,18 +1462,21 @@ namespace CGAL {
 
 				// (06) ----------------------------------
 				applying_partitioning(input, ground_height, buildings, ++exec_step);
-				clear_shapes(buildings);
 
 				
-				// (07) ----------------------------------
-				creating_roofs_based_cdt(buildings, ++exec_step);
+				if (!m_no_roofs_cdt) {
+					
+					// (07) ----------------------------------
+					creating_roofs_based_cdt(buildings, ++exec_step);
 
 
-				// (08) ----------------------------------
-				cleaning_roofs_based_cdt(buildings, ++exec_step);
+					// (08) ----------------------------------
+					cleaning_roofs_based_cdt(input, ground_height, buildings, ++exec_step);
+				}
 
 
 				// (09) ----------------------------------
+				clear_shapes(buildings);
 				estimating_initial_roofs(ground_height, buildings, ++exec_step);
 
 
@@ -1686,6 +1697,8 @@ namespace CGAL {
 
 			FT m_roof_cleaner_scale;
 			FT m_roof_cleaner_max_percentage;
+
+			bool m_no_roofs_cdt;
 
 
 			// Assert default values of all global parameters.
