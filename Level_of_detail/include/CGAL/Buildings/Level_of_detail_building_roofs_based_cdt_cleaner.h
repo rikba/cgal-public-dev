@@ -72,7 +72,7 @@ namespace CGAL {
             m_ground_height(ground_height),
             m_buildings(buildings),
             m_tolerance(FT(1) / FT(1000000)),
-            m_thin_face_max_size(FT(1) / FT(10)),
+            m_thin_face_max_size(FT(1) / FT(2)),
             m_max_percentage(FT(97)) 
             { }
 
@@ -268,19 +268,24 @@ namespace CGAL {
                     for (Label_pair label_pair : label_set) {
                         const size_t label_pair_size = compute_label_pair_size(label_pair);
                         
-                        const FT percentage     = static_cast<FT>(label_pair_size) / static_cast<FT>(total_size) * FT(100);
+                        const FT percentage     = (static_cast<FT>(label_pair_size) / static_cast<FT>(total_size)) * FT(100);
                         const FT new_percentage = current_percentage - percentage;
 
-                        const Face_handle &fh = label_pair.first;
-                        if (!is_exterior_face_2(building, fh) && new_percentage >= m_max_percentage) {
-                            current_percentage = new_percentage;
-                                
-                            const bool status = collapse_boundary_face(fh, building);
-                            if (!status) collapse_interior_face(fh, cdt);
+                        if (new_percentage >= m_max_percentage) {
 
-                            state = true;
-                            break;
-                        }
+                            const Face_handle &fh = label_pair.first;
+                            if (!is_exterior_face_2(building, fh)) {
+                                current_percentage = new_percentage;
+
+                                std::cout << percentage << ", " << new_percentage << std::endl;
+
+                                const bool status = collapse_boundary_face(fh, building);
+                                if (!status) collapse_interior_face(fh, cdt);
+
+                                state = true;
+                                break;
+                            }
+                        } else break;
                     }
                 }
             }
@@ -302,8 +307,10 @@ namespace CGAL {
 
             void collapse_interior_face(const Face_handle &fh, CDT &cdt) const {
                 
-                const Edge edge = std::make_pair(fh, 0);
+                const Edge edge = std::make_pair(fh, 2);
                 cdt.tds().join_vertices(edge);
+
+                // collapse_thin_face(fh, cdt);
             }
 
             void create_sorted_faces(const Building &building, Sorted_faces &sorted_faces) const {
