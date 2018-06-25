@@ -14,14 +14,13 @@ using Point_map         = CGAL::First_of_pair_property_map<Point_with_normal>;
 using Normal_map        = CGAL::Second_of_pair_property_map<Point_with_normal>;
 using Input_range       = CGAL::Iterator_range<std::vector<Point_with_normal>::iterator>;
 
-using Traits            = CGAL::Region_growing::Region_growing_with_points::Points_traits_3<Input_range, Point_map, Kernel>;
+using Traits            = CGAL::Region_growing::Region_growing_with_points::Points_traits<Input_range, Point_map, Kernel>;
 using Conditions        = CGAL::Region_growing::Region_growing_with_points::Points_conditions_3<Traits, Normal_map>;
-using Connectivity      = CGAL::Region_growing::Region_growing_with_points::Points_connectivity_3<Traits>;
+using Connectivity      = CGAL::Region_growing::Region_growing_with_points::Points_connectivity<Traits>;
 using Region_growing    = CGAL::Region_growing::Generalized_region_growing<Traits, Connectivity, Conditions>;
 
 using Region_range      = Region_growing::Region_range;
 
-using Point_3           = Kernel::Point_3;
 using Color             = CGAL::cpp11::array<unsigned char, 3>;
 using Point_with_color  = std::pair<Point_3, Color>;
 using PLY_Point_map     = CGAL::First_of_pair_property_map<Point_with_color>;
@@ -37,7 +36,7 @@ namespace CGAL {
         Output_rep(const ::Color &c) : c(c) {}
 
         std::ostream &operator()(std::ostream &out) const {
-            if (is_ascii(out))
+            if (CGAL::is_ascii(out))
                 out << int(c[0]) << " " << int(c[1]) << " " << int(c[2]);
             else
                 out.write(reinterpret_cast<const char *>(&c), sizeof(c));
@@ -46,7 +45,7 @@ namespace CGAL {
     };
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     std::ifstream in(argc > 1 ? argv[1] : "../data/cube.xyz");
     CGAL::set_ascii_mode(in);
 

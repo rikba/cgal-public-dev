@@ -14,9 +14,9 @@ using Point_map         = CGAL::First_of_pair_property_map<Point_with_normal>;
 using Normal_map        = CGAL::Second_of_pair_property_map<Point_with_normal>;
 using Input_range       = CGAL::Iterator_range<std::vector<Point_with_normal>::iterator>;
 
-using Traits            = CGAL::Region_growing::Region_growing_with_points::Points_traits_2<Input_range, Point_map, Kernel>;
+using Traits            = CGAL::Region_growing::Region_growing_with_points::Points_traits<Input_range, Point_map, Kernel>;
 using Conditions        = CGAL::Region_growing::Region_growing_with_points::Points_conditions_2<Traits, Normal_map>;
-using Connectivity      = CGAL::Region_growing::Region_growing_with_points::Points_connectivity_2<Traits>;
+using Connectivity      = CGAL::Region_growing::Region_growing_with_points::Points_connectivity<Traits>;
 using Region_growing    = CGAL::Region_growing::Generalized_region_growing<Traits, Connectivity, Conditions>;
 
 using Region_range      = Region_growing::Region_range;
@@ -46,8 +46,8 @@ namespace CGAL {
     };
 }
 
-int main(int argc, char* argv[]) {
-    std::ifstream in(argc > 0 ? argv[0] : "../data/quadrilateral_and_circle.xy");
+int main(int argc, char *argv[]) {
+    std::ifstream in(argc > 1 ? argv[1] : "../data/quadrilateral_and_circle.xy");
     CGAL::set_ascii_mode(in);
 
     Point_2 point;
