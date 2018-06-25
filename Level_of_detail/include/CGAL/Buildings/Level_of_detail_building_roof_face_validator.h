@@ -2,11 +2,8 @@
 #define CGAL_LEVEL_OF_DETAIL_BUILDING_ROOF_FACE_VALIDATOR_H
 
 // STL includes.
-#include <map>
-#include <cmath>
 #include <vector>
 #include <cassert>
-#include <iostream>
 
 // CGAL includes.
 #include <CGAL/utils.h>
@@ -31,11 +28,17 @@ namespace CGAL {
             
             using Boundary = std::vector<Point_3>;
 
+            using CDT            = typename Building::CDT;
+            using Face_handle    = typename CDT::Face_handle;
+            using Faces_iterator = typename CDT::Finite_faces_iterator;
+
             using Partition_traits = CGAL::Partition_traits_2<Kernel>;
             using Polygon          = typename Partition_traits::Polygon_2;
             using Polygons         = std::vector<Polygon>;
 
-            Level_of_detail_building_roof_face_validator() { }
+            Level_of_detail_building_roof_face_validator() :
+            m_ghost_tolerance(FT(1) / FT(1000000))
+            { }
 
             bool is_valid_roof_face(const Building &building, const Boundary &boundary, const bool use_barycentre_query_point) const {
 
@@ -56,7 +59,44 @@ namespace CGAL {
                 return false;
             }
 
+            bool is_ghost_face(const Face_handle &fh) const {
+                
+                const Point_2 &p1 = fh->vertex(0)->point();
+                const Point_2 &p2 = fh->vertex(1)->point();
+                const Point_2 &p3 = fh->vertex(2)->point();
+
+                const Triangle_2 triangle = Triangle_2(p1, p2, p3);
+                return triangle.area() < m_ghost_tolerance;
+            }
+
+            bool is_outside_face(const Building &building, const Face_handle &fh) const {
+
+                const Point_2 &p1 = fh->vertex(0)->point();
+                const Point_2 &p2 = fh->vertex(1)->point();
+                const Point_2 &p3 = fh->vertex(2)->point();
+
+                Boundary face_boundary(3);
+                face_boundary[0] = Point_3(p1.x(), p1.y(), FT(0));
+                face_boundary[1] = Point_3(p2.x(), p2.y(), FT(0));
+                face_boundary[2] = Point_3(p3.x(), p3.y(), FT(0));
+
+                return !is_valid_roof_face(building, face_boundary, true);
+            }
+
+            void mark_wrong_faces(Building &building) const {
+                
+                CDT &cdt = building.cdt;
+                for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
+                    const Face_handle &fh = static_cast<Face_handle>(fit);
+
+                    if (fit->info().is_checked) continue;
+                    if (is_ghost_face(fit)) fit->info().is_valid = false;
+                    if (is_outside_face(building, fit)) fit->info().is_valid = false;
+                }
+            }
+
         private:
+            const FT m_ghost_tolerance;
             
             void find_query_point_using_barycentre(const Boundary &boundary, Point_2 &query) const {
 
@@ -104,7 +144,9 @@ namespace CGAL {
                 query = Point_2(x, y);
             }
         };
-    }
-}
+        
+    } // LOD
+
+} // CGAL
 
 #endif // CGAL_LEVEL_OF_DETAIL_BUILDING_ROOF_FACE_VALIDATOR_H

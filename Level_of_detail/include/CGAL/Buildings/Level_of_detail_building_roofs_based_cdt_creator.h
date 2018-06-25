@@ -5,7 +5,7 @@
 #include <vector>
 
 // New CGAL includes.
-#include <CGAL/Level_of_detail_enum.h>
+#include <CGAL/Buildings/Level_of_detail_building_roof_face_validator.h>
 
 namespace CGAL {
 
@@ -19,13 +19,13 @@ namespace CGAL {
             using Building  = InputBuilding;
             using Buildings = InputBuildings;
 
-            using Point_2 = typename Kernel::Point_2;
-            using Point_3 = typename Kernel::Point_3;
+            using Point_2    = typename Kernel::Point_2;
+            using Point_3    = typename Kernel::Point_3;
 
             using CDT                = typename Building::CDT;
             using Buildings_iterator = typename Buildings::iterator;
+            using Vertex_handle      = typename CDT::Vertex_handle;
 
-            using Vertex_handle = typename CDT::Vertex_handle;
             using Roof          = typename Building::Roof;
             using Roofs         = typename Building::Roofs;
             using Roof_boundary = typename Roof::Roof_boundary;
@@ -33,32 +33,41 @@ namespace CGAL {
             using Roofs_iterator         = typename Roofs::const_iterator;
             using Roof_boundary_iterator = typename Roof_boundary::const_iterator;
 
-            using Vertex_handles = std::vector< std::vector<Vertex_handle> >;
+            using Vertex_handles      = std::vector< std::vector<Vertex_handle> >;
+            using Roof_face_validator = CGAL::LOD::Level_of_detail_building_roof_face_validator<Kernel, Building>;
 
             Level_of_detail_building_roofs_based_cdt_creator(Buildings &buildings) : 
-            m_buildings(buildings) 
+            m_buildings(buildings)
             { }
 
             void create() {
                 for (Buildings_iterator bit = m_buildings.begin(); bit != m_buildings.end(); ++bit) {
-                    
                     Building &building = (*bit).second;
+
                     create_cdt(building);
+                    m_roof_face_validator.mark_wrong_faces(building);
                 }
             }
 
         private:
             Buildings &m_buildings;
+            Roof_face_validator m_roof_face_validator;
 
             void create_cdt(Building &building) const {
 
+                Vertex_handles vhs;
+                insert_vertices(vhs, building);
+                insert_constraints(vhs, building);
+            }
+
+            void insert_vertices(Vertex_handles &vhs, Building &building) const {
+                
                 CDT &cdt = building.cdt;
                 cdt.clear();
 
                 const Roofs &roofs = building.roofs;
-                Vertex_handles vhs(roofs.size());
+                vhs.clear(); vhs.resize(roofs.size());
 
-                // Insert points.
                 size_t i = 0;
                 for (Roofs_iterator rit = roofs.begin(); rit != roofs.end(); ++rit, ++i) {
                     const Roof_boundary &roof_boundary = rit->boundary;
@@ -70,8 +79,11 @@ namespace CGAL {
                         vhs[i][j] = cdt.insert(Point_2(point.x(), point.y()));
                     }
                 }
+            }
 
-                // Insert constraints.
+            void insert_constraints(const Vertex_handles &vhs, Building &building) const {
+                CDT &cdt = building.cdt;
+
                 const size_t size_i = vhs.size();
                 for (size_t i = 0; i < size_i; ++i){
 

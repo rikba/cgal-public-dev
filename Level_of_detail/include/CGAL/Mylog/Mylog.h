@@ -862,19 +862,26 @@ namespace CGAL {
 				typedef typename CDT::Finite_vertices_iterator Vertices_iterator;
 				typedef typename Buildings::const_iterator     Buildings_iterator;
 
-				for (Buildings_iterator bit = buildings.begin(); bit != buildings.end(); ++bit) {
-					const CDT &cdt = (*bit).second.cdt;
+				size_t count = 0;
+				CGAL::Unique_hash_map<Vertex_handle, int> V;
 
-					size_t count = 0;
-					CGAL::Unique_hash_map<Vertex_handle, int> V;
+				for (Buildings_iterator bit = buildings.begin(); bit != buildings.end(); ++bit) {
+					const CDT &cdt = bit->second.cdt;
+	
+					const double height = generate_random_height();
 					for (Vertices_iterator vit = cdt.finite_vertices_begin(); vit != cdt.finite_vertices_end(); ++vit) {
 
-						out << "v " << *vit << " " << 0 << std::endl;
+						out << "v " << *vit << " " << height << std::endl;
 						V[vit] = count++;
 					}
+				}
+
+				for (Buildings_iterator bit = buildings.begin(); bit != buildings.end(); ++bit) {
+					const CDT &cdt = bit->second.cdt;
 
 					for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit)
-						out << "f " << V[(*fit).vertex(0)] + 1 << " " << V[(*fit).vertex(1)] + 1 << " " << V[(*fit).vertex(2)] + 1 << std::endl;
+						if (fit->info().is_valid)
+							out << "f " << V[(*fit).vertex(0)] + 1 << " " << V[(*fit).vertex(1)] + 1 << " " << V[(*fit).vertex(2)] + 1 << std::endl;
 				}
 
 				save(file_name, ".obj");
@@ -1505,6 +1512,12 @@ namespace CGAL {
 				const int b = m_rand.get_int(0, 256);
 
 				return Color(r, g, b);
+			}
+
+			double generate_random_height() {
+
+				const double value = m_rand.get_double(0, 10);
+				return value;
 			}
 
 			template<class Projected_points>

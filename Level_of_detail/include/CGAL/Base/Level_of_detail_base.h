@@ -1199,24 +1199,20 @@ namespace CGAL {
 				roofs_based_cdt_creator.create();
 
 				if (!m_silent) {
-					Log exporter; exporter.save_roofs_based_cdt<CDT, Buildings>(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "roofs_cdt_before_cleaning");
+					Log exporter; exporter.save_roofs_based_cdt<CDT, Buildings>(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "roofs_based_cdt_original");
 				}
 			}
 
 			void cleaning_roofs_based_cdt(const Container_3D &input, const FT ground_height, Buildings &buildings, const size_t exec_step) {
 
-				// Cleaning CDT for each roof partitioning.
+				// Clean CDT for each roof partitioning.
 				std::cout << "(" << exec_step << ") cleaning roofs based CDT;" << std::endl;
 
 				Roofs_based_cdt_cleaner roofs_based_cdt_cleaner(input, ground_height, buildings);
 				roofs_based_cdt_cleaner.clean();
 
 				if (!m_silent) {
-					Log exporter; 
-					exporter.save_roofs_based_cdt<CDT, Buildings>(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "roofs_cdt_after_cleaning");
-					
-					exporter.clear();
-					exporter.save_partition_diagram<Buildings, FT, Point_3>(buildings, ground_height, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "cdt_based_lifted_partition_diagram", true);
+					Log exporter; exporter.save_roofs_based_cdt<CDT, Buildings>(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "roofs_based_cdt_clean");
 				}
 			}
 
@@ -1476,12 +1472,12 @@ namespace CGAL {
 
 
 				// (09) ----------------------------------
-				clear_shapes(buildings);
-				estimating_initial_roofs(ground_height, buildings, ++exec_step);
+				// clear_shapes(buildings);
+				// estimating_initial_roofs(ground_height, buildings, ++exec_step);
 
 
 				// (10) ----------------------------------
-				reconstructing_lod2(buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
+				// reconstructing_lod2(buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
 			}
 
 
