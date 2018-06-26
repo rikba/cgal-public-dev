@@ -37,7 +37,7 @@ namespace CGAL {
             using Polygons         = std::vector<Polygon>;
 
             Level_of_detail_building_roof_face_validator() :
-            m_ghost_tolerance(FT(1) / FT(1000000))
+            m_ghost_tolerance(FT(1) / FT(10000))
             { }
 
             bool is_valid_roof_face(const Building &building, const Boundary &boundary, const bool use_barycentre_query_point) const {
@@ -59,17 +59,32 @@ namespace CGAL {
                 return false;
             }
 
-            bool is_ghost_face(const Face_handle &fh) const {
+            bool is_ghost_face(const Face_handle &fh, const FT ghost_tolerance) const {
                 
                 const Point_2 &p1 = fh->vertex(0)->point();
                 const Point_2 &p2 = fh->vertex(1)->point();
                 const Point_2 &p3 = fh->vertex(2)->point();
 
                 const Triangle_2 triangle = Triangle_2(p1, p2, p3);
-                return triangle.area() < m_ghost_tolerance;
+                return triangle.area() < ghost_tolerance;
             }
 
-            bool is_outside_face(const Building &building, const Face_handle &fh) const {
+            inline bool is_ghost_boundary_face(const Building &building, const Face_handle &fh) const {
+                return is_ghost_face(fh, m_ghost_tolerance) && is_boundary_face(building, fh);
+            }
+
+            bool is_boundary_face(const Building &building, const Face_handle &fh) const {
+                
+                for (size_t i = 0; i < 3; ++i) {
+                    const Face_handle &fhn = fh->neighbor(i);
+                    
+                    if (is_exterior_face(building, fhn) || building.cdt.is_infinite(fhn)) 
+                        return true;
+                }
+                return false;
+            }
+
+            bool is_exterior_face(const Building &building, const Face_handle &fh) const {
 
                 const Point_2 &p1 = fh->vertex(0)->point();
                 const Point_2 &p2 = fh->vertex(1)->point();
@@ -83,15 +98,24 @@ namespace CGAL {
                 return !is_valid_roof_face(building, face_boundary, true);
             }
 
+            bool is_valid_face(const Building &building, Face_handle &fh) const {
+                
+                if (fh->info().is_checked) return fh->info().is_valid;
+                fh->info().is_checked = true;
+
+                if (is_ghost_boundary_face(building, fh)) return false;
+                if (is_exterior_face(building, fh)) return false;
+
+                return true;
+            }
+
             void mark_wrong_faces(Building &building) const {
                 
                 CDT &cdt = building.cdt;
                 for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
-                    const Face_handle &fh = static_cast<Face_handle>(fit);
-
-                    if (fit->info().is_checked) continue;
-                    if (is_ghost_face(fit)) fit->info().is_valid = false;
-                    if (is_outside_face(building, fit)) fit->info().is_valid = false;
+                    
+                    Face_handle fh = static_cast<Face_handle>(fit);
+                    fh->info().is_valid = is_valid_face(building, fh);
                 }
             }
 

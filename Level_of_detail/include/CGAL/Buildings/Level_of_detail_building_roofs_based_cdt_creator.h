@@ -41,6 +41,7 @@ namespace CGAL {
             { }
 
             void create() {
+                
                 for (Buildings_iterator bit = m_buildings.begin(); bit != m_buildings.end(); ++bit) {
                     Building &building = (*bit).second;
 

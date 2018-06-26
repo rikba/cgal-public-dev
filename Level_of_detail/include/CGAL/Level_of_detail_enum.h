@@ -80,6 +80,9 @@ namespace CGAL {
 
 			bool is_valid   = true;  // check if this is a valid face
 			bool is_checked = false; // false if it has not been yet checked for validity
+
+			CGAL::Color color = CGAL::Color(255, 255, 255); // default face color
+			int index = -1;
 		};
 
 		// Vertex info class.
