@@ -1,12 +1,12 @@
 #include <iostream>
 #include <fstream>
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Region_growing.h>
 #include <CGAL/property_map.h>
 #include <CGAL/Iterator_range.h>
 #include <CGAL/IO/write_ply_points.h>
 
-using Kernel            = CGAL::Exact_predicates_inexact_constructions_kernel;
+using Kernel            = CGAL::Exact_predicates_exact_constructions_kernel;
 using Point_2           = Kernel::Point_2;
 using Vector_2          = Kernel::Vector_2;
 using Point_with_normal = std::pair<Point_2, Vector_2>;
