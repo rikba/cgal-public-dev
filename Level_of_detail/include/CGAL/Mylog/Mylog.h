@@ -870,7 +870,7 @@ namespace CGAL {
 						++num_vertices;
 
 					for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) 
-						// if (fh->info().is_checked && fit->info().is_valid) 
+						if (fit->info().is_valid) 
 							++num_faces;
 				}
 
@@ -906,9 +906,57 @@ namespace CGAL {
 					const CDT &cdt = bit->second.cdt;
 
 					for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit)
-						// if (fh->info().is_checked && fit->info().is_valid)
+						if (fit->info().is_valid)
 							out << "3 " << V[(*fit).vertex(0)] << " " << V[(*fit).vertex(1)] << " " << V[(*fit).vertex(2)] << " " << fit->info().color << std::endl;
 				}
+
+				save(file_name, ".ply");
+			}
+
+			template<class CDT, class Building>
+			void save_building_cdt(const Building &building, const std::string &file_name) {
+				clear();
+
+				typedef typename CDT::Vertex_handle    		   Vertex_handle;
+				typedef typename CDT::Finite_faces_iterator    Faces_iterator;
+				typedef typename CDT::Finite_vertices_iterator Vertices_iterator;
+
+				size_t num_faces = 0, num_vertices = 0;
+				const CDT &cdt = building.cdt;
+
+				for (Vertices_iterator vit = cdt.finite_vertices_begin(); vit != cdt.finite_vertices_end(); ++vit) 
+					++num_vertices;
+
+				for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) 
+					if (fit->info().is_valid) 
+						++num_faces;
+
+				out << 
+				"ply" + std::string(PN) + ""               					    << 
+				"format ascii 1.0" + std::string(PN) + ""     				    << 
+				"element vertex "        				   << num_vertices << "" + std::string(PN) + "" << 
+				"property double x" + std::string(PN) + ""    				    << 
+				"property double y" + std::string(PN) + ""    				    << 
+				"property double z" + std::string(PN) + "" 					    <<
+				"element face " 						   << num_faces    << "" + std::string(PN) + "" << 
+				"property list uchar int vertex_indices" + std::string(PN) + "" <<
+				"property uchar red"   + std::string(PN) + "" 				    <<
+				"property uchar green" + std::string(PN) + "" 				    <<
+				"property uchar blue"  + std::string(PN) + "" 				    <<
+				"end_header" + std::string(PN) + "";
+
+				size_t count = 0;
+				CGAL::Unique_hash_map<Vertex_handle, int> V;
+	
+				for (Vertices_iterator vit = cdt.finite_vertices_begin(); vit != cdt.finite_vertices_end(); ++vit) {
+
+					out << *vit << " " << 0 << std::endl;
+					V[vit] = count++;
+				}
+
+				for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit)
+					if (fit->info().is_valid)
+						out << "3 " << V[(*fit).vertex(0)] << " " << V[(*fit).vertex(1)] << " " << V[(*fit).vertex(2)] << " " << fit->info().color << std::endl;
 
 				save(file_name, ".ply");
 			}

@@ -62,6 +62,7 @@ namespace CGAL {
             using Log   = CGAL::LOD::Mylog;
             
             using Vertex_handles = std::vector<Vertex_handle>;
+            using Ids            = std::vector<int>;
 
             Level_of_detail_building_roofs_based_cdt_cleaner(const Input &input, const FT ground_height, Buildings &buildings) : 
             m_input(input),
@@ -72,12 +73,17 @@ namespace CGAL {
             { }
 
             void clean() {
-                for (Buildings_iterator bit = m_buildings.begin(); bit != m_buildings.end(); ++bit) {
+
+                size_t count = 0; std::cout << std::endl;
+                for (Buildings_iterator bit = m_buildings.begin(); bit != m_buildings.end(); ++bit, ++count) {
                     Building &building = (*bit).second;
+                    
+                    std::cout << FT(count) / FT(m_buildings.size()) * FT(100) << " %" << std::endl;
                     
                     clean_cdt(building);
                     m_roof_face_validator.mark_wrong_faces(building);
                 }
+                std::cout << FT(count) / FT(m_buildings.size()) * FT(100) << " %" << std::endl;
             }
 
         private:
@@ -93,24 +99,34 @@ namespace CGAL {
 
             void clean_cdt(Building &building) const {
 
-                bool collapse_detected = false;
+                const size_t max_num_iters = 20;
+                bool collapse_detected = false; size_t iters = 0;
                 do {
 
-                    CDT &cdt = building.cdt; int count = 0;
+                    CDT &cdt = building.cdt; int count = 0; ++iters;
                     for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) 
                         fit->info().index = count++;
 
                     for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
                         Face_handle fh = static_cast<Face_handle>(fit);
 
-                        if (fh->info().is_checked && !fh->info().is_valid) continue;
+                        if (!m_roof_face_validator.is_valid_face(building, fh)) continue;
                         collapse_detected = handle_face(fh, building);
 
-                        if (collapse_detected)
+                        if (collapse_detected) {
+                         
+                            m_roof_face_validator.mark_wrong_faces(building);
                             break;
+                        }
                     }
 
-                } while (collapse_detected);
+                } while (collapse_detected && iters < max_num_iters);
+
+                if (iters >= max_num_iters) {
+                 
+                    std::cout << "Exceeded number of main iterations!" << std::endl;
+                    return;
+                }
             }
 
             bool handle_face(const Face_handle &fh, Building &building) const {
@@ -137,38 +153,33 @@ namespace CGAL {
 
             bool collapse_face(const Face_handle &fh, Building &building) const {
 
-                const int neighbour_index = is_boundary_face(fh, building);
-                if (neighbour_index >= 0) {
-                    const Edge boundary_edge = std::make_pair(fh, neighbour_index);
-                    
-                    collapse_boundary_face(boundary_edge, building);
-                    return true;
+                Ids ids;
+                find_boundary_indices(fh, building, ids);
+
+                CGAL_precondition(ids.size() >= 0 && ids.size() <= 3);
+                if (ids.size() == 1) {
+
+                    Edge boundary_edge = std::make_pair(fh, ids[0]);
+                    return collapse_boundary_face(boundary_edge, building);
                 }
+                else if (ids.size() == 2) return false;
+                else if (ids.size() == 3) return false;
                 
-                collapse_interior_face(fh, building);
-                return false;
+                return collapse_interior_face(fh, building);
             }
 
-            int is_boundary_face(const Face_handle &fh, const Building &building) const {
+            void find_boundary_indices(const Face_handle &fh, const Building &building, Ids &ids) const {
                 
+                ids.clear();
                 for (int i = 0; i < 3; ++i) {
                     Face_handle fhn = fh->neighbor(i);
                     
-                    if (fhn->info().is_checked && !fhn->info().is_valid) return i;
-                    
-                    if (building.cdt.is_infinite(fhn)) return i;
-                    
-                    if (!fhn->info().is_checked) {
-                        fhn->info().is_valid = m_roof_face_validator.is_valid_face(building, fhn);
-                        
-                        if (!fhn->info().is_valid) 
-                            return i;
-                    }
+                    if (!m_roof_face_validator.is_valid_face(building, fhn))
+                        ids.push_back(i);
                 }
-                return -1;
             }
 
-            void collapse_boundary_face(const Edge &boundary_edge, Building &building) const {
+            bool collapse_boundary_face(Edge &boundary_edge, Building &building) const {
                 CGAL_precondition(boundary_edge.second >= 0 && boundary_edge.second < 3);
 
                 Vertex_handle vh1, vh2;
@@ -177,11 +188,17 @@ namespace CGAL {
                 Point_2 new_point;
                 find_new_edge_point(vh1, vh2, new_point);
 
+                Face_handle &fh = boundary_edge.first;
+
                 Vertex_handles vhs1;
-                update_incident_constraints(vh1, vhs1, building);
+                bool success = update_incident_constraints(vh1, fh, vhs1, building);
+
+                if (!success) return false;
 
                 Vertex_handles vhs2;
-                update_incident_constraints(vh2, vhs2, building);
+                success = update_incident_constraints(vh2, fh, vhs2, building);
+
+                if (!success) return false;
 
                 Vertex_handles vhs;
                 merge_constraints(vhs1, vhs2, vh1, vh2, vhs);
@@ -191,6 +208,9 @@ namespace CGAL {
 
                 const Vertex_handle vh = building.cdt.insert(new_point);
                 insert_constraints(vh, vhs, building);
+
+                std::cout << "boundary collapse finished" << std::endl;
+                return true;
             }
 
             void find_edge_vertices(const Edge &edge, Vertex_handle &vh1, Vertex_handle &vh2) const {
@@ -218,14 +238,18 @@ namespace CGAL {
                 result = Point_2(x, y);
             }
 
-            void update_incident_constraints(const Vertex_handle &query, Vertex_handles &vhs, Building &building) const {
+            bool update_incident_constraints(const Vertex_handle &query, Face_handle &fh, Vertex_handles &vhs, Building &building) const {
                 
                 vhs.clear();
                 CDT &cdt = building.cdt;
 
-                Edge_circulator edge_circulator = cdt.incident_edges(query);
+                Edge_circulator edge_circulator = cdt.incident_edges(query, fh);
                 Edge_circulator end = edge_circulator;
 
+                const size_t max_num_iters = 10;
+                if (edge_circulator.is_empty()) return false;
+
+                edge_circulator = end; size_t iters = 0;
                 do {
                     const Edge &edge = *edge_circulator;
                     if (cdt.is_constrained(edge) && !cdt.is_infinite(edge)) {
@@ -237,11 +261,21 @@ namespace CGAL {
                         if (vh1 != query) vhs.push_back(vh1);
                         if (vh2 != query) vhs.push_back(vh2);
 
-                        cdt.remove_constraint(edge.first, edge.second);
+                        cdt.remove_constrained_edge(edge.first, edge.second);
                     }
-
+                    
                     ++edge_circulator;
-                } while (edge_circulator != end);
+                    ++iters;
+
+                } while (edge_circulator != end && iters < max_num_iters);
+                
+                if (iters > max_num_iters) {
+                    
+                    std::cout << "Exceeded number of circulator iterations!" << std::endl;
+                    return false;
+                }
+
+                return true;
             }
 
             void merge_constraints(
@@ -273,9 +307,9 @@ namespace CGAL {
                     if (vh != vhs[i]) building.cdt.insert_constraint(vh, vhs[i]);
             }
 
-            void collapse_interior_face(const Face_handle &fh, Building &building) const {
+            bool collapse_interior_face(const Face_handle &fh, Building &building) const {
 
-                fh->info().color = Color(255, 0, 0);
+                return false;
             }
         };
 

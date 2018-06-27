@@ -37,7 +37,7 @@ namespace CGAL {
             using Polygons         = std::vector<Polygon>;
 
             Level_of_detail_building_roof_face_validator() :
-            m_ghost_tolerance(FT(1) / FT(10000))
+            m_ghost_tolerance(FT(1) / FT(1000000))
             { }
 
             bool is_valid_roof_face(const Building &building, const Boundary &boundary, const bool use_barycentre_query_point) const {
@@ -78,7 +78,7 @@ namespace CGAL {
                 for (size_t i = 0; i < 3; ++i) {
                     const Face_handle &fhn = fh->neighbor(i);
                     
-                    if (is_exterior_face(building, fhn) || building.cdt.is_infinite(fhn)) 
+                    if (building.cdt.is_infinite(fhn) || is_exterior_face(building, fhn)) 
                         return true;
                 }
                 return false;
@@ -100,13 +100,25 @@ namespace CGAL {
 
             bool is_valid_face(const Building &building, Face_handle &fh) const {
                 
-                if (fh->info().is_checked) return fh->info().is_valid;
-                fh->info().is_checked = true;
+                check_face_validity(building, fh);
+                return fh->info().is_valid;
+            }
 
-                if (is_ghost_boundary_face(building, fh)) return false;
-                if (is_exterior_face(building, fh)) return false;
+            void check_face_validity(const Building &building, Face_handle &fh) const {
 
-                return true;
+                if (building.cdt.is_infinite(fh)) {
+                    fh->info().is_valid = false; return;
+                }
+
+                if (is_ghost_boundary_face(building, fh)) {
+                    fh->info().is_valid = false; return;
+                }
+
+                if (is_exterior_face(building, fh)) {
+                    fh->info().is_valid = false; return;
+                }
+
+                fh->info().is_valid = true;
             }
 
             void mark_wrong_faces(Building &building) const {
@@ -115,7 +127,7 @@ namespace CGAL {
                 for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
                     
                     Face_handle fh = static_cast<Face_handle>(fit);
-                    fh->info().is_valid = is_valid_face(building, fh);
+                    check_face_validity(building, fh);
                 }
             }
 

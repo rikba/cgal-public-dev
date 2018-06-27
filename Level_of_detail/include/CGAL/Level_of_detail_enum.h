@@ -78,8 +78,7 @@ namespace CGAL {
 			int bu = -1; 		   						 	   // building's index - (0, 1, 2 etc.) where (-1 means not a building)
 			CGAL::Color bu_color = CGAL::Color(169, 169, 169); // building's color - random color is used per building
 
-			bool is_valid   = true;  // check if this is a valid face
-			bool is_checked = false; // false if it has not been yet checked for validity
+			bool is_valid = true; // check if this is a valid face
 
 			CGAL::Color color = CGAL::Color(255, 255, 255); // default face color
 			int index = -1;
