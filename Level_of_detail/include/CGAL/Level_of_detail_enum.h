@@ -17,6 +17,8 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <utility>
+#include <algorithm>
 
 // CGAL includes.
 #include <CGAL/IO/Color.h>
@@ -171,9 +173,21 @@ namespace CGAL {
 			Planes 			   planes;			   // all roof planes associated with this building
 			Partition_segments partition_segments; // 2D segments used to compute roof partition
 
-			CDT cdt; // cdt used for roofs
-
+			CDT cdt; 			  // cdt used for roofs
 			bool is_valid = true; // flag to check if we should output this building or not, if it is a valid building or not
+
+            using Contribution  		 	= int;
+            using Contributions 		 	= std::vector<Contribution>;
+            using Face_contributions 	 	= std::map<Face_handle, Contributions>;
+			using Contribution_pair      	= std::pair<Face_handle, Contributions>;
+            using Comparator             	= std::function<bool(Contribution_pair, Contribution_pair)>;
+            using Sorted_face_contributions = std::vector<Contribution_pair>;
+
+			Face_contributions 	   	  face_contributions;
+			Sorted_face_contributions sorted_face_contributions;
+
+			FT 	   current_percentage;
+			size_t total_contributions_size;
 
 			void clear_interior_indices() {
 				interior_indices.clear();

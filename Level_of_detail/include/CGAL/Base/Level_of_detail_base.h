@@ -1445,7 +1445,6 @@ namespace CGAL {
 
 				// (03) ----------------------------------
 				applying_3d_region_growing(input, buildings, ++exec_step);
-				clear_interior_indices(buildings);
 
 
 				// (04) ----------------------------------
@@ -1468,16 +1467,24 @@ namespace CGAL {
 
 					// (08) ----------------------------------
 					cleaning_roofs_based_cdt(input, ground_height, buildings, ++exec_step);
+ 				
+
+					// (09) ----------------------------------
+					// estimate roofs using triangulation
+
+
+					// (10) ----------------------------------
+					// reconstruct LOD2 using triangulation
+
+				 } else {
+
+					// (07) ----------------------------------
+					estimating_initial_roofs(ground_height, buildings, ++exec_step);
+
+
+					// (08) ----------------------------------
+					reconstructing_lod2(buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
 				}
-
-
-				// (09) ----------------------------------
-				// clear_shapes(buildings);
-				// estimating_initial_roofs(ground_height, buildings, ++exec_step);
-
-
-				// (10) ----------------------------------
-				// reconstructing_lod2(buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
 			}
 
 
