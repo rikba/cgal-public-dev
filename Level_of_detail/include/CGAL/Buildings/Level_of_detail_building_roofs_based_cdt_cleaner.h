@@ -72,25 +72,25 @@ namespace CGAL {
             m_ground_height(ground_height),
             m_buildings(buildings),
             m_thin_face_max_size(FT(1) / FT(2)),
-            m_max_percentage(FT(90)),
-            m_max_main_iters(20),
+            m_max_percentage(FT(95)),
+            m_max_main_iters(30),
             m_max_circulator_iters(20),
-            m_angle_tolerance(FT(3))
+            m_angle_tolerance(FT(1))
             { }
 
             void clean() {
 
-                size_t count = 0; std::cout << std::endl;
+                size_t count = 0; // std::cout << std::endl;
                 for (Buildings_iterator bit = m_buildings.begin(); bit != m_buildings.end(); ++bit, ++count) {
                     Building &building = (*bit).second;
                     
-                    std::cout << FT(count) / FT(m_buildings.size()) * FT(100) << " %" << std::endl;
+                    // std::cout << FT(count) / FT(m_buildings.size()) * FT(100) << " %" << std::endl;
                     clean_cdt(building);
 
                     m_roof_face_validator.mark_wrong_faces(building);
                     update_roofs(building);
                 }
-                std::cout << FT(count) / FT(m_buildings.size()) * FT(100) << " %" << std::endl;
+                // std::cout << FT(count) / FT(m_buildings.size()) * FT(100) << " %" << std::endl;
             }
 
         private:
@@ -111,13 +111,11 @@ namespace CGAL {
 
             void clean_cdt(Building &building) const {
 
-                building.total_contributions_size = 0;
-                for (size_t i = 0; i < building.shapes.size(); ++i)
-                    building.total_contributions_size += building.shapes[i].size();
-                building.current_percentage = FT(100);
-
+                building.total_contributions_size = building.interior_indices.size();
                 bool collapse_detected = false; size_t iters = 0;
+
                 do {
+                    building.current_percentage = FT(100);
 
                     // Default indices.
                     CDT &cdt = building.cdt; int count = 0; ++iters;
@@ -130,8 +128,8 @@ namespace CGAL {
                     finilize_face_contributions(building);
 
                     // Handle faces.
-                    for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
-                        Face_handle fh = static_cast<Face_handle>(fit);
+                    for (auto sc_it = building.sorted_face_contributions.begin(); sc_it != building.sorted_face_contributions.end(); ++ sc_it) {
+                        Face_handle fh = static_cast<Face_handle>(sc_it->first);
 
                         if (!m_roof_face_validator.is_valid_face(building, fh)) continue;
                         collapse_detected = handle_face(fh, building);
@@ -143,11 +141,25 @@ namespace CGAL {
                         }
                     }
 
+                    // Handle faces.
+                    // for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
+                    //     Face_handle fh = static_cast<Face_handle>(fit);
+
+                    //     if (!m_roof_face_validator.is_valid_face(building, fh)) continue;
+                    //     collapse_detected = handle_face(fh, building);
+
+                    //     if (collapse_detected) {
+                         
+                    //         m_roof_face_validator.mark_wrong_faces(building);
+                    //         break;
+                    //     }
+                    // }
+
                 } while (collapse_detected && iters < m_max_main_iters);
 
                 if (iters >= m_max_main_iters) {
                  
-                    std::cout << "Exceeded number of main iterations!" << std::endl;
+                    // std::cout << "Exceeded number of main iterations!" << std::endl;
                     return;
                 }
             }
@@ -226,6 +238,8 @@ namespace CGAL {
                     const FT percentage = (static_cast<FT>(face_contributions_size) / static_cast<FT>(total_contributions_size)) * FT(100);
 
                     const FT new_percentage = current_percentage - percentage;
+                    // std::cout << "percent = " << current_percentage << "," << new_percentage << ", " << face_contributions_size << std::endl;
+
                     if (new_percentage >= m_max_percentage) {
                         
                         current_percentage = new_percentage;
@@ -250,8 +264,8 @@ namespace CGAL {
 
             bool handle_face(const Face_handle &fh, Building &building) const {
                 
-                if (should_be_collapsed(building, fh)) return collapse_face(fh, building);
-                return false;
+                /* if (should_be_collapsed(building, fh)) */ return collapse_face(fh, building);
+                // return false;
             }
 
             bool should_be_collapsed(const Building &building, const Face_handle &fh) const {
@@ -280,7 +294,7 @@ namespace CGAL {
             bool collapse_face(const Face_handle &fh, Building &building) const {
 
                 Ids ids;
-                check_face_edges(fh, building, ids);
+                check_boundary_face_edges(fh, building, ids);
 
                 CGAL_precondition(ids.size() >= 0 && ids.size() <= 3);
                 if (ids.size() == 1) {
@@ -294,7 +308,7 @@ namespace CGAL {
                 return collapse_interior_face(fh, building);
             }
 
-            void check_face_edges(const Face_handle &fh, const Building &building, Ids &ids) const {
+            void check_boundary_face_edges(const Face_handle &fh, const Building &building, Ids &ids) const {
                 
                 ids.clear();
                 for (int i = 0; i < 3; ++i) {
@@ -302,13 +316,13 @@ namespace CGAL {
                     
                     if (!m_roof_face_validator.is_valid_face(building, fhn)) {
                         
-                        const bool is_valid_edge = check_edge_validity(building, fh, i);
+                        const bool is_valid_edge = check_boundary_edge_validity(building, fh, i);
                         ids.push_back(std::make_pair(i, is_valid_edge));
                     }
                 }
             }
 
-            bool check_edge_validity(const Building &building, const Face_handle &fh, const int vertex_index) const {
+            bool check_boundary_edge_validity(const Building &building, const Face_handle &fh, const int vertex_index) const {
 
                 const Edge edge = Edge(fh, vertex_index);
                 
@@ -321,14 +335,27 @@ namespace CGAL {
                 return true;
             }
 
-            bool is_corner_vertex(const Building &building, const Vertex_handle &vh, const Face_handle &fh) const {
+            bool check_interior_edge_validity(const Building &building, const Face_handle &fh, const int vertex_index) const {
+
+                const Edge edge = Edge(fh, vertex_index);
+                
+                Vertex_handle vh1, vh2;
+                find_edge_vertices(edge, vh1, vh2);
+
+                if (is_boundary_vertex(building, vh1, fh)) return false;
+                if (is_boundary_vertex(building, vh2, fh)) return false;
+
+                return true;
+            }
+
+            FT compute_vertex_angle(const Building &building, const Vertex_handle &vh, const Face_handle &fh) const {
 
                 const CDT &cdt = building.cdt;
 
                 Face_circulator face_circulator = cdt.incident_faces(vh, fh);
                 Face_circulator end = face_circulator;
 
-                if (face_circulator.is_empty()) return true;
+                if (face_circulator.is_empty()) return -FT(1);
                 size_t iters = 0;
 
                 FT total_angle = FT(0);
@@ -336,7 +363,7 @@ namespace CGAL {
 
                     Face_handle face = static_cast<Face_handle>(face_circulator);
                     if (!m_roof_face_validator.is_valid_face(building, face)) {
-                        
+
                         ++face_circulator;
                         ++iters;    
                         
@@ -355,13 +382,10 @@ namespace CGAL {
                 if (iters >= m_max_circulator_iters) {
                     
                     std::cout << "Exceeded number of face circulator iterations!" << std::endl;
-                    return true;
+                    return -FT(1);
                 }
 
-                if (CGAL::abs(total_angle - FT(180)) > m_angle_tolerance) 
-                    return true;
-                
-                return false;
+                return total_angle;
             }
 
             FT compute_angle(const Vertex_handle &vh, const Face_handle &fh) const {
@@ -385,8 +409,41 @@ namespace CGAL {
                 return CGAL::abs(static_cast<FT>(floor(CGAL::to_double(alpha * FT(180) / CGAL_PI + FT(1) / FT(2)))));
             }
 
+            bool is_corner_vertex(const Building &building, const Vertex_handle &vh, const Face_handle &fh) const {
+
+                const FT total_angle = compute_vertex_angle(building, vh, fh);
+                if (total_angle < FT(0)) return true;
+
+                // std::cout << "angle = " << total_angle << std::endl;
+
+                if (CGAL::abs(total_angle - FT(180)) <= m_angle_tolerance) 
+                    return false;
+
+                if (CGAL::abs(total_angle - FT(360)) <= m_angle_tolerance) 
+                    return false;
+                
+                return true;
+            }
+
+            bool is_boundary_vertex(const Building &building, const Vertex_handle &vh, const Face_handle &fh) const {
+
+                const FT total_angle = compute_vertex_angle(building, vh, fh);
+                if (total_angle < FT(0)) return true;
+
+                // std::cout << "angle = " << total_angle << std::endl;
+
+                if (CGAL::abs(total_angle - FT(180)) <= m_angle_tolerance) 
+                    return true;
+
+                if (CGAL::abs(total_angle - FT(360)) <= m_angle_tolerance) 
+                    return false;
+                
+                return true;
+            }
+
             inline bool collapse_boundary_face(const Face_handle &fh, const int vertex_index, Building &building) const {
                 
+                // std::cout << "boundary ";
                 const Edge boundary_edge = std::make_pair(fh, vertex_index);
                 return collapse_edge(boundary_edge, building);
             }
@@ -421,7 +478,7 @@ namespace CGAL {
                 const Vertex_handle vh = building.cdt.insert(new_point);
                 insert_constraints(vh, vhs, building);
 
-                std::cout << "edge collapse finished" << std::endl;
+                // std::cout << "edge collapse finished" << std::endl;
                 return true;
             }
 
@@ -526,29 +583,101 @@ namespace CGAL {
 
             bool collapse_interior_face(const Face_handle &fh, Building &building) const {
 
-                Edge smallest_edge;
-                find_smallest_edge(fh, smallest_edge);
+                Edge smallest_edge = std::make_pair(fh, -1);
 
-                return collapse_edge(smallest_edge, building);
+                find_smallest_edge(fh, smallest_edge);
+                const int index1 = smallest_edge.second;
+
+                CGAL_precondition(smallest_edge.second != -1);
+                bool is_valid_edge = check_interior_edge_validity(building, smallest_edge.first, smallest_edge.second);
+
+                if (is_valid_edge) {
+                    
+                    // std::cout << "interior ";
+                    return collapse_edge(smallest_edge, building);
+
+                } else {
+                    
+                    find_smallest_edge(fh, smallest_edge);
+                    const int index2 = smallest_edge.second;
+
+                    CGAL_precondition(smallest_edge.second != -1);
+                    is_valid_edge = check_interior_edge_validity(building, smallest_edge.first, smallest_edge.second);
+
+                    if (is_valid_edge) {
+                        
+                        return collapse_edge(smallest_edge, building);
+                        // std::cout << "interior ";
+
+                    } else {
+
+                        return false;
+
+                        /*
+                        CGAL_precondition(smallest_edge.second != -1);
+                        if ( (index1 == 0 && index2 == 1) || (index1 == 1 && index2 == 0) ) {
+                         
+                            smallest_edge = std::make_pair(fh, 2);
+                            return collapse_edge(smallest_edge, building);
+                        }
+
+                        if ( (index1 == 1 && index2 == 2) || (index1 == 2 && index2 == 1) ) {
+                         
+                            smallest_edge = std::make_pair(fh, 0);
+                            return collapse_edge(smallest_edge, building);
+                        }
+
+                        smallest_edge = std::make_pair(fh, 1);
+                        return collapse_edge(smallest_edge, building); */
+                    }
+                }
+                return false;
             }
 
             void find_smallest_edge(const Face_handle &fh, Edge &edge) const {
 
-                const Point_2 &p1 = fh->vertex(0)->point();
-                const Point_2 &p2 = fh->vertex(1)->point();
-                const Point_2 &p3 = fh->vertex(2)->point();
+                const Point_2 &p0 = fh->vertex(0)->point();
+                const Point_2 &p1 = fh->vertex(1)->point();
+                const Point_2 &p2 = fh->vertex(2)->point();
 
+                const FT dist0 = squared_distance_2(p0, p1);
                 const FT dist1 = squared_distance_2(p1, p2);
-                const FT dist2 = squared_distance_2(p2, p3);
-                const FT dist3 = squared_distance_2(p3, p1);
+                const FT dist2 = squared_distance_2(p2, p0);
 
-                if (dist1 < dist2 && dist1 < dist3) {
-                    edge = std::make_pair(fh, 2); return;
+                if (edge.second == -1) {
+
+                    if (dist0 < dist1 && dist0 < dist2) {
+                        edge = std::make_pair(fh, 2); return;
+                    }
+                    if (dist1 < dist2 && dist1 < dist0) {
+                        edge = std::make_pair(fh, 0); return;
+                    }
+                    edge = std::make_pair(fh, 1); return;
                 }
-                if (dist2 < dist1 && dist2 < dist3) {
+
+                if (edge.second == 0) {
+
+                    if (dist0 < dist2) {
+                        edge = std::make_pair(fh, 2); return;
+                    }
+                    edge = std::make_pair(fh, 1); return;
+                }
+
+                if (edge.second == 1) {
+
+                    if (dist0 < dist1) {
+                        edge = std::make_pair(fh, 2); return;
+                    }
                     edge = std::make_pair(fh, 0); return;
                 }
-                edge = std::make_pair(fh, 1);
+
+                if (edge.second == 2) {
+
+                    if (dist1 < dist2) {
+                        edge = std::make_pair(fh, 0); return;
+                    }
+                    edge = std::make_pair(fh, 1); return;
+                }
             }
 
             void update_roofs(Building &building) const {

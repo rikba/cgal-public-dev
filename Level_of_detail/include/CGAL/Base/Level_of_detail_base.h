@@ -1476,7 +1476,7 @@ namespace CGAL {
 					// (10) ----------------------------------
 					// reconstruct LOD2 using triangulation
 
-				 } else {
+				 // } else {
 
 					// (07) ----------------------------------
 					estimating_initial_roofs(ground_height, buildings, ++exec_step);
