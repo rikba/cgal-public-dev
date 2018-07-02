@@ -4,8 +4,17 @@
 namespace CGAL {
     namespace Region_growing {
         namespace Region_growing_with_points {
+
+            template<class ...>
+            class Points_traits { };
+
+            template<class InputRange, class ElementMap, class IndexMap, class K>
+            class Points_traits<InputRange, ElementMap, IndexMap, K> : Points_traits<InputRange, ElementMap, K> {
+                using Index_map               = IndexMap;
+            };
+
             template<class InputRange, class ElementMap, class K>
-            class Points_traits {
+            class Points_traits<InputRange, ElementMap, K> {
             public:
                 using Kernel                  = K;
                 using Input_range             = InputRange;
@@ -14,6 +23,7 @@ namespace CGAL {
                 // ElementMap::value_type must be K::Point_2 or K::Point_3
                 // ElementMap::key_type must be the same as std::iterator_traits<InputRange::iterator>::value_type
             };
+
         }
     }
 }

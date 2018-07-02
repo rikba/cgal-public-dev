@@ -10,6 +10,9 @@ namespace CGAL {
         template<class Traits, class Connectivity, class Conditions>
         class Generalized_region_growing {
 
+            template<class ...>
+            using void_t = void;
+
         public:
             using Input_range             = typename Traits::Input_range;
             using Element                 = typename Traits::Element;
@@ -21,16 +24,52 @@ namespace CGAL {
             using Regions       = std::vector<Region>;
             using Region_range  = CGAL::Iterator_range<typename Regions::const_iterator>;
 
+            template<class, class = void>
+            class Visit_mask {
+
+            public:
+                Visit_mask(size_t) { }
+
+                template<class Ewp>
+                bool& operator [](const Ewp& ewp) { return m_visited[get(m_elem_map, ewp)]; }
+
+                template<class Ewp>
+                bool operator[] (const Ewp& ewp) const {return m_visited[get(m_elem_map, ewp)]; }
+
+            private:
+                std::map<Element, bool> m_visited;
+                Element_map m_elem_map;
+            };
+
+            template<class T>
+            class Visit_mask<T, void_t<typename T::Index_map> > {
+
+            public:
+                Visit_mask(size_t size) : m_visited(std::vector<bool>(size, false)) {}
+
+                template<class Ewp>
+                bool& operator [](const Ewp& ewp) { return m_visited[get(m_index_map, ewp)]; }
+
+                template<class Ewp>
+                bool operator[] (const Ewp& ewp) const {return m_visited[get(m_index_map, ewp)]; }
+
+            private:
+                std::vector<bool> m_visited;
+                typename T::Index_map m_index_map;
+
+            };
+
             Generalized_region_growing(const Input_range &input_range, Connectivity &connectivity, Conditions &conditions) :
                 m_input_range(input_range),
                 m_connectivity(connectivity),
-                m_conditions(conditions) { }
+                m_conditions(conditions),
+                m_visited(Visit_mask<Traits>(input_range.end() - input_range.begin())) { }
 
             void find_regions() {
 
                 for (typename Input_range::const_iterator iter = m_input_range.begin(); iter != m_input_range.end(); ++iter) {
 
-                    if (!m_visited[get(m_elem_map, *iter)]) { // Available element
+                    if (!m_visited[*iter]) { // Available element
                         Region region;
                         // Grow a region from that element
                         grow_region(*iter, region);
@@ -43,7 +82,7 @@ namespace CGAL {
 
                             // Revert the process
                             for (typename Region::const_iterator it = region.begin(); it != region.end(); ++it)
-                                m_visited[get(m_elem_map, *it)] = false;
+                                m_visited[*it] = false;
 
                         }
                     }
@@ -77,7 +116,7 @@ namespace CGAL {
 
                 // Once an element is pushed to the queue, it is pushed to the region too.
                 ewp_queue[depth_index].push(seed);
-                m_visited[get(m_elem_map, seed)] = true;
+                m_visited[seed] = true;
                 region.push_back(seed);
 
                 m_conditions.update_shape(region);
@@ -95,14 +134,14 @@ namespace CGAL {
                     for (typename Neighbors::const_iterator iter = neighbors.begin(); iter != neighbors.end(); iter++) {
                         Element_with_properties neighbor = *iter;
 
-                        if (!m_visited[get(m_elem_map, neighbor)] &&
+                        if (!m_visited[neighbor] &&
                             m_conditions.is_in_same_region(ewp, neighbor, region)) {
 
                             // Add to the other queue the neighbor which doesn't belong to any regions
                             // so that we can visit the neighbor's neighbors later.
                             ewp_queue[!depth_index].push(neighbor);
                             region.push_back(neighbor);
-                            m_visited[get(m_elem_map, neighbor)] = true;
+                            m_visited[neighbor] = true;
                         }
                     }
 
@@ -120,7 +159,7 @@ namespace CGAL {
             Regions m_regions;
             Connectivity &m_connectivity;
             Conditions &m_conditions;
-            std::map<Element, bool> m_visited; // Keep track of available geometric elements (ignore the properties)
+            Visit_mask<Traits> m_visited;
         };
     }
 }
