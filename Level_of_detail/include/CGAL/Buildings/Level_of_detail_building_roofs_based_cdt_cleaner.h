@@ -70,25 +70,25 @@ namespace CGAL {
             m_ground_height(ground_height),
             m_buildings(buildings),
             m_thin_face_max_size(FT(1) / FT(2)),
-            m_max_percentage(FT(90)),
-            m_max_main_iters(50),
+            m_max_percentage(FT(95)),
+            m_max_main_iters(300),
             m_max_circulator_iters(30),
             m_angle_tolerance(FT(1))
             { }
 
             void clean() {
 
-                size_t count = 0; // std::cout << std::endl;
+                size_t count = 0; std::cout << std::endl;
                 for (Buildings_iterator bit = m_buildings.begin(); bit != m_buildings.end(); ++bit, ++count) {
                     Building &building = (*bit).second;
                     
-                    // std::cout << FT(count) / FT(m_buildings.size()) * FT(100) << " %" << std::endl;
+                    std::cout << FT(count) / FT(m_buildings.size()) * FT(100) << " %" << std::endl;
                     clean_cdt(building);
 
                     m_roof_face_validator.mark_wrong_faces(building);
                     update_roofs(building);
                 }
-                // std::cout << FT(count) / FT(m_buildings.size()) * FT(100) << " %" << std::endl;
+                std::cout << FT(count) / FT(m_buildings.size()) * FT(100) << " %" << std::endl << std::endl;
             }
 
         private:
@@ -297,7 +297,7 @@ namespace CGAL {
                 CGAL_precondition(ids.size() >= 0 && ids.size() <= 3);
                 if (ids.size() == 1) {
                     
-                    if (!ids[0].second) return false;
+                    if (!ids[0].second) return collapse_corner_boundary_face(fh, ids[0].first, building);
                     return collapse_boundary_face(fh, ids[0].first, building);
                 }
                 else if (ids.size() == 2) return false;
@@ -439,11 +439,104 @@ namespace CGAL {
                 return true;
             }
 
+            inline bool collapse_corner_boundary_face(const Face_handle &fh, const int vertex_index, Building &building) const {
+                
+                // std::cout << "boundary ";
+                const Edge boundary_edge = std::make_pair(fh, vertex_index);
+                return collapse_corner_boundary_edge(boundary_edge, building);
+            }
+
             inline bool collapse_boundary_face(const Face_handle &fh, const int vertex_index, Building &building) const {
                 
                 // std::cout << "boundary ";
                 const Edge boundary_edge = std::make_pair(fh, vertex_index);
                 return collapse_edge(boundary_edge, building);
+            }
+
+            bool collapse_corner_boundary_edge(const Edge &edge, Building &building) const {
+                CGAL_precondition(edge.second >= 0 && edge.second < 3);
+
+                Vertex_handle vh1, vh2;
+                find_edge_vertices(edge, vh1, vh2);
+
+                const Face_handle &fh = edge.first;
+
+                const bool is_vh1_corner = is_corner_vertex(building, vh1, fh);
+                const bool is_vh2_corner = is_corner_vertex(building, vh2, fh);
+
+                if (is_vh1_corner && is_vh2_corner) return false;
+
+                if (is_vh1_corner) {
+
+                    Vertex_handles vhs;
+                    const bool success = update_incident_constraints(vh2, fh, vhs, building);
+                    if (!success) return false;
+
+                    building.cdt.remove(vh2);
+                    insert_constraints(vh1, vhs, building);
+
+                    return true;
+                }
+
+                if (is_vh2_corner) {
+
+                    Vertex_handles vhs;
+                    const bool success = update_incident_constraints(vh1, fh, vhs, building);
+                    if (!success) return false;
+
+                    building.cdt.remove(vh1);
+                    insert_constraints(vh2, vhs, building);
+
+                    return true;
+                }
+
+                return collapse_edge(edge, building);
+            }
+
+            bool collapse_boundary_interior_edge(const Edge &edge, Building &building) const {
+                CGAL_precondition(edge.second >= 0 && edge.second < 3);
+
+                Vertex_handle vh1, vh2;
+                find_edge_vertices(edge, vh1, vh2);
+
+                const Face_handle &fh = edge.first;
+
+                const bool is_vh1_corner = is_corner_vertex(building, vh1, fh);
+                const bool is_vh2_corner = is_corner_vertex(building, vh2, fh);
+
+                const bool is_vh1_boundary = is_boundary_vertex(building, vh1, fh);
+                const bool is_vh2_boundary = is_boundary_vertex(building, vh2, fh);
+
+                if (is_vh1_corner   && is_vh2_corner)   return false;
+                if (is_vh1_corner   && is_vh2_boundary) return false;
+                if (is_vh1_boundary && is_vh2_corner)   return false;
+                if (is_vh1_boundary && is_vh2_boundary) return false;
+
+                if (is_vh1_corner || is_vh1_boundary) {
+
+                    Vertex_handles vhs;
+                    const bool success = update_incident_constraints(vh2, fh, vhs, building);
+                    if (!success) return false;
+
+                    building.cdt.remove(vh2);
+                    insert_constraints(vh1, vhs, building);
+
+                    return true;
+                }
+
+                if (is_vh2_corner || is_vh2_boundary) {
+
+                    Vertex_handles vhs;
+                    const bool success = update_incident_constraints(vh1, fh, vhs, building);
+                    if (!success) return false;
+
+                    building.cdt.remove(vh1);
+                    insert_constraints(vh2, vhs, building);
+
+                    return true;
+                }
+
+                return collapse_edge(edge, building);
             }
 
             bool collapse_edge(const Edge &edge, Building &building) const {
@@ -588,9 +681,9 @@ namespace CGAL {
 
                 // return false;
                 Edge smallest_edge = std::make_pair(fh, -1);
-
                 find_smallest_edge(fh, smallest_edge);
-                const int index1 = smallest_edge.second;
+
+                // const int index1 = smallest_edge.second;
 
                 CGAL_precondition(smallest_edge.second != -1);
                 bool is_valid_edge = check_interior_edge_validity(building, smallest_edge.first, smallest_edge.second);
@@ -602,20 +695,22 @@ namespace CGAL {
 
                 } else {
                     
-                    find_smallest_edge(fh, smallest_edge);
-                    const int index2 = smallest_edge.second;
+                    return collapse_boundary_interior_edge(smallest_edge, building);
 
-                    CGAL_precondition(smallest_edge.second != -1);
-                    is_valid_edge = check_interior_edge_validity(building, smallest_edge.first, smallest_edge.second);
+                    // find_smallest_edge(fh, smallest_edge);
+                    // const int index2 = smallest_edge.second;
 
-                    if (is_valid_edge) {
+                    // CGAL_precondition(smallest_edge.second != -1);
+                    // is_valid_edge = check_interior_edge_validity(building, smallest_edge.first, smallest_edge.second);
+
+                    // if (is_valid_edge) {
                         
-                        return collapse_edge(smallest_edge, building);
-                        // std::cout << "interior ";
+                    //     return collapse_edge(smallest_edge, building);
+                    //     // std::cout << "interior ";
 
-                    } else {
+                    // } else {
 
-                        return false;
+                    //     return false;
 
                         /*
                         CGAL_precondition(smallest_edge.second != -1);
@@ -633,7 +728,7 @@ namespace CGAL {
 
                         smallest_edge = std::make_pair(fh, 1);
                         return collapse_edge(smallest_edge, building); */
-                    }
+                    // }
                 }
                 return false;
             }
