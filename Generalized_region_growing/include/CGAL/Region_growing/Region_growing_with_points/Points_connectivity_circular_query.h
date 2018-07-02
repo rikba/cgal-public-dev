@@ -1,5 +1,5 @@
-#ifndef GENERALIZED_REGION_GROWING_POINTS_CONNECTIVITY_H
-#define GENERALIZED_REGION_GROWING_POINTS_CONNECTIVITY_H
+#ifndef GENERALIZED_REGION_GROWING_POINTS_CONNECTIVITY_CIRCULAR_QUERY_H
+#define GENERALIZED_REGION_GROWING_POINTS_CONNECTIVITY_CIRCULAR_QUERY_H
 
 #include <CGAL/Iterator_range.h>
 #include <CGAL/Kd_tree.h>
@@ -8,10 +8,14 @@
 #include <CGAL/Search_traits_3.h>
 
 namespace CGAL {
+
     namespace Region_growing {
+
         namespace Region_growing_with_points {
+
             template<class Traits>
-            class Points_connectivity {
+            class Points_connectivity_circular_query {
+
             public:
                 using Input_range             = typename Traits::Input_range;
                 using Kernel                  = typename Traits::Kernel;
@@ -20,12 +24,10 @@ namespace CGAL {
 
                 using Element_with_properties = typename Element_map::key_type;
 
-                using Neighbors      = std::vector<Element_with_properties>;
-                using Neighbor_range = CGAL::Iterator_range<typename Neighbors::const_iterator>;
+                using Neighbors               = std::vector<Element_with_properties>;
+                using Neighbor_range          = CGAL::Iterator_range<typename Neighbors::const_iterator>;
 
-                using Search_base           = typename std::conditional<std::is_same<typename Kernel::Point_2, Element>::value,
-                        CGAL::Search_traits_2<Kernel>,
-                        CGAL::Search_traits_3<Kernel> >::type;
+                using Search_base             = typename std::conditional<std::is_same<typename Kernel::Point_2, Element>::value, CGAL::Search_traits_2<Kernel>, CGAL::Search_traits_3<Kernel> >::type;
                 // Primary template
                 template<class PointType, class ElementWithProperties>
                 struct Search_structures {
@@ -48,13 +50,14 @@ namespace CGAL {
                 using Fuzzy_circle      = typename Kd_tree_config::Fuzzy_circle;
                 using Tree              = typename Kd_tree_config::Tree;
 
-                Points_connectivity(const Input_range &input_range, const FT &radius) :
+                Points_connectivity_circular_query(const Input_range &input_range, const FT &radius) :
                         m_input_range(input_range),
                         m_radius(radius) {
                     m_tree.insert(m_input_range.begin(), m_input_range.end());
                 }
 
                 Neighbor_range get_neighbors(const Element_with_properties &center) {
+
                     m_neighbors.clear();
                     Fuzzy_circle circle(center, m_radius);
                     m_tree.search(std::back_inserter(m_neighbors), circle);
@@ -68,8 +71,11 @@ namespace CGAL {
                 Tree m_tree;
                 const FT m_radius;
             };
-        }
-    }
-}
+
+        } // namespace Region_growing_with_points 
+
+    } // namespace Region_growing
+
+} // namespace CGAL
 
 #endif

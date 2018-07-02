@@ -47,7 +47,8 @@ namespace CGAL {
                 using Sqrt                    = Get_sqrt<Kernel>;
 
                 using Local_kernel            = Exact_predicates_inexact_constructions_kernel;
-                using To_local_converter         = Cartesian_converter<Kernel, Local_kernel>;
+                using To_local_converter      = Cartesian_converter<Kernel, Local_kernel>;
+                using To_input_converter      = Cartesian_converter<Local_kernel, Kernel>;
                 using Local_point_3           = Local_kernel::Point_3;
                 using Local_plane_3           = Local_kernel::Plane_3;
                 using Local_vector_3          = Local_kernel::Vector_3;
@@ -64,8 +65,6 @@ namespace CGAL {
                 bool is_in_same_region(const Element_with_properties &assigned_element,
                                        const Element_with_properties &unassigned_element,
                                        const Region &region) {
-
-                    update(assigned_element, region);
 
                     Point_3 point_unassigned = get(m_elem_map, unassigned_element);
                     Vector_3 normal = get(m_normal_map, unassigned_element);
@@ -89,16 +88,16 @@ namespace CGAL {
 
                 // Update the plane of best fit
                 template<class Region>
-                void update(const Element_with_properties &assigned_element_with_properties, const Region &region) {
+                void update_shape(const Region &region) {
 
-                    CGAL_precondition(region.size() > 0);
+                    CGAL_precondition(region.end() - region.begin() != 0);
 
-                    if (region.size() == 1) {
+                    if (region.end() - region.begin() == 1) {
                         // The only point in the region is indeed `assigned_element_with_properties`
                         // The best fit plane will be a plane through this point with its normal being the point's normal
 
-                        Point_3 point = get(m_elem_map, assigned_element_with_properties);
-                        Vector_3 normal = get(m_normal_map, assigned_element_with_properties);
+                        Point_3 point = get(m_elem_map, *region.begin());
+                        Vector_3 normal = get(m_normal_map, *region.begin());
                         const FT normal_length = m_sqrt(normal.squared_length());
 
                         m_plane_of_best_fit = m_to_local_converter(Plane_3(point, normal));
@@ -121,17 +120,30 @@ namespace CGAL {
                     }
                 }
 
+                Plane_3 plane_of_best_fit() const {
+
+                    return m_to_input_converter(m_plane_of_best_fit);
+                }
+
+                Vector_3 normal_of_best_fit() const {
+
+                    return m_to_input_converter(m_normal_of_best_fit);
+                }
+
             private:
-                const Normal_map m_normal_map = Normal_map();
-                const Element_map m_elem_map = Element_map();
-                const FT &m_epsilon;
-                const FT &m_normal_threshold;
-                const int &m_min_region_size;
-                const Sqrt m_sqrt;
-                const To_local_converter m_to_local_converter;
-                Local_plane_3 m_plane_of_best_fit;
-                Local_vector_3 m_normal_of_best_fit;
-            };
+                const Normal_map              m_normal_map = Normal_map();
+                const Element_map             m_elem_map = Element_map();
+                const FT &                    m_epsilon;
+                const FT &                    m_normal_threshold;
+                const int &                   m_min_region_size;
+                const Sqrt                    m_sqrt;
+                const To_local_converter      m_to_local_converter;
+                const To_input_converter      m_to_input_converter;
+                Local_plane_3                 m_plane_of_best_fit;
+                Local_vector_3                m_normal_of_best_fit;
+                size_t                        m_region_size = 0;
+            }; // Points_conditions_3<Traits, NormalMap>
+
         }
     }
 }

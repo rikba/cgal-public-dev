@@ -16,7 +16,7 @@ using Input_range       = CGAL::Iterator_range<std::vector<Point_with_normal>::i
 
 using Traits            = CGAL::Region_growing::Region_growing_with_points::Points_traits<Input_range, Point_map, Kernel>;
 using Conditions        = CGAL::Region_growing::Region_growing_with_points::Points_conditions_2<Traits, Normal_map>;
-using Connectivity      = CGAL::Region_growing::Region_growing_with_points::Points_connectivity<Traits>;
+using Connectivity      = CGAL::Region_growing::Region_growing_with_points::Points_connectivity_nearest_neighbors<Traits>;
 using Region_growing    = CGAL::Region_growing::Generalized_region_growing<Traits, Connectivity, Conditions>;
 
 using Region_range      = Region_growing::Region_range;
@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 
     Input_range input_range(pwn.begin(), pwn.end());
 
-    Connectivity connectivity(input_range, 0.5);
+    Connectivity connectivity(input_range, 5);
 
     Conditions conditions(0.2, 0.3, 0);
 

@@ -6,41 +6,45 @@
 
 namespace CGAL {
     namespace Region_growing {
+
         template<class Traits, class Connectivity, class Conditions>
         class Generalized_region_growing {
+
         public:
             using Input_range             = typename Traits::Input_range;
             using Element                 = typename Traits::Element;
             using Element_map             = typename Traits::Element_map;
             using Element_with_properties = typename Element_map::key_type;
 
-            using Iterator      = typename Input_range::const_iterator;
             using Neighbors     = typename Connectivity::Neighbor_range;
             using Region        = std::vector<Element_with_properties>;
             using Regions       = std::vector<Region>;
             using Region_range  = CGAL::Iterator_range<typename Regions::const_iterator>;
 
-            Generalized_region_growing(const Input_range &input_range,
-                                       Connectivity &connectivity,
-                                       Conditions &conditions) :
-                    m_input_range(input_range),
-                    m_connectivity(connectivity),
-                    m_conditions(conditions) {}
+            Generalized_region_growing(const Input_range &input_range, Connectivity &connectivity, Conditions &conditions) :
+                m_input_range(input_range),
+                m_connectivity(connectivity),
+                m_conditions(conditions) { }
 
             void find_regions() {
-                for (Iterator iter = m_input_range.begin(); iter != m_input_range.end(); ++iter) {
-                    Element_with_properties ewp = *iter;
-                    if (!m_visited[get(m_elem_map, ewp)]) { // Available element
+
+                for (typename Input_range::const_iterator iter = m_input_range.begin(); iter != m_input_range.end(); ++iter) {
+
+                    if (!m_visited[get(m_elem_map, *iter)]) { // Available element
                         Region region;
                         // Grow a region from that element
-                        grow_region(ewp, region);
+                        grow_region(*iter, region);
                         // Check global condition
-                        if (m_conditions.is_valid(region))
+                        if (m_conditions.is_valid(region)) {
+
                             m_regions.push_back(region); // Add the region grown
-                        else {
+
+                        } else {
+
                             // Revert the process
                             for (typename Region::const_iterator it = region.begin(); it != region.end(); ++it)
                                 m_visited[get(m_elem_map, *it)] = false;
+
                         }
                     }
                 }
@@ -65,20 +69,25 @@ namespace CGAL {
         private:
             void grow_region(const Element_with_properties &seed, Region &region) {
                 region.clear();
-                std::queue<Element_with_properties> ewp_queue;
+                // Use two queues, while running on this queue, push to the other queue;
+                // When the queue is done, update the shape of the current region and swap to the other queue;
+                // depth_index is the index of the queue we're using
+                std::queue<Element_with_properties> ewp_queue[2];
+                bool depth_index = 0;
 
                 // Once an element is pushed to the queue, it is pushed to the region too.
-                ewp_queue.push(seed);
+                ewp_queue[depth_index].push(seed);
                 m_visited[get(m_elem_map, seed)] = true;
                 region.push_back(seed);
 
-                while (!ewp_queue.empty()) {
+                m_conditions.update_shape(region);
+
+                while (!ewp_queue[depth_index].empty() || !ewp_queue[!depth_index].empty()) {
 
                     // Call the next element of the queue and remove it from the queue
                     // but the element is not removed from the region.
-                    Element_with_properties ewp = ewp_queue.front();
-                    ewp_queue.pop();
-
+                    Element_with_properties ewp = ewp_queue[depth_index].front();
+                    ewp_queue[depth_index].pop();
                     // Get neighbors
                     Neighbors neighbors = m_connectivity.get_neighbors(ewp);
 
@@ -89,13 +98,19 @@ namespace CGAL {
                         if (!m_visited[get(m_elem_map, neighbor)] &&
                             m_conditions.is_in_same_region(ewp, neighbor, region)) {
 
-                            // Add to the queue the neighbor which doesn't belong to any regions
+                            // Add to the other queue the neighbor which doesn't belong to any regions
                             // so that we can visit the neighbor's neighbors later.
-                            ewp_queue.push(neighbor);
+                            ewp_queue[!depth_index].push(neighbor);
                             region.push_back(neighbor);
                             m_visited[get(m_elem_map, neighbor)] = true;
                         }
                     }
+
+                    if (ewp_queue[depth_index].empty()) {
+                        m_conditions.update_shape(region);
+                        depth_index = !depth_index;
+                    }
+
                 }
             }
 
