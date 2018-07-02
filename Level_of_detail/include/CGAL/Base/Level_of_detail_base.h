@@ -125,8 +125,9 @@ namespace CGAL {
 			
 			typedef typename Traits::LOD2_reconstruction LOD2_reconstruction;
 			
-			typedef typename Traits::Roofs_based_cdt_creator Roofs_based_cdt_creator;
-			typedef typename Traits::Roofs_based_cdt_cleaner Roofs_based_cdt_cleaner;
+			typedef typename Traits::Roofs_based_cdt_creator  Roofs_based_cdt_creator;
+			typedef typename Traits::Roofs_based_cdt_cleaner  Roofs_based_cdt_cleaner;
+			typedef typename Traits::Cdt_based_roof_estimator Cdt_based_roof_estimator;
 
 
 			// Extra typedefs.
@@ -1216,6 +1217,19 @@ namespace CGAL {
 				}
 			}
 
+			void estimating_initial_roofs_based_cdt(const FT ground_height, Buildings &buildings, const size_t exec_step) {
+
+				// Estimate initial roofs by lifting up the 2D diagram obtained from the 3D envelope and using internal CDT.
+				std::cout << "(" << exec_step << ") estimating initial roofs based CDT;" << std::endl;
+
+				Cdt_based_roof_estimator cdt_based_roof_estimator(ground_height, buildings);
+				cdt_based_roof_estimator.estimate();
+				
+				if (!m_silent) {
+					Log exporter; exporter.save_building_roofs_without_faces(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "estimated_roofs", true);
+				}
+			}
+
 			void estimating_initial_roofs(const FT ground_height, Buildings &buildings, const size_t exec_step) {
 
 				// Estimate initial roofs by lifting up the 2D diagram obtained from the 3D envelope.
@@ -1470,21 +1484,16 @@ namespace CGAL {
  				
 
 					// (09) ----------------------------------
-					// estimate roofs using triangulation
+					estimating_initial_roofs_based_cdt(ground_height, buildings, ++exec_step);
 
-
-					// (10) ----------------------------------
-					// reconstruct LOD2 using triangulation
-
-				 // } else {
+				 } else {
 
 					// (07) ----------------------------------
 					estimating_initial_roofs(ground_height, buildings, ++exec_step);
-
-
-					// (08) ----------------------------------
-					reconstructing_lod2(buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
 				}
+
+				// (10) ----------------------------------
+				reconstructing_lod2(buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
 			}
 
 

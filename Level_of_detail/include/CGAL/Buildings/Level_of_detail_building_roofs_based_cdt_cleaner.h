@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <utility>
+#include <iostream>
 #include <algorithm>
 
 // CGAL includes.
@@ -793,11 +794,12 @@ namespace CGAL {
                 Roofs &roofs = building.roofs;
                 roofs.clear();
 
+                int roof_index = 0;
                 for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
                     if (!fit->info().is_valid) continue;
                     
                     Roof roof;
-                    const Face_handle &fh = static_cast<Face_handle>(fit);
+                    Face_handle fh = static_cast<Face_handle>(fit);
 
                     const Point_2 &p1 = fh->vertex(0)->point();
                     const Point_2 &p2 = fh->vertex(1)->point();
@@ -806,6 +808,9 @@ namespace CGAL {
                     roof.boundary.push_back(Point_3(p1.x(), p1.y(), z));
                     roof.boundary.push_back(Point_3(p2.x(), p2.y(), z));
                     roof.boundary.push_back(Point_3(p3.x(), p3.y(), z));
+
+                    roof.index = roof_index; ++roof_index;
+                    fh->info().roof_index = roof.index;
 
                     roofs.push_back(roof);
                 }

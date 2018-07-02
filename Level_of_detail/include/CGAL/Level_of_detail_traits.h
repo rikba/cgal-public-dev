@@ -164,6 +164,7 @@ namespace CGAL {
 
 			typedef CGAL::LOD::Level_of_detail_building_roofs_based_cdt_creator<Kernel, Building, Buildings> 		       Roofs_based_cdt_creator;
 			typedef CGAL::LOD::Level_of_detail_building_roofs_based_cdt_cleaner<Kernel, Container_3D, Building, Buildings> Roofs_based_cdt_cleaner;
+			typedef CGAL::LOD::Level_of_detail_building_roofs_based_cdt_estimator<Kernel, Building, Buildings> 			   Cdt_based_roof_estimator;
 		};
 	}
 }

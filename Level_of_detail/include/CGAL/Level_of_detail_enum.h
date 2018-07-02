@@ -83,7 +83,9 @@ namespace CGAL {
 			bool is_valid = true; // check if this is a valid face
 
 			CGAL::Color color = CGAL::Color(255, 255, 255); // default face color
-			int index = -1;
+			
+			int index 	   = -1;
+			int roof_index = -1;
 		};
 
 		// Vertex info class.
@@ -129,6 +131,8 @@ namespace CGAL {
 
 				bool is_valid = true; // debugging info
 				Roof_boundary tmp; 	  // not needed in the final version!
+
+				int index = -1;
 			};
 
 			struct Data {

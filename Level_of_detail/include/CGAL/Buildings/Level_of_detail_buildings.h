@@ -15,6 +15,7 @@
 
 #include <CGAL/Buildings/Level_of_detail_building_roofs_based_cdt_creator.h>
 #include <CGAL/Buildings/Level_of_detail_building_roofs_based_cdt_cleaner.h>
+#include <CGAL/Buildings/Level_of_detail_building_roofs_based_cdt_estimator.h>
 
 #include <CGAL/Buildings/Associaters/Level_of_detail_building_envelope_plane_associater.h>
 #include <CGAL/Buildings/Associaters/Level_of_detail_building_partition_naive_plane_associater.h>
