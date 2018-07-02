@@ -34,6 +34,7 @@ namespace CGAL {
 
             using Vertex_handle = typename CDT::Vertex_handle;
             using Face_handle   = typename CDT::Face_handle;
+            using Locate_type   = typename CDT::Locate_type;
 
             using FT      = typename Kernel::FT;
             using Point_3 = typename Kernel::Point_3;
@@ -53,8 +54,42 @@ namespace CGAL {
             m_silent(false), m_height_threshold(FT(1) / FT(1000000)) { }
 
             void add_indices(Buildings &buildings) const {
-                if (buildings.size() == 0) return;
+                
+                if (buildings.size() == 0) 
+                    return;
 
+                for (Building_iterator bit = buildings.begin(); bit != buildings.end(); ++bit) {
+                    Building &building = (*bit).second;
+
+                    building.interior_indices.clear();
+                    building.is_valid = true;
+                }
+
+                Locate_type locate_type;
+				int locate_stub_index = -1;
+                
+                for (size_t i = 0; i < m_indices.size(); ++i) {
+                    const Index &index = m_indices[i];
+
+                    const Point_3 &point = m_input.point(index);
+                    const Point_2 query  = Point_2(point.x(), point.y());
+
+                    const Face_handle fh = m_cdt.locate(query, locate_type, locate_stub_index);
+					if (locate_type == CDT::FACE || locate_type == CDT::EDGE || locate_type == CDT::VERTEX) {
+                        
+                        const int building_index = fh->info().bu;
+                        if (building_index >= 0) buildings.at(building_index).interior_indices.push_back(index);
+                    }
+                }
+
+                for (Building_iterator bit = buildings.begin(); bit != buildings.end(); ++bit) {
+                    Building &building = (*bit).second;
+
+                    if (!is_valid_building(buildings, building)) building.is_valid = false; 
+                    if (building.interior_indices.size() < 3)    building.is_valid = false;
+                }
+
+                /*
                 for (Building_iterator bit = buildings.begin(); bit != buildings.end(); ++bit) {
                     Building &building = (*bit).second;
 
@@ -64,7 +99,7 @@ namespace CGAL {
                         if (building.interior_indices.size() < 3) 
                             building.is_valid = false;
                     }
-                }
+                } */
 
                 if (!m_silent) {
                     Log exporter; exporter.export_points_inside_buildings(buildings, m_input, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "points_inside_buildings");

@@ -10,6 +10,7 @@
 
 // CGAL includes.
 #include <CGAL/utils.h>
+#include <CGAL/Polygon_2.h>
 #include <CGAL/Barycentric_coordinates_2/Mean_value_2.h>
 #include <CGAL/Barycentric_coordinates_2/Generalized_barycentric_coordinates_2.h>
 
@@ -56,6 +57,8 @@ namespace CGAL {
 
             using Mean_value = CGAL::Barycentric_coordinates::Mean_value_2<Kernel>;
             using Mean_value_coordinates = CGAL::Barycentric_coordinates::Generalized_barycentric_coordinates_2<Mean_value, Kernel>;
+
+            using Cgal_polygon = CGAL::Polygon_2<Kernel>;
 
             Level_of_detail_building_partition_vote_based_plane_associater(const Input &input, const Building &building, const FT reference_height) :
             m_input(input),
@@ -162,9 +165,13 @@ namespace CGAL {
             }
 
             int find_corresponding_roof_face(const Point_3 &query) const {
+                
                 const Point_2 p = Point_2(query.x(), query.y());
-
                 for (size_t i = 0; i < m_polygons.size(); ++i) {
+                    
+                    Cgal_polygon cgal_polygon(m_polygons[i].begin(), m_polygons[i].end());
+                    if (cgal_polygon.area() < FT(1) / FT(1000000) || cgal_polygon.size() < 3) continue;
+
                     Mean_value_coordinates mean_value_coordinates(m_polygons[i].begin(), m_polygons[i].end());
 
                     Coordinates coordinates;

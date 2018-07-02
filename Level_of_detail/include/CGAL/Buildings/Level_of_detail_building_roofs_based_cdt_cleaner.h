@@ -15,9 +15,6 @@
 #include <CGAL/Buildings/Level_of_detail_building_roof_face_validator.h>
 #include <CGAL/Buildings/Associaters/Level_of_detail_building_partition_vote_based_plane_associater.h>
 
-// Problems:
-// 1. Why edge_circulator often gives an infinite loop?
-
 namespace CGAL {
 
 	namespace LOD {
@@ -66,15 +63,16 @@ namespace CGAL {
             
             using Vertex_handles = std::vector<Vertex_handle>;
             using Ids            = std::vector< std::pair<int, bool> >;
+            using Edges          = std::vector<Edge>;
 
             Level_of_detail_building_roofs_based_cdt_cleaner(const Input &input, const FT ground_height, Buildings &buildings) : 
             m_input(input),
             m_ground_height(ground_height),
             m_buildings(buildings),
             m_thin_face_max_size(FT(1) / FT(2)),
-            m_max_percentage(FT(95)),
-            m_max_main_iters(30),
-            m_max_circulator_iters(20),
+            m_max_percentage(FT(90)),
+            m_max_main_iters(50),
+            m_max_circulator_iters(30),
             m_angle_tolerance(FT(1))
             { }
 
@@ -529,7 +527,9 @@ namespace CGAL {
                     return false;
                 }
 
+                Edges edges;
                 edge_circulator = end; iters = 0;
+
                 do {
                     const Edge &edge = *edge_circulator;
                     if (cdt.is_constrained(edge) && !cdt.is_infinite(edge)) {
@@ -541,13 +541,16 @@ namespace CGAL {
                         if (vh1 != query) vhs.push_back(vh1);
                         if (vh2 != query) vhs.push_back(vh2);
 
-                        cdt.remove_constrained_edge(edge.first, edge.second);
+                        edges.push_back(edge);
                     }
                     
                     ++edge_circulator;
                     ++iters;
 
                 } while (edge_circulator != end && iters < m_max_circulator_iters);
+
+                for (size_t i = 0; i < edges.size(); ++i)
+                    cdt.remove_constrained_edge(edges[i].first, edges[i].second);
 
                 return true;
             }
@@ -583,6 +586,7 @@ namespace CGAL {
 
             bool collapse_interior_face(const Face_handle &fh, Building &building) const {
 
+                // return false;
                 Edge smallest_edge = std::make_pair(fh, -1);
 
                 find_smallest_edge(fh, smallest_edge);
