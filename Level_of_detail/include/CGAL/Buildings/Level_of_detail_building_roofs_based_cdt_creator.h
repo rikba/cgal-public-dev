@@ -19,8 +19,8 @@ namespace CGAL {
             using Building  = InputBuilding;
             using Buildings = InputBuildings;
 
-            using Point_2    = typename Kernel::Point_2;
-            using Point_3    = typename Kernel::Point_3;
+            using Point_2 = typename Kernel::Point_2;
+            using Point_3 = typename Kernel::Point_3;
 
             using CDT                = typename Building::CDT;
             using Buildings_iterator = typename Buildings::iterator;

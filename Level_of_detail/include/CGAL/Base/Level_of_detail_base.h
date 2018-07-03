@@ -1217,7 +1217,7 @@ namespace CGAL {
 				}
 			}
 
-			void estimating_initial_roofs_based_cdt(const FT ground_height, Buildings &buildings, const size_t exec_step) {
+			void estimating_roofs_based_cdt(const FT ground_height, Buildings &buildings, const size_t exec_step) {
 
 				// Estimate initial roofs by lifting up the 2D diagram obtained from the 3D envelope and using internal CDT.
 				std::cout << "(" << exec_step << ") estimating initial roofs based CDT;" << std::endl;
@@ -1484,7 +1484,7 @@ namespace CGAL {
  				
 
 					// (09) ----------------------------------
-					estimating_initial_roofs_based_cdt(ground_height, buildings, ++exec_step);
+					estimating_roofs_based_cdt(ground_height, buildings, ++exec_step);
 
 				 } else {
 

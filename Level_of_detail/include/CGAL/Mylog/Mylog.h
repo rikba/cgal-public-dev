@@ -866,6 +866,8 @@ namespace CGAL {
 				for (Buildings_iterator bit = buildings.begin(); bit != buildings.end(); ++bit) {
 					const CDT &cdt = bit->second.cdt;
 
+					if(!bit->second.is_valid) continue;
+
 					for (Vertices_iterator vit = cdt.finite_vertices_begin(); vit != cdt.finite_vertices_end(); ++vit) 
 						++num_vertices;
 
@@ -894,6 +896,8 @@ namespace CGAL {
 				for (Buildings_iterator bit = buildings.begin(); bit != buildings.end(); ++bit) {
 					const CDT &cdt = bit->second.cdt;
 	
+					if(!bit->second.is_valid) continue;
+
 					const double height = generate_random_height();
 					for (Vertices_iterator vit = cdt.finite_vertices_begin(); vit != cdt.finite_vertices_end(); ++vit) {
 
@@ -904,6 +908,8 @@ namespace CGAL {
 
 				for (Buildings_iterator bit = buildings.begin(); bit != buildings.end(); ++bit) {
 					const CDT &cdt = bit->second.cdt;
+
+					if(!bit->second.is_valid) continue;
 
 					for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit)
 						if (fit->info().is_valid)

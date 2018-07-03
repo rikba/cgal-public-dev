@@ -98,6 +98,7 @@ namespace CGAL {
                 return !is_valid_roof_face(building, face_boundary, true);
             }
 
+            // USE CAREFULLY!!!! THIS FUNCTION CHANGES FH VALIDITY TAG!!!!!
             bool is_valid_face(const Building &building, Face_handle &fh) const {
                 
                 check_face_validity(building, fh);

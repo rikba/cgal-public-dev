@@ -2,7 +2,6 @@
 #define CGAL_LEVEL_OF_DETAIL_BUILDING_ROOFS_BASED_CDT_CLEANER_H
 
 // STL includes.
-#include <map>
 #include <vector>
 #include <utility>
 #include <iostream>
@@ -29,9 +28,9 @@ namespace CGAL {
             using Building  = InputBuilding;
             using Buildings = InputBuildings;
 
-            using FT         = typename Kernel::FT;
-            using Point_2    = typename Kernel::Point_2;
-            using Point_3    = typename Kernel::Point_3;
+            using FT      = typename Kernel::FT;
+            using Point_2 = typename Kernel::Point_2;
+            using Point_3 = typename Kernel::Point_3;
 
             using CDT                = typename Building::CDT;
             using Buildings_iterator = typename Buildings::iterator;
@@ -70,11 +69,13 @@ namespace CGAL {
             m_input(input),
             m_ground_height(ground_height),
             m_buildings(buildings),
-            m_thin_face_max_size(FT(1) / FT(2)),
-            m_max_percentage(FT(95)),
-            m_max_main_iters(300),
-            m_max_circulator_iters(30),
-            m_angle_tolerance(FT(1))
+            m_thin_face_max_size(FT(1) / FT(2)), // not used
+            m_max_percentage_1(FT(95.0)),        // better to have between 90 % and 99 %
+            m_max_percentage_2(FT(99.5)),        // better to have between 95 % and 99 %
+            m_max_main_iters(300),               // 300 is ok
+            m_max_circulator_iters(30),          // 30 is ok
+            m_angle_tolerance(FT(1)),            // 1 degree is fixed and ok
+            m_max_interior_points(100)           // 100 is ok
             { }
 
             void clean() {
@@ -87,9 +88,17 @@ namespace CGAL {
                     clean_cdt(building);
 
                     m_roof_face_validator.mark_wrong_faces(building);
+
+                    // final_building_cdt_cleaning(building);
                     update_roofs(building);
                 }
                 std::cout << FT(count) / FT(m_buildings.size()) * FT(100) << " %" << std::endl << std::endl;
+
+                for (Buildings_iterator bit = m_buildings.begin(); bit != m_buildings.end(); ++bit, ++count) {
+                    
+                    Building &building = (*bit).second;
+                    if (!is_valid_building(building)) building.is_valid = false;
+                }
             }
 
         private:
@@ -99,7 +108,8 @@ namespace CGAL {
             Buildings &m_buildings;
 
             const FT m_thin_face_max_size;
-            const FT m_max_percentage;
+            const FT m_max_percentage_1;
+            const FT m_max_percentage_2;
 
             Roof_face_validator m_roof_face_validator;
 
@@ -107,6 +117,7 @@ namespace CGAL {
             const size_t m_max_circulator_iters;
 
             const FT m_angle_tolerance;
+            const size_t m_max_interior_points;
 
             void clean_cdt(Building &building) const {
 
@@ -124,7 +135,7 @@ namespace CGAL {
                     // Contributions.
                     create_face_contributions(building);
                     sort_face_contributions(building);
-                    finilize_face_contributions(building);
+                    finilize_face_contributions(building, m_max_percentage_1);
 
                     // Handle faces.
                     for (auto sc_it = building.sorted_face_contributions.begin(); sc_it != building.sorted_face_contributions.end(); ++ sc_it) {
@@ -188,7 +199,7 @@ namespace CGAL {
                     const Point_3 &p = m_input.point(indices[i]);
 
                     const Face_handle fh = cdt.locate(Point_2(p.x(), p.y()), locate_type, locate_stub_index);
-					if (locate_type == CDT::FACE || locate_type == CDT::EDGE || locate_type == CDT::VERTEX)
+					if (locate_type == CDT::FACE /* || locate_type == CDT::EDGE || locate_type == CDT::VERTEX */)
                         face_contributions.at(fh)[0]++;
                 }
             }
@@ -222,7 +233,7 @@ namespace CGAL {
                 std::sort(sorted_face_contributions.begin(), sorted_face_contributions.end(), comparator);
             }
 
-            void finilize_face_contributions(Building &building) const {
+            void finilize_face_contributions(Building &building, const FT max_percentage) const {
 
                 FT &current_percentage = building.current_percentage;
                 const size_t &total_contributions_size = building.total_contributions_size;
@@ -239,7 +250,7 @@ namespace CGAL {
                     const FT new_percentage = current_percentage - percentage;
                     // std::cout << "percent = " << current_percentage << "," << new_percentage << ", " << face_contributions_size << std::endl;
 
-                    if (new_percentage >= m_max_percentage) {
+                    if (new_percentage >= max_percentage) {
                         
                         current_percentage = new_percentage;
                         continue;
@@ -780,6 +791,64 @@ namespace CGAL {
                 }
             }
 
+            void final_building_cdt_cleaning(Building &building) const {
+                
+                building.total_contributions_size = building.interior_indices.size();
+                create_face_contributions(building);
+                const CDT &cdt = building.cdt;
+
+                for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
+                    
+                    Face_handle fh = static_cast<Face_handle>(fit);
+                    if (!fh->info().is_valid) continue;
+
+                    if (m_roof_face_validator.is_boundary_face(building, fh) && is_not_valid_cdt_face(building, fh)) {
+                        
+                        fh->info().is_valid = false;
+                        // fh->info().color = Color(255, 0, 0);
+                    }
+                }
+
+                for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
+                    
+                    Face_handle fh = static_cast<Face_handle>(fit);
+                    if (!fh->info().is_valid) continue;
+
+                    size_t validity = 0;
+                    for (size_t i = 0; i < 3; ++i) {
+                        
+                        Face_handle fhn = fh->neighbor(i);
+                        if (!fhn->info().is_valid) validity++;
+                    }
+
+                    if (validity == 3) {
+
+                        fh->info().is_valid = false;
+                        // fh->info().color = Color(255, 0, 0);
+                    }
+                }
+            }
+
+            bool is_not_valid_cdt_face(const Building &building, const Face_handle &fh) const {
+                
+                const Face_contributions &face_contributions = building.face_contributions;
+                for (auto fc_it = face_contributions.begin(); fc_it != face_contributions.end(); ++fc_it) {
+                    
+                    Face_handle ref = fc_it->first;
+                    if (ref == fh) {
+                        
+                        const size_t face_contributions_size  = compute_face_contribution_size(*fc_it);
+                        const size_t total_contributions_size = building.total_contributions_size;
+
+                        const FT difference = FT(100) - m_max_percentage_2;
+                        const FT percentage = (static_cast<FT>(face_contributions_size) / static_cast<FT>(total_contributions_size)) * FT(100);
+
+                        if (percentage < difference) return true;
+                    }
+                }
+                return false;
+            }
+
             void update_roofs(Building &building) const {
 
                 add_roof_faces(building);
@@ -796,10 +865,11 @@ namespace CGAL {
 
                 int roof_index = 0;
                 for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
-                    if (!fit->info().is_valid) continue;
-                    
+
                     Roof roof;
                     Face_handle fh = static_cast<Face_handle>(fit);
+
+                    if (!fh->info().is_valid) continue;
 
                     const Point_2 &p1 = fh->vertex(0)->point();
                     const Point_2 &p2 = fh->vertex(1)->point();
@@ -826,6 +896,12 @@ namespace CGAL {
                     building.roofs[i].associated_planes.clear();
                     plane_associater.find_associated_planes(i, building.roofs[i].is_plane_index, building.roofs[i].associated_planes);
                 }
+            }
+
+            bool is_valid_building(const Building &building) const {
+
+                if (building.interior_indices.size() < m_max_interior_points) return false;
+                return true;
             }
         };
 

@@ -128,6 +128,8 @@ namespace CGAL {
 
 			void add_structure_from_roof(const Roof &roof, const Color &color, Builder &builder) {
 
+				if (!roof.is_valid) return;
+
 				const Roof_boundary &boundary = roof.boundary;
 				assert(boundary.size() > 2);
 

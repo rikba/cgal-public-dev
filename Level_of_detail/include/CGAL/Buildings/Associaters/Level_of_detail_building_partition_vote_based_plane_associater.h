@@ -65,12 +65,16 @@ namespace CGAL {
             m_building(building),
             m_reference_height(reference_height) { 
 
+                if (m_building.roofs.size() == 0 || m_building.shapes.size() == 0) return;
+
                 set_initial_roof_votes();
                 create_polygons();
                 compute_final_roof_votes();
             }
 
             void find_associated_planes(const size_t roof_face_index, bool &is_plane_index, Associated_planes &associated_planes) const {
+                
+                if (m_building.roofs.size() == 0 || m_building.shapes.size() == 0) return;
                 if (naive_should_be_used(roof_face_index, associated_planes)) return;
 
                 associated_planes.clear();

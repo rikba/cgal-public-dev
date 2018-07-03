@@ -81,7 +81,7 @@ namespace CGAL {
                     }
                 }
 
-                assert(final_index != -1);
+                // assert(final_index != -1);
                 if (final_index != -1) associated_planes.push_back(static_cast<size_t>(final_index));
             }
 
