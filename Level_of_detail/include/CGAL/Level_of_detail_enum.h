@@ -179,6 +179,7 @@ namespace CGAL {
 
 			CDT cdt; 			  // cdt used for roofs
 			bool is_valid = true; // flag to check if we should output this building or not, if it is a valid building or not
+			int index = -1;
 
             using Contribution  		 	= int;
             using Contributions 		 	= std::vector<Contribution>;

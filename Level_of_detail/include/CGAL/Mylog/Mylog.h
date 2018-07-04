@@ -37,9 +37,9 @@ namespace CGAL {
 
 		private:
 			Random m_rand;
-			const std::string m_prefix_path;
 
 		public:
+			const std::string m_prefix_path;
 
             Mylog() : m_prefix_path(std::string(std::getenv("LOD_LOGS_PATH"))) { 
 				out.precision(20);
@@ -1218,6 +1218,55 @@ namespace CGAL {
 		        out << "%%EOF" + std::string(PN) + "";
 
 		        save(fileName, ".eps");
+			}
+
+			template<class Polygons>
+			void save_convex_polygons(const Polygons &polygons, const std::string &filename) {
+				clear();
+
+				size_t number_of_vertices = 0;
+				for (size_t i = 0; i < polygons.size(); ++i) {
+					
+					const auto &polygon = polygons[i];
+					number_of_vertices += polygon.size();
+				}
+
+				const size_t number_of_faces = polygons.size();
+
+				out << 
+				"ply" + std::string(PN) + ""               					     << 
+				"format ascii 1.0"  + std::string(PN) + ""     				     << 
+				"element vertex "        				   << number_of_vertices << "" + std::string(PN) + "" << 
+				"property double x" + std::string(PN) + ""    				     << 
+				"property double y" + std::string(PN) + ""    				     << 
+				"property double z" + std::string(PN) + "" 					     <<
+				"element face " 						   << number_of_faces    << "" + std::string(PN) + "" << 
+				"property list uchar int vertex_indices" + std::string(PN) + ""  <<
+				"property uchar red"   + std::string(PN) + "" 				     <<
+				"property uchar green" + std::string(PN) + "" 				     <<
+				"property uchar blue"  + std::string(PN) + "" 				     <<
+				"end_header" + std::string(PN) + "";
+
+				for (size_t i = 0; i < polygons.size(); ++i) {
+					const auto &polygon = polygons[i];
+
+					for (size_t j = 0; j < polygon.size(); ++j)
+						out << polygon[j] << std::endl;
+				}
+
+				size_t count = 0;
+				for (size_t i = 0; i < polygons.size(); ++i) {
+					const auto &polygon = polygons[i];
+					
+					out << polygon.size() << " ";
+					for (size_t j = 0; j < polygon.size(); ++j, ++count)
+						out << count << " ";
+					
+					const CGAL::Color color = generate_random_color();
+					out << color << std::endl;
+				}
+
+				save(filename, ".ply");
 			}
 
 			template<class Containers, class Polygon, class Kernel>

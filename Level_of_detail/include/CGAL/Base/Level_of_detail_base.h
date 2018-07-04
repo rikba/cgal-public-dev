@@ -117,11 +117,12 @@ namespace CGAL {
 			typedef typename Traits::Polygon_based_visibility  Polygon_based_visibility;
 			typedef typename Traits::Inside_buildings_selector Inside_buildings_selector;
 			
-			typedef typename Traits::Region_growing_3  Region_growing_3;
-			typedef typename Traits::Roof_cleaner      Roof_cleaner;
-			typedef typename Traits::Partition_input   Partition_input;
-			typedef typename Traits::Partition_creator Partition_creator;
-			typedef typename Traits::Roof_estimator    Roof_estimator;
+			typedef typename Traits::Region_growing_3  		   Region_growing_3;
+			typedef typename Traits::Roof_cleaner      		   Roof_cleaner;
+			typedef typename Traits::Partition_input   		   Partition_input;
+			typedef typename Traits::Partition_creator 		   Partition_creator;
+			typedef typename Traits::Kinetic_partition_creator Kinetic_partition_creator;
+			typedef typename Traits::Roof_estimator    		   Roof_estimator;
 			
 			typedef typename Traits::LOD2_reconstruction LOD2_reconstruction;
 			
@@ -1176,10 +1177,19 @@ namespace CGAL {
 				}
 			}
 
-			void applying_partitioning(const Container_3D &input, const FT ground_height, Buildings &buildings, const size_t exec_step) {
+			void applying_3d_partitioning(const CDT &cdt, const FT ground_height, Buildings &buildings, const size_t exec_step) {
 				
-				// Apply 3D partitioning and get a set of filtered 2D faces.
+				// Apply 3D partitioning and get a set of filtered 3D faces.
 				std::cout << "(" << exec_step << ") applying 3D partitioning;" << std::endl;
+				
+				m_kinetic_partition_creator = std::make_shared<Kinetic_partition_creator>(cdt, ground_height);
+				m_kinetic_partition_creator->create(buildings);
+			}
+
+			void applying_2d_partitioning(const Container_3D &input, const FT ground_height, Buildings &buildings, const size_t exec_step) {
+				
+				// Apply 2D partitioning and get a set of filtered 2D faces.
+				std::cout << "(" << exec_step << ") applying 2D partitioning;" << std::endl;
 				m_partition_creator = std::make_shared<Partition_creator>(input, ground_height);
 				
 				m_partition_creator->set_min_face_width(m_polygonizer_min_face_width);
@@ -1469,8 +1479,12 @@ namespace CGAL {
 				creating_partition_input(input, buildings, ++exec_step);
 
 
+				// (--) ----------------------------------
+				applying_3d_partitioning(cdt, ground_height, buildings, ++exec_step); return;
+
+
 				// (06) ----------------------------------
-				applying_partitioning(input, ground_height, buildings, ++exec_step);
+				applying_2d_partitioning(input, ground_height, buildings, ++exec_step);
 
 				
 				if (!m_no_roofs_cdt) {
@@ -1583,6 +1597,7 @@ namespace CGAL {
 			std::shared_ptr<Roof_cleaner> 		       m_roof_cleaner;
 			std::shared_ptr<Partition_input> 		   m_partition_input;
 			std::shared_ptr<Partition_creator> 		   m_partition_creator;
+			std::shared_ptr<Kinetic_partition_creator> m_kinetic_partition_creator;
 			std::shared_ptr<Roof_estimator> 		   m_roof_estimator;
 			
 			std::shared_ptr<LOD2_reconstruction> m_lod2;

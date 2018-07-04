@@ -11,6 +11,7 @@
 #include <CGAL/Buildings/Level_of_detail_building_roof_estimator.h>
 #include <CGAL/Buildings/Level_of_detail_building_partition_input.h>
 #include <CGAL/Buildings/Level_of_detail_building_partition_creator.h>
+#include <CGAL/Buildings/Level_of_detail_building_kinetic_partition_creator.h>
 #include <CGAL/Buildings/Level_of_detail_building_roof_face_validator.h>
 
 #include <CGAL/Buildings/Level_of_detail_building_roofs_based_cdt_creator.h>

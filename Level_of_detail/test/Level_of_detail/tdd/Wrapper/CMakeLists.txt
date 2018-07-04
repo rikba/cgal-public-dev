@@ -44,7 +44,6 @@
 project(lod)
 cmake_minimum_required(VERSION 2.6)
 
-# find_package(Eigen3 REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(GDAL REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem)
@@ -55,10 +54,8 @@ set(CMAKE_CXX_STANDARD 11)
 if (CGAL_FOUND)
 
 	include(${CGAL_USE_FILE})
-	# include(${EIGEN3_USE_FILE})
-
 	include_directories(BEFORE "../../../../include" ${OpenCV_INCLUDE_DIRS} ${GDAL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} "../../../../../../extra-code/libs/OOQP-master/include")
-	set(CMAKE_CXX_FLAGS "${CMAXE_CXX_FLAGS} -Wno-macro-redefined -Wno-switch -Wno-logical-op-parentheses -Wno-deprecated-declarations -Wno-user-defined-warnings -Wno-unused-result")
+	set(CMAKE_CXX_FLAGS "${CMAXE_CXX_FLAGS} -fdeclspec -Wno-ignored-attributes -Wno-parentheses -Wno-return-type -Wno-macro-redefined -Wno-switch -Wno-logical-op-parentheses -Wno-deprecated-declarations -Wno-user-defined-warnings -Wno-unused-result")
 
 	set(sources main.cpp
 	../../../../include/CGAL/Regularizer/jean_philippe/indexed_event.cpp 
@@ -77,7 +74,42 @@ if (CGAL_FOUND)
 	../../../../include/CGAL/Regularizer/jean_philippe/quadratic_problem.cpp 
 	../../../../include/CGAL/Regularizer/jean_philippe/regularization_angles_quadratic.cpp 
 	../../../../include/CGAL/Regularizer/jean_philippe/regularization_ordinates_quadratic.cpp
-	../../../../include/CGAL/Regularizer/jean_philippe/propagation.cpp)
+	../../../../include/CGAL/Regularizer/jean_philippe/propagation.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/event_queue.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/event.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/intersection_line.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/parameters.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/partition_edge.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/partition_facet.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/partition_polyhedron.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/partition_vertex_octree.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/partition_vertex.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/partition.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/planar_segment.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/ply_in.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/ply_out.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/polygon_cell.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/polygon_directions.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/polygon_edge.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/polygon_group.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/polygon_segment.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/polygon_set.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/polygon_tree.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/polygon_vertex.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/polygon.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/propagation.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/segment_translation.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/segment.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/stats.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/support_plane_construct.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/support_plane_draw.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/support_plane_event_handlers.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/support_plane_object.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/support_plane_segment_initializers.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/support_plane.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/universe.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/vars.cpp
+	)
 
 	add_library(ma27 STATIC IMPORTED)
 	set_property(TARGET ma27 PROPERTY IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/../../../../../../extra-code/libs/ma27/src/libma27.a)
