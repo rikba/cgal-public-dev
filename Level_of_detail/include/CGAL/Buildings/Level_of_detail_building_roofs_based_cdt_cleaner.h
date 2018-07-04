@@ -70,7 +70,7 @@ namespace CGAL {
             m_ground_height(ground_height),
             m_buildings(buildings),
             m_thin_face_max_size(FT(1) / FT(2)), // not used
-            m_max_percentage_1(FT(95.0)),        // better to have between 90 % and 99 %
+            m_max_percentage_1(FT(98.0)),        // better to have between 90 % and 99 %
             m_max_percentage_2(FT(99.5)),        // better to have between 95 % and 99 %
             m_max_main_iters(300),               // 300 is ok
             m_max_circulator_iters(30),          // 30 is ok

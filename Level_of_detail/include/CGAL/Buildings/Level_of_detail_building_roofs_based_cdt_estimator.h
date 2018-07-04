@@ -55,17 +55,26 @@ namespace CGAL {
 
             using Roof_indices  = std::vector<int>;
             using Heights       = std::map<int, FT>;
+            
             using Final_height  = std::pair<FT, Roof_indices>;
             using Final_heights = std::vector<Final_height>;
+            
+            using Inter_heights = std::vector<FT>;
+            using Tmp_height    = std::pair<Inter_heights, Roof_indices>;
+            using Tmp_heights   = std::vector<Tmp_height>;
 
-            using Planes_iterator        = typename Planes::const_iterator;
-            using Heights_iterator       = typename Heights::const_iterator; 
-            using Final_heights_iterator = typename Final_heights::const_iterator;
+            using Const_planes_iterator        = typename Planes::const_iterator;
+            using Const_heights_iterator       = typename Heights::const_iterator; 
+            using Const_final_heights_iterator = typename Final_heights::const_iterator;
+            using Const_inter_heights_iterator = typename Inter_heights::const_iterator;
+            using Const_tmp_heights_iterator   = typename Tmp_heights::const_iterator;
+            using Tmp_heights_iterator         = typename Tmp_heights::iterator;
 
             Level_of_detail_building_roofs_based_cdt_estimator(const FT ground_height, Buildings &buildings) :
-            m_tolerance(FT(1) / FT(1000000)),
             m_ground_height(ground_height),
-            m_buildings(buildings)
+            m_buildings(buildings),
+            m_tolerance(FT(1) / FT(1000000)),
+            m_max_difference(FT(1))
             { }
 
             void estimate() {
@@ -77,10 +86,11 @@ namespace CGAL {
             }
 
         private:
-            const FT m_tolerance;
             const FT m_ground_height;
-
             Buildings &m_buildings;
+
+            const FT m_tolerance;
+            const FT m_max_difference;
             
             void handle_building(Building &building) const {
 
@@ -204,11 +214,11 @@ namespace CGAL {
                 heights.clear();
 
                 size_t i = 0;
-                for (Planes_iterator pit = planes.begin(); pit != planes.end(); ++pit, ++i) {
-                    const Plane_3 &plane = *pit;
+                for (Const_planes_iterator cp_it = planes.begin(); cp_it != planes.end(); ++cp_it, ++i) {
+                    const Plane_3 &plane = *cp_it;
 
                     const FT height = intersect_line_with_plane(line, plane);
-                    if (height > m_ground_height + building_height / FT(2) && height < m_ground_height + building_height * FT(2)) heights[roof_indices[i]] = height;
+                    if (height > m_ground_height + building_height / FT(2) && height < m_ground_height + building_height * (FT(3) / FT(2))) heights[roof_indices[i]] = height;
                 }
             }
 
@@ -223,6 +233,93 @@ namespace CGAL {
             void compute_final_heights(const Heights &heights, Final_heights &final_heights) const {
                 
                 final_heights.clear();
+                group_all_heights(heights, final_heights); 
+                
+                return;
+                average_all_heights(heights, final_heights);
+            }
+
+            void group_all_heights(const Heights &heights, Final_heights &final_heights) const {
+
+                Tmp_heights tmp_heights;
+                for (Const_heights_iterator ch_it = heights.begin(); ch_it != heights.end(); ++ch_it) {
+                    
+                    const int roof_index = ch_it->first;
+                    const FT      height = ch_it->second;
+                    
+                    create_new_height(roof_index, height, tmp_heights);
+                }
+                create_final_heights(tmp_heights, final_heights);
+            }
+
+            void create_new_height(const int roof_index, const FT height, Tmp_heights &tmp_heights) const {
+
+                // Check current groups.
+                for (Tmp_heights_iterator th_it = tmp_heights.begin(); th_it != tmp_heights.end(); ++th_it) {
+                    
+                    Inter_heights &inter_heights = th_it->first;
+                    Roof_indices  &inter_indices = th_it->second;
+
+                    const FT centroid   = compute_centroid(inter_heights, height);
+                    const FT difference = CGAL::abs(centroid - height);
+
+                    if (difference < m_max_difference) {
+
+                        inter_heights.push_back(height);
+                        inter_indices.push_back(roof_index);
+
+                        return;
+                    } 
+                }
+
+                // Create new group.
+                Inter_heights inter_heights(1, height);
+                Roof_indices  inter_indices(1, roof_index);
+
+                tmp_heights.push_back(std::make_pair(inter_heights, inter_indices));
+            }
+
+            FT compute_centroid(const Inter_heights &inter_heights, const FT initial_height) const {
+
+                FT size       = FT(0);
+                FT avg_height = FT(0);
+
+                if (initial_height != FT(0)) {
+
+                    avg_height += initial_height;
+                    size += FT(1);
+                }
+
+                for (Const_inter_heights_iterator ih_it = inter_heights.begin(); ih_it != inter_heights.end(); ++ih_it) {
+                    const FT height = *ih_it;
+
+                    if (height != FT(0)) {
+
+                        avg_height += height;
+                        size += FT(1);
+                    }
+                }
+                CGAL_precondition(size != FT(0));
+
+                avg_height /= size;
+                return avg_height;
+            }
+
+            void create_final_heights(const Tmp_heights &tmp_heights, Final_heights &final_heights) const {
+                
+                final_heights.clear();
+                for (Const_tmp_heights_iterator th_it = tmp_heights.begin(); th_it != tmp_heights.end(); ++th_it) {
+
+                    const Inter_heights &heights = th_it->first;
+                    const Roof_indices  &indices = th_it->second;
+
+                    const FT final_height = compute_centroid(heights, FT(0));
+                    final_heights.push_back(std::make_pair(final_height, indices));
+                }
+            }
+
+            void average_all_heights(const Heights &heights, Final_heights &final_heights) const {
+                final_heights.clear();
                 const FT final_height = compute_average_height(heights);
                 
                 Roof_indices final_indices;
@@ -234,11 +331,12 @@ namespace CGAL {
             FT compute_average_height(const Heights &heights) const {
                 
                 FT avg_height = FT(0);
-                for (Heights_iterator hit = heights.begin(); hit != heights.end(); ++hit) {
+                for (Const_heights_iterator ch_it = heights.begin(); ch_it != heights.end(); ++ch_it) {
                     
-                    const FT height = hit->second;
+                    const FT height = ch_it->second;
                     avg_height += height;
                 }
+                CGAL_precondition(heights.size() != 0);
                 
                 avg_height /= static_cast<FT>(heights.size());
                 return avg_height;
@@ -247,9 +345,9 @@ namespace CGAL {
             void add_all_indices(const Heights &heights, Roof_indices &roof_indices) const {
                 
                 roof_indices.clear();
-                for (Heights_iterator hit = heights.begin(); hit != heights.end(); ++hit) {
+                for (Const_heights_iterator ch_it = heights.begin(); ch_it != heights.end(); ++ch_it) {
                     
-                    const int roof_index = hit->first;
+                    const int roof_index = ch_it->first;
                     roof_indices.push_back(roof_index);
                 }
             }
@@ -257,9 +355,9 @@ namespace CGAL {
             void update_roof_heights(const Vertex_handle &vh, const Final_heights &final_heights, Building &building) const {
 
                 Roofs &roofs = building.roofs;
-                for (Final_heights_iterator fh_it = final_heights.begin(); fh_it != final_heights.end(); ++fh_it) {
+                for (Const_final_heights_iterator fh_it = final_heights.begin(); fh_it != final_heights.end(); ++fh_it) {
                     
-                    const FT final_height = fh_it->first; 
+                    const FT final_height            = fh_it->first; 
                     const Roof_indices &roof_indices = fh_it->second;
 
                     for (size_t i = 0; i < roof_indices.size(); ++i)
