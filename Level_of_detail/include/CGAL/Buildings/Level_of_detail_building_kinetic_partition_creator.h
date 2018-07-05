@@ -97,6 +97,11 @@ namespace CGAL {
                 JPTD::Kinetic_Propagation kinetic(argc, argv);
 	            if (!kinetic.data()) return;
                 kinetic.run();
+
+                free(val1);
+                free(val2);
+                free(val3);
+                free(val4);
             }
 
             std::string save_convex_polygons(const Building &building) const {

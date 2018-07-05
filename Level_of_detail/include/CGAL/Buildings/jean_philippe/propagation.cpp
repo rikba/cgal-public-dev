@@ -7,6 +7,7 @@
 #include "ply_in.h"
 #include "ply_out.h"
 #include "stats.h"
+#include "vars.h"
 
 #include <fstream>
 #include <iomanip>
@@ -702,6 +703,18 @@ void Kinetic_Propagation::delete_kinetic_data_structure()
 
 	// Deletes the queue
 	delete Universe::event_queue;
+
+	// Delete counters
+	Counters::id_planes = -1;
+	Counters::id_objects = -1;
+
+	Counters::id_partition_vertex = -1;
+	Counters::id_partition_edge = -1;
+	Counters::id_partition_facet = -1;
+	Counters::id_partition_polyhedron = -1;
+
+	Counters::par_v_local_ids = std::vector<int>();
+	Counters::par_e_local_ids = std::vector<int>();
 }
 
 
