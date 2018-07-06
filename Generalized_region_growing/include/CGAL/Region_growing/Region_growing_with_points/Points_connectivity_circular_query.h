@@ -51,8 +51,8 @@ namespace CGAL {
                 using Tree              = typename Kd_tree_config::Tree;
 
                 Points_connectivity_circular_query(const Input_range &input_range, const FT &radius) :
-                        m_input_range(input_range),
-                        m_radius(radius) {
+                m_input_range(input_range),
+                m_radius(radius) {
                     m_tree.insert(m_input_range.begin(), m_input_range.end());
                 }
 

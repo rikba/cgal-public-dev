@@ -9,7 +9,8 @@ namespace CGAL {
             class Points_traits { };
 
             template<class InputRange, class ElementMap, class IndexMap, class K>
-            class Points_traits<InputRange, ElementMap, IndexMap, K> : Points_traits<InputRange, ElementMap, K> {
+            class Points_traits<InputRange, ElementMap, IndexMap, K> : public Points_traits<InputRange, ElementMap, K> {
+            public:
                 using Index_map               = IndexMap;
             };
 

@@ -23,7 +23,7 @@ namespace CGAL {
                     typedef typename Kernel::FT FT;
                 public:
                     FT operator()(const FT &value) const {
-                        return FT(CGAL::sqrt(CGAL::to_double(value)));
+                        return static_cast<FT>(CGAL::sqrt(CGAL::to_double(value)));
                     }
                 };
 
@@ -63,8 +63,6 @@ namespace CGAL {
                                        const Element_with_properties &unassigned_element,
                                        const Region &region) {
 
-                    update(assigned_element, region);
-
                     Point_2 point_unassigned = get(m_elem_map, unassigned_element);
                     Vector_2 normal = get(m_normal_map, unassigned_element);
 
@@ -82,21 +80,20 @@ namespace CGAL {
                 template<class Region>
                 bool is_valid(const Region &region) const {
 
-                    return (region.size() > m_min_region_size);
+                    return (region.size() >= m_min_region_size);
                 }
 
                 // Update the line of best fit
                 template<class Region>
-                void update(const Element_with_properties &assigned_element_with_properties, const Region &region) {
+                void update_shape(const Region &region) {
 
-                    CGAL_precondition(region.size() > 0);
+                    CGAL_precondition(region.end() - region.begin() != 0);
 
-                    if (region.size() == 1) {
-                        // The only point in the region is indeed `assigned_element_with_properties`
+                    if (region.end() - region.begin() == 1) {
                         // The best fit line will be a line through this point with its normal being the point's normal
 
-                        Point_2 point = get(m_elem_map, assigned_element_with_properties);
-                        Vector_2 normal = get(m_normal_map, assigned_element_with_properties);
+                        Point_2 point = get(m_elem_map, *region.begin());
+                        Vector_2 normal = get(m_normal_map, *region.begin());
                         const FT normal_length = m_sqrt(normal.squared_length());
 
                         m_line_of_best_fit = m_to_local_converter(Line_2(point, normal).perpendicular(point));
@@ -112,7 +109,7 @@ namespace CGAL {
                         // Fit the region to a line
                         linear_least_squares_fitting_2(points.begin(), points.end(), m_line_of_best_fit, CGAL::Dimension_tag<0>());
 
-                        Local_vector_2 normal = m_line_of_best_fit.perpendicular(Local_point_2(0, 0)).to_vector();
+                        Local_vector_2 normal = m_line_of_best_fit.perpendicular(m_line_of_best_fit.point(0)).to_vector();
                         const Local_FT normal_length = CGAL::sqrt(normal.squared_length());
 
                         m_normal_of_best_fit = normal / normal_length;

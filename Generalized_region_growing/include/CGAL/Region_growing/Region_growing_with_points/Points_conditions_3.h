@@ -83,7 +83,7 @@ namespace CGAL {
                 template<class Region>
                 bool is_valid(const Region &region) const {
 
-                    return (region.size() > m_min_region_size);
+                    return (region.size() >= m_min_region_size);
                 }
 
                 // Update the plane of best fit
@@ -93,7 +93,6 @@ namespace CGAL {
                     CGAL_precondition(region.end() - region.begin() != 0);
 
                     if (region.end() - region.begin() == 1) {
-                        // The only point in the region is indeed `assigned_element_with_properties`
                         // The best fit plane will be a plane through this point with its normal being the point's normal
 
                         Point_3 point = get(m_elem_map, *region.begin());
@@ -141,10 +140,11 @@ namespace CGAL {
                 const To_input_converter      m_to_input_converter;
                 Local_plane_3                 m_plane_of_best_fit;
                 Local_vector_3                m_normal_of_best_fit;
-                size_t                        m_region_size = 0;
-            }; // Points_conditions_3<Traits, NormalMap>
+            };
 
-        }
-    }
-}
+        } // namespace Region_growing_with_points
+
+    } // namespace Region_growing
+
+} // namespace CGAL
 #endif

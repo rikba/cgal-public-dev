@@ -33,9 +33,6 @@ namespace CGAL {
                 template<class Ewp>
                 bool& operator [](const Ewp& ewp) { return m_visited[get(m_elem_map, ewp)]; }
 
-                template<class Ewp>
-                bool operator[] (const Ewp& ewp) const {return m_visited[get(m_elem_map, ewp)]; }
-
             private:
                 std::map<Element, bool> m_visited;
                 Element_map m_elem_map;
@@ -45,16 +42,13 @@ namespace CGAL {
             class Visit_mask<T, void_t<typename T::Index_map> > {
 
             public:
-                Visit_mask(size_t size) : m_visited(std::vector<bool>(size, false)) {}
+                Visit_mask(size_t size) : m_visited(std::vector<int>(size, 0)) {}
 
                 template<class Ewp>
-                bool& operator [](const Ewp& ewp) { return m_visited[get(m_index_map, ewp)]; }
-
-                template<class Ewp>
-                bool operator[] (const Ewp& ewp) const {return m_visited[get(m_index_map, ewp)]; }
+                int& operator [](const Ewp& ewp) { return m_visited[get(m_index_map, ewp)]; }
 
             private:
-                std::vector<bool> m_visited;
+                std::vector<int> m_visited;
                 typename T::Index_map m_index_map;
 
             };
@@ -72,13 +66,18 @@ namespace CGAL {
                     if (!m_visited[*iter]) { // Available element
                         Region region;
                         // Grow a region from that element
+//                        std::cout << 1.0 * clock() / CLOCKS_PER_SEC << ">> Starting a new region..." << std::endl;
                         grow_region(*iter, region);
                         // Check global condition
                         if (m_conditions.is_valid(region)) {
 
+//                            std::cout << 1.0 * clock() / CLOCKS_PER_SEC << ">> Size is " << region.size() << ". Accept." << std::endl;
+
                             m_regions.push_back(region); // Add the region grown
 
                         } else {
+
+//                            std::cout << 1.0 * clock() / CLOCKS_PER_SEC << ">> Size is " << region.size() << ". Revert." << std::endl;
 
                             // Revert the process
                             for (typename Region::const_iterator it = region.begin(); it != region.end(); ++it)
