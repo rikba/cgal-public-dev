@@ -9,10 +9,13 @@
 #include <CGAL/utils.h>
 #include <CGAL/partition_2.h>
 #include <CGAL/Partition_traits_2.h>
+#include <CGAL/Barycentric_coordinates_2/Segment_coordinates_2.h>
 
 namespace CGAL {
 
 	namespace LOD {
+
+        namespace BC = CGAL::Barycentric_coordinates;
 
 		template<class KernelTraits, class InputBuilding>
 		class Level_of_detail_building_roof_face_validator {
@@ -24,6 +27,7 @@ namespace CGAL {
             using FT         = typename Kernel::FT;
             using Point_2    = typename Kernel::Point_2;
             using Point_3    = typename Kernel::Point_3;
+            using Line_2     = typename Kernel::Line_2;
             using Triangle_2 = typename Kernel::Triangle_2;
             
             using Boundary = std::vector<Point_3>;
@@ -36,8 +40,11 @@ namespace CGAL {
             using Polygon          = typename Partition_traits::Polygon_2;
             using Polygons         = std::vector<Polygon>;
 
+            typename Kernel::Compute_squared_distance_2 squared_distance_2;
+
             Level_of_detail_building_roof_face_validator() :
-            m_ghost_tolerance(FT(1) / FT(1000000))
+            m_ghost_tolerance(FT(1) / FT(1000000)),
+            m_distance_tolerance(FT(1) / FT(10))
             { }
 
             bool is_valid_roof_face(const Building &building, const Boundary &boundary, const bool use_barycentre_query_point) const {
@@ -55,6 +62,47 @@ namespace CGAL {
 
                     const Triangle_2 triangle = Triangle_2(p1, p2, p3);
                     if (triangle.has_on_bounded_side(query) || triangle.has_on_boundary(query)) return true;
+                }
+                return false;
+            }
+
+            bool is_valid_polyhedron_facet(const Building &building, const Boundary &boundary, const bool use_barycentre_query_point) const {
+
+                Point_2 query;
+                if (use_barycentre_query_point) find_query_point_using_barycentre(boundary, query);
+                else find_query_point_using_partition(boundary, query);
+
+                const auto &faces = building.faces;
+                for (size_t i = 0; i < faces.size(); ++i) {
+                        
+                    const Point_2 &p1 = faces[i]->vertex(0)->point();
+                    const Point_2 &p2 = faces[i]->vertex(1)->point();
+                    const Point_2 &p3 = faces[i]->vertex(2)->point();
+
+                    const Triangle_2 triangle = Triangle_2(p1, p2, p3);
+                    if (is_within_triangle(query, triangle)) return true;
+                }
+                return false;
+            }
+
+            bool is_within_triangle(const Point_2 &query, const Triangle_2 &triangle) const {
+                if (triangle.has_on_bounded_side(query) || triangle.has_on_boundary(query)) return true;
+
+                typedef CGAL::cpp11::array<FT, 2> Pair;
+                for (size_t i = 0; i < 3; ++i) {
+                    const size_t ip = (i + 1) % 3;
+
+                    const Point_2 &p1 = triangle.vertex(i);
+                    const Point_2 &p2 = triangle.vertex(ip);
+
+                    const Pair pair   = BC::compute_segment_coordinates_2(p1, p2, query, Kernel());
+                    const Line_2 line = Line_2(p1, p2);
+
+                    const Point_2 projected = line.projection(query);
+                    const FT squared_distance = squared_distance_2(query, projected);
+
+                    const FT squared_tolerance = m_distance_tolerance * m_distance_tolerance;
+                    if (pair[0] >= FT(0) && pair[1] >= FT(0) && pair[0] <= FT(1) && pair[1] <= FT(1) && squared_distance < squared_tolerance) return true;
                 }
                 return false;
             }
@@ -134,6 +182,7 @@ namespace CGAL {
 
         private:
             const FT m_ghost_tolerance;
+            const FT m_distance_tolerance;
             
             void find_query_point_using_barycentre(const Boundary &boundary, Point_2 &query) const {
 

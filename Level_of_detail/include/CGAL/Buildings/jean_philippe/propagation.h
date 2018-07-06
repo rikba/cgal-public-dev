@@ -111,6 +111,8 @@ public:
 	 */
 	KINETIC_PARTITION_API void run();
 
+	void delete_kinetic_data_structure();
+
 protected:
 	
 	// Generates, reads or processes data
@@ -138,8 +140,6 @@ protected:
 	// Initialization of the algorithm
 
 	void init_kinetic_data_structure();
-
-	void delete_kinetic_data_structure();
 
 	void init_bounding_box(CGAL_Point_3 & pt_min,
 		CGAL_Point_3 & pt_max,

@@ -185,9 +185,10 @@ void Kinetic_Propagation::run()
 		build_partition();
 
 		// Cleans memory
-		delete_kinetic_data_structure();
+		// delete_kinetic_data_structure();
 
 		{
+			/*
 			std::cout << "** schedule_events() : " << std::endl;
 			std::cout << "calls      : " << KP_Stats::schedule_events_vertices << std::endl;
 			std::cout << "lines      : " << KP_Stats::schedule_events_lines << std::endl;
@@ -202,7 +203,7 @@ void Kinetic_Propagation::run()
 			std::cout << "** process_events() : " << std::endl;
 			std::cout << "time       : " << double(KP_Stats::process_events_time) / CLOCKS_PER_SEC << " s." << std::endl;
 			std::cout << "events     : " << KP_Stats::process_events_calls << std::endl;
-			std::cout << "average    : " << double(KP_Stats::process_events_time) / (CLOCKS_PER_SEC * KP_Stats::process_events_calls) << std::endl;
+			std::cout << "average    : " << double(KP_Stats::process_events_time) / (CLOCKS_PER_SEC * KP_Stats::process_events_calls) << std::endl; */
 		}
 
 	} catch (std::exception & except) {
@@ -688,7 +689,7 @@ void Kinetic_Propagation::init_kinetic_data_structure()
 		throw except;
 	}
 
-	std::cout << "** Initialized structure" << std::endl;
+	// std::cout << "** Initialized structure" << std::endl;
 }
 
 
@@ -1162,7 +1163,7 @@ void Kinetic_Propagation::unstack()
 		SP->process_event(e_vl);
 	}
 
-	std::cout << "** Processed all events" << std::endl;
+	// std::cout << "** Processed all events" << std::endl;
 
 	if (Universe::params->check) {
 		clock_t t_check_begin = clock();
@@ -1173,7 +1174,7 @@ void Kinetic_Propagation::unstack()
 			}
 		}
 		clock_t t_check_end = clock();
-		std::cout << "** Checked data in " << double(t_check_end - t_check_begin) / CLOCKS_PER_SEC << " s." << std::endl;
+		// std::cout << "** Checked data in " << double(t_check_end - t_check_begin) / CLOCKS_PER_SEC << " s." << std::endl;
 	}
 
 	if (Universe::params->print_drawings) {
@@ -1223,23 +1224,26 @@ void Kinetic_Propagation::unstack()
 
 void Kinetic_Propagation::build_partition()
 {
-	const std::string & basename = Universe::params->basename;
+	const std::string &basename = Universe::params->basename;
 
 	partition = new Partition();
 	partition->build();
 
-	std::cout << "** Built a partition with " << partition->polyhedrons_size() << " polyhedrons" << std::endl;
+	// std::cout << "** Built a partition with " << partition->polyhedrons_size() << " polyhedrons" << std::endl;
 
 	if (Universe::params->output_facets) {
 
+		// std::cout << "here1" << std::endl;
 		const std::string filename = "/Users/danisimo/Documents/pipeline/logs/tmp/lod_2/" + basename + "_facets.ply";
-		std::cout << std::endl << "output file: " << filename << std::endl << std::endl;
  		partition->ply_facets(filename);
 	}
 
 	if (Universe::params->output_polyhedrons) {
+
+		// std::cout << "here2" << std::endl;
 		for (std::list<Partition_Polyhedron*>::const_iterator it_p = partition->polyhedrons_begin(); it_p != partition->polyhedrons_end(); it_p++) {
 			int i = (*it_p)->id;
+
 			const std::string filename_poly = basename + "_poly_" + std::to_string(i) + ".ply";
 			partition->ply_individual_polyhedron(filename_poly, i);
 		}

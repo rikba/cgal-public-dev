@@ -194,6 +194,30 @@ namespace CGAL {
 			FT 	   current_percentage;
 			size_t total_contributions_size;
 
+			struct Polyhedron {
+			
+			public:
+				using Vertex   = Point_3;
+				using Vertices = std::vector<Vertex>;
+				using Facet    = std::vector<int>;
+				using Facets   = std::vector<Facet>;
+
+				Vertices vertices;
+				Facets 	 facets;
+
+				bool is_valid = true;
+			};
+
+			using Polyhedrons = std::vector<Polyhedron>;
+			
+			Polyhedrons polyhedrons;
+			Polyhedrons polyhedron_facets;
+
+            using Polygon_boundary = std::vector<Point_3>;
+            using Polygons = std::vector<Polygon_boundary>;
+
+			Polygons polygons;
+
 			void clear_interior_indices() {
 				interior_indices.clear();
 			}

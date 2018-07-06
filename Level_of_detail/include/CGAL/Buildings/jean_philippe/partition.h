@@ -93,12 +93,12 @@ public:
 
 	KINETIC_PARTITION_API size_t polyhedrons_size() const;
 
+	Partition_Vertex_Octree* octree;
+	std::vector<std::list<Partition_Facet*> > facets;
+
 private:
 	std::vector<double> dims;
-
-	Partition_Vertex_Octree* octree;
 	std::list<Partition_Edge*> edges;
-	std::vector<std::list<Partition_Facet*> > facets;
 	std::list<Partition_Polyhedron*> polyhedrons;
 };
 

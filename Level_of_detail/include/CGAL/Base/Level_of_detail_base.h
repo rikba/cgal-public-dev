@@ -130,6 +130,8 @@ namespace CGAL {
 			typedef typename Traits::Roofs_based_cdt_cleaner  Roofs_based_cdt_cleaner;
 			typedef typename Traits::Cdt_based_roof_estimator Cdt_based_roof_estimator;
 
+			typedef typename Traits::Visibility_3 Visibility_3;
+
 
 			// Extra typedefs.
 			using Plane_iterator = typename Planes::const_iterator;
@@ -1181,9 +1183,30 @@ namespace CGAL {
 				
 				// Apply 3D partitioning and get a set of filtered 3D faces.
 				std::cout << "(" << exec_step << ") applying 3D partitioning;" << std::endl;
-				
 				m_kinetic_partition_creator = std::make_shared<Kinetic_partition_creator>(cdt, ground_height);
-				m_kinetic_partition_creator->create(buildings);
+				
+				m_kinetic_partition_creator->create_input(buildings);
+				if (!m_silent) {
+					Log exporter; exporter.save_convex_polygons(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "3d_partitioning_input");
+				}
+
+				m_kinetic_partition_creator->create_output(buildings);
+				if (!m_silent) {
+					Log exporter; exporter.save_polyhedron_facets(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "3d_partitioning_facets");
+				}
+			}
+
+			void applying_3d_visibility(const Container_3D &input, const CDT &cdt, const FT ground_height, Buildings &buildings, const size_t exec_step) {
+
+				// Apply 3D visibility.
+				std::cout << "(" << exec_step << ") applying 3D visibility;" << std::endl;
+
+				m_visibility_3 = std::make_shared<Visibility_3>(input, cdt, ground_height);
+				m_visibility_3->filter(buildings);
+
+				if (!m_silent) {
+					Log exporter; exporter.save_polyhedrons(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "3d_partitioning_polyhedrons");
+				}
 			}
 
 			void applying_2d_partitioning(const Container_3D &input, const FT ground_height, Buildings &buildings, const size_t exec_step) {
@@ -1480,7 +1503,13 @@ namespace CGAL {
 
 
 				// (--) ----------------------------------
-				applying_3d_partitioning(cdt, ground_height, buildings, ++exec_step); return;
+				applying_3d_partitioning(cdt, ground_height, buildings, ++exec_step); 
+				
+
+				// (--) ----------------------------------
+				applying_3d_visibility(input, cdt, ground_height, buildings, ++exec_step);
+				
+				return;
 
 
 				// (06) ----------------------------------
@@ -1599,7 +1628,8 @@ namespace CGAL {
 			std::shared_ptr<Partition_creator> 		   m_partition_creator;
 			std::shared_ptr<Kinetic_partition_creator> m_kinetic_partition_creator;
 			std::shared_ptr<Roof_estimator> 		   m_roof_estimator;
-			
+
+			std::shared_ptr<Visibility_3> m_visibility_3;
 			std::shared_ptr<LOD2_reconstruction> m_lod2;
 
 

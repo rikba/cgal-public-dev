@@ -158,7 +158,7 @@ namespace CGAL {
 			typedef CGAL::LOD::Level_of_detail_building_roof_estimator_box_strategy<Kernel, Container_3D, Building> 	 Input_strategy;
 			typedef CGAL::LOD::Level_of_detail_building_partition_input<Kernel, Container_3D, Buildings, Input_strategy> Partition_input;
 			typedef CGAL::LOD::Level_of_detail_building_partition_creator<Kernel, Container_3D, Buildings, Building> 	 Partition_creator;
-			typedef CGAL::LOD::Level_of_detail_building_kinetic_partition_creator<Kernel, Buildings, Building> 	 		 Kinetic_partition_creator;
+			typedef CGAL::LOD::Level_of_detail_building_kinetic_partition_creator<Kernel, Building, Buildings> 	 		 Kinetic_partition_creator;
 			typedef CGAL::LOD::Level_of_detail_building_roof_estimator<Kernel, Building, Buildings> 				     Roof_estimator;
 
 			typedef CGAL::LOD::Level_of_detail_lod2<Kernel, Building, Buildings, Mesh> LOD2_reconstruction;
@@ -166,6 +166,8 @@ namespace CGAL {
 			typedef CGAL::LOD::Level_of_detail_building_roofs_based_cdt_creator<Kernel, Building, Buildings> 		       Roofs_based_cdt_creator;
 			typedef CGAL::LOD::Level_of_detail_building_roofs_based_cdt_cleaner<Kernel, Container_3D, Building, Buildings> Roofs_based_cdt_cleaner;
 			typedef CGAL::LOD::Level_of_detail_building_roofs_based_cdt_estimator<Kernel, Building, Buildings> 			   Cdt_based_roof_estimator;
+
+			typedef CGAL::LOD::Level_of_detail_building_visibility_3<Kernel, Container_3D, CDT, Building, Buildings> Visibility_3;
 		};
 	}
 }

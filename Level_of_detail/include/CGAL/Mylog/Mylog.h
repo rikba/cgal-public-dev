@@ -1220,53 +1220,232 @@ namespace CGAL {
 		        save(fileName, ".eps");
 			}
 
-			template<class Polygons>
-			void save_convex_polygons(const Polygons &polygons, const std::string &filename) {
+			template<class Buildings>
+			void save_convex_polygons(const Buildings &buildings, const std::string &file_name) {
 				clear();
 
-				size_t number_of_vertices = 0;
-				for (size_t i = 0; i < polygons.size(); ++i) {
-					
-					const auto &polygon = polygons[i];
-					number_of_vertices += polygon.size();
-				}
+				size_t num_vertices = 0;
+				size_t num_faces    = 0;
 
-				const size_t number_of_faces = polygons.size();
+				for (auto bit = buildings.begin(); bit != buildings.end(); ++bit) {
+					if (!bit->second.is_valid) continue;
+
+					const auto &polygons = bit->second.polygons;
+					for (size_t i = 0; i < polygons.size(); ++i) {
+						
+						const auto &polygon = polygons[i];
+						num_vertices += polygon.size();
+					}
+					num_faces += polygons.size();
+				}
 
 				out << 
 				"ply" + std::string(PN) + ""               					     << 
 				"format ascii 1.0"  + std::string(PN) + ""     				     << 
-				"element vertex "        				   << number_of_vertices << "" + std::string(PN) + "" << 
+				"element vertex "        				   << num_vertices  << "" + std::string(PN) + "" << 
 				"property double x" + std::string(PN) + ""    				     << 
 				"property double y" + std::string(PN) + ""    				     << 
 				"property double z" + std::string(PN) + "" 					     <<
-				"element face " 						   << number_of_faces    << "" + std::string(PN) + "" << 
+				"element face " 						   << num_faces     << "" + std::string(PN) + "" << 
 				"property list uchar int vertex_indices" + std::string(PN) + ""  <<
 				"property uchar red"   + std::string(PN) + "" 				     <<
 				"property uchar green" + std::string(PN) + "" 				     <<
 				"property uchar blue"  + std::string(PN) + "" 				     <<
 				"end_header" + std::string(PN) + "";
 
-				for (size_t i = 0; i < polygons.size(); ++i) {
-					const auto &polygon = polygons[i];
+				for (auto bit = buildings.begin(); bit != buildings.end(); ++bit) {
+					if (!bit->second.is_valid) continue;
+					
+					const auto &polygons = bit->second.polygons;
+					for (size_t i = 0; i < polygons.size(); ++i) {
+						const auto &polygon = polygons[i];
 
-					for (size_t j = 0; j < polygon.size(); ++j)
-						out << polygon[j] << std::endl;
+						for (size_t j = 0; j < polygon.size(); ++j)
+							out << polygon[j] << std::endl;
+					}
 				}
 
 				size_t count = 0;
-				for (size_t i = 0; i < polygons.size(); ++i) {
-					const auto &polygon = polygons[i];
-					
-					out << polygon.size() << " ";
-					for (size_t j = 0; j < polygon.size(); ++j, ++count)
-						out << count << " ";
-					
+				for (auto bit = buildings.begin(); bit != buildings.end(); ++bit) {
+					if (!bit->second.is_valid) continue;
+
+					const auto &polygons = bit->second.polygons;
 					const CGAL::Color color = generate_random_color();
-					out << color << std::endl;
+
+					for (size_t i = 0; i < polygons.size(); ++i) {
+						const auto &polygon = polygons[i];
+						
+						out << polygon.size() << " ";
+						for (size_t j = 0; j < polygon.size(); ++j, ++count)
+							out << count << " ";	
+						out << color << std::endl;
+					}
 				}
 
-				save(filename, ".ply");
+				save(file_name, ".ply");
+			}
+
+			template<class Buildings>
+			void save_polyhedron_facets(const Buildings &buildings, const std::string &file_name) {
+				clear();
+
+				size_t num_vertices = 0;
+				size_t num_facets	= 0;
+
+				for (auto bit = buildings.begin(); bit != buildings.end(); ++bit) {
+					const auto &building = bit->second;
+					if (!building.is_valid) continue;
+
+					const auto &polyhedrons = building.polyhedron_facets;
+					for (size_t i = 0; i < polyhedrons.size(); ++i) {
+						
+						const auto &polyhedron = polyhedrons[i];
+						if (!polyhedron.is_valid) continue;
+
+						const auto &vertices = polyhedron.vertices;
+						const auto &facets 	 = polyhedron.facets;
+
+						num_vertices += vertices.size();
+						num_facets   += facets.size(); 
+					}
+				}
+
+				out << 
+				"ply" + std::string(PN) + ""               					     << 
+				"format ascii 1.0"  + std::string(PN) + ""     				     << 
+				"element vertex "        				   << num_vertices  << "" + std::string(PN) + "" << 
+				"property double x" + std::string(PN) + ""    				     << 
+				"property double y" + std::string(PN) + ""    				     << 
+				"property double z" + std::string(PN) + "" 					     <<
+				"element face " 						   << num_facets    << "" + std::string(PN) + "" << 
+				"property list uchar int vertex_indices" + std::string(PN) + ""  <<
+				"property uchar red"   + std::string(PN) + "" 				     <<
+				"property uchar green" + std::string(PN) + "" 				     <<
+				"property uchar blue"  + std::string(PN) + "" 				     <<
+				"end_header" + std::string(PN) + "";
+
+				for (auto bit = buildings.begin(); bit != buildings.end(); ++bit) {
+					const auto &building = bit->second;
+					if (!building.is_valid) continue;
+
+					const auto &polyhedrons = building.polyhedron_facets;
+					for (size_t i = 0; i < polyhedrons.size(); ++i) {
+						
+						const auto &polyhedron = polyhedrons[i];
+						if (!polyhedron.is_valid) continue;
+
+						const auto extra_height = generate_random_height(-20, 20);
+
+						const auto &vertices = polyhedron.vertices;
+						for (size_t j = 0; j < vertices.size(); ++j) 
+							out << vertices[j].x() << " " << vertices[j].y() << " " << vertices[j].z() + extra_height << std::endl;
+					}
+				}
+
+				size_t count = 0;
+				for (auto bit = buildings.begin(); bit != buildings.end(); ++bit) {
+					const auto &building = bit->second;
+					if (!building.is_valid) continue;
+
+					const auto &polyhedrons = building.polyhedron_facets;
+					for (size_t i = 0; i < polyhedrons.size(); ++i) {
+						
+						const auto &polyhedron = polyhedrons[i];
+						if (!polyhedron.is_valid) continue;
+
+						const auto &facets = polyhedron.facets;
+						for (size_t j = 0; j < facets.size(); ++j) {
+							
+							out << facets[j].size() << " ";
+							for (size_t k = 0; k < facets[j].size(); ++k) out << facets[j][k] + count << " ";
+							out << generate_random_color() << std::endl;
+						}
+						count += polyhedron.vertices.size();
+					}
+				}
+
+				save(file_name, ".ply");
+			}
+
+			template<class Buildings>
+			void save_polyhedrons(const Buildings &buildings, const std::string &file_name) {
+				clear();
+
+				size_t num_vertices = 0;
+				size_t num_facets	= 0;
+
+				for (auto bit = buildings.begin(); bit != buildings.end(); ++bit) {
+					const auto &building = bit->second;
+					if (!building.is_valid) continue;
+
+					const auto &polyhedrons = building.polyhedrons;
+					for (size_t i = 0; i < polyhedrons.size(); ++i) {
+						
+						const auto &polyhedron = polyhedrons[i];
+						if (!polyhedron.is_valid) continue;
+
+						const auto &vertices = polyhedron.vertices;
+						const auto &facets 	 = polyhedron.facets;
+
+						num_vertices += vertices.size();
+						num_facets   += facets.size(); 
+					}
+				}
+
+				out << 
+				"ply" + std::string(PN) + ""               					     << 
+				"format ascii 1.0"  + std::string(PN) + ""     				     << 
+				"element vertex "        				   << num_vertices  << "" + std::string(PN) + "" << 
+				"property double x" + std::string(PN) + ""    				     << 
+				"property double y" + std::string(PN) + ""    				     << 
+				"property double z" + std::string(PN) + "" 					     <<
+				"element face " 						   << num_facets    << "" + std::string(PN) + "" << 
+				"property list uchar int vertex_indices" + std::string(PN) + ""  <<
+				"property uchar red"   + std::string(PN) + "" 				     <<
+				"property uchar green" + std::string(PN) + "" 				     <<
+				"property uchar blue"  + std::string(PN) + "" 				     <<
+				"end_header" + std::string(PN) + "";
+
+				for (auto bit = buildings.begin(); bit != buildings.end(); ++bit) {
+					const auto &building = bit->second;
+					if (!building.is_valid) continue;
+
+					const auto &polyhedrons = building.polyhedrons;
+					for (size_t i = 0; i < polyhedrons.size(); ++i) {
+						
+						const auto &polyhedron = polyhedrons[i];
+						if (!polyhedron.is_valid) continue;
+
+						const auto &vertices = polyhedron.vertices;
+						for (size_t j = 0; j < vertices.size(); ++j) out << vertices[j] << std::endl;
+					}
+				}
+
+				size_t count = 0;
+				for (auto bit = buildings.begin(); bit != buildings.end(); ++bit) {
+					const auto &building = bit->second;
+					if (!building.is_valid) continue;
+
+					const auto &polyhedrons = building.polyhedrons;
+					for (size_t i = 0; i < polyhedrons.size(); ++i) {
+						
+						const auto &polyhedron = polyhedrons[i];
+						if (!polyhedron.is_valid) continue;
+
+						const Color color = generate_random_color();
+
+						const auto &facets = polyhedron.facets;
+						for (size_t j = 0; j < facets.size(); ++j) {
+							
+							out << facets[j].size() << " ";
+							for (size_t k = 0; k < facets[j].size(); ++k) out << facets[j][k] + count << " ";
+							out << color << std::endl;
+						}
+						count += polyhedron.vertices.size();
+					}
+				}
+
+				save(file_name, ".ply");
 			}
 
 			template<class Containers, class Polygon, class Kernel>
@@ -1643,9 +1822,9 @@ namespace CGAL {
 				return Color(r, g, b);
 			}
 
-			double generate_random_height() {
+			double generate_random_height(const double minh = 0, const double maxh = 10) {
 
-				const double value = m_rand.get_double(0, 10);
+				const double value = m_rand.get_double(minh, maxh);
 				return value;
 			}
 
