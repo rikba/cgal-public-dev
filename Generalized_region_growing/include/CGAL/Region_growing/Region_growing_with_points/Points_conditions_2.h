@@ -1,5 +1,5 @@
-#ifndef GENERALIZED_REGION_GROWING_POINTS_CONDITIONS_2_H
-#define GENERALIZED_REGION_GROWING_POINTS_CONDITIONS_2_H
+#ifndef CGAL_GRG_POINTS_CONDITIONS_2_H
+#define CGAL_GRG_POINTS_CONDITIONS_2_H
 
 #include <CGAL/linear_least_squares_fitting_2.h>
 #include <CGAL/squared_distance_2.h>
