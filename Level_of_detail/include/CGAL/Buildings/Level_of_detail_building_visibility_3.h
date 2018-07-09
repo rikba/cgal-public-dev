@@ -47,7 +47,8 @@ namespace CGAL {
             Level_of_detail_building_visibility_3(const Input &input, const CDT &cdt, const FT ground_height) :
             m_input(input),
             m_cdt(cdt),
-            m_ground_height(ground_height)
+            m_ground_height(ground_height),
+            m_ground_tolerance(FT(3))
             { }
 
             void filter(Buildings &buildings) const {
@@ -65,6 +66,7 @@ namespace CGAL {
             const CDT   &m_cdt;
 
             const FT m_ground_height;
+            const FT m_ground_tolerance;
 
             Roof_face_validator m_roof_face_validator;
 
@@ -80,7 +82,7 @@ namespace CGAL {
 
             void check_polyhedron_validity(const Building &building, Polyhedron &polyhedron) const {
                 
-                if (!is_vertex_criterion(building, polyhedron)) {
+                if (!is_valid_polyhedron(building, polyhedron)) {
                     
                     polyhedron.is_valid = false;
                     return;
@@ -89,11 +91,12 @@ namespace CGAL {
                 polyhedron.is_valid = true;
             }
 
-            bool is_vertex_criterion(const Building &building, Polyhedron &polyhedron) const {
-                
+            bool is_valid_polyhedron(const Building &building, Polyhedron &polyhedron) const {
+
                 const Vertices &vertices = polyhedron.vertices;
                 const Facets     &facets = polyhedron.facets;
 
+                // Search for wrong exterior polyhedrons.
                 for (size_t i = 0; i < facets.size(); ++i) {        
                     const Facet &facet = facets[i];
 
@@ -103,7 +106,16 @@ namespace CGAL {
                     if (!m_roof_face_validator.is_valid_polyhedron_facet(building, boundary, true)) return false;
                 }
 
-                return true;
+                // Search for wrong interior polyhedrons.
+                size_t count = 0;
+                for (size_t i = 0; i < vertices.size(); ++i) {
+                    const Vertex &vertex = vertices[i];
+
+                    const FT vertex_height = vertex.z();
+                    if (CGAL::abs(vertex_height - m_ground_height) > m_ground_tolerance) ++count;
+                }
+
+                return count != vertices.size();
             }
         };
 

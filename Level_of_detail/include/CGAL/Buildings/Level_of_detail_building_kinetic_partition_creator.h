@@ -83,8 +83,11 @@ namespace CGAL {
             using Polyhedron_facet  = typename Polyhedron::Facet;
             using Polyhedron_facets = typename Polyhedron::Facets;
 
-            Level_of_detail_building_kinetic_partition_creator(const CDT &cdt, const FT ground_height) :
+            using Ground = std::vector<Point_3>;
+
+            Level_of_detail_building_kinetic_partition_creator(const CDT &cdt, const Ground &ground_bbox, const FT ground_height) :
             m_cdt(cdt),
+            m_ground_bbox(ground_bbox),
             m_ground_height(ground_height)
             { }
 
@@ -110,6 +113,7 @@ namespace CGAL {
 
         private:
             const CDT &m_cdt;
+            const Ground &m_ground_bbox;
             const FT m_ground_height;
             
             void process_building_input(Building &building) const {
@@ -123,7 +127,7 @@ namespace CGAL {
                 polygons.clear();
                 const Building_boundary &building_boundary = building.boundaries[0];
 
-                const FT height = FT(2);
+                const FT height = FT(10);
                 const FT b1 = FT(9) / FT(10);
                 const FT b2 = FT(1) - b1;
 
@@ -169,6 +173,16 @@ namespace CGAL {
 					}
                     polygons.push_back(new_polygon);
 				}
+
+                // Add ground.
+                /*
+                Polygon_boundary new_polygon(4);
+                new_polygon[0] = Point_3(m_ground_bbox[0].x(), m_ground_bbox[0].y(), m_ground_bbox[0].z() + m_ground_height);
+                new_polygon[1] = Point_3(m_ground_bbox[1].x(), m_ground_bbox[1].y(), m_ground_bbox[1].z() + m_ground_height);
+                new_polygon[2] = Point_3(m_ground_bbox[2].x(), m_ground_bbox[2].y(), m_ground_bbox[2].z() + m_ground_height);
+                new_polygon[3] = Point_3(m_ground_bbox[3].x(), m_ground_bbox[3].y(), m_ground_bbox[3].z() + m_ground_height);
+
+                polygons.push_back(new_polygon); */
             }
 
             void process_building_output(Building &building) const {
