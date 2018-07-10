@@ -48,7 +48,7 @@ namespace CGAL {
             m_input(input),
             m_cdt(cdt),
             m_ground_height(ground_height),
-            m_ground_tolerance(FT(3))
+            m_ground_tolerance(FT(1) / FT(10))
             { }
 
             void filter(Buildings &buildings) const {

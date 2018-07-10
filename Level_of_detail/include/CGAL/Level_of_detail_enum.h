@@ -22,6 +22,7 @@
 
 // CGAL includes.
 #include <CGAL/IO/Color.h>
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 
 namespace CGAL {
 
@@ -213,7 +214,8 @@ namespace CGAL {
 			Polyhedrons polyhedrons;
 			Polyhedrons polyhedron_facets;
 
-            using Polygon_boundary = std::vector<Point_3>;
+			using JP_point_3 = typename CGAL::Exact_predicates_exact_constructions_kernel::Point_3;
+            using Polygon_boundary = std::vector<JP_point_3>;
             using Polygons = std::vector<Polygon_boundary>;
 
 			Polygons polygons;

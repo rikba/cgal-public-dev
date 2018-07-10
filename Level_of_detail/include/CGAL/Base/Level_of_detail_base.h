@@ -1179,11 +1179,11 @@ namespace CGAL {
 				}
 			}
 
-			void applying_3d_partitioning(const CDT &cdt, const Ground &ground_bbox, const FT ground_height, Buildings &buildings, const size_t exec_step) {
+			void applying_3d_partitioning(const CDT &cdt, const FT ground_height, Buildings &buildings, const size_t exec_step) {
 				
 				// Apply 3D partitioning and get a set of filtered 3D faces.
 				std::cout << "(" << exec_step << ") applying 3D partitioning;" << std::endl;
-				m_kinetic_partition_creator = std::make_shared<Kinetic_partition_creator>(cdt, ground_bbox, ground_height);
+				m_kinetic_partition_creator = std::make_shared<Kinetic_partition_creator>(cdt, ground_height);
 				
 				m_kinetic_partition_creator->create_input(buildings);
 				if (!m_silent) {
@@ -1503,7 +1503,7 @@ namespace CGAL {
 
 
 				// (--) ----------------------------------
-				applying_3d_partitioning(cdt, ground_bbox, ground_height, buildings, ++exec_step); 
+				applying_3d_partitioning(cdt, ground_height, buildings, ++exec_step); 
 				
 
 				// (--) ----------------------------------

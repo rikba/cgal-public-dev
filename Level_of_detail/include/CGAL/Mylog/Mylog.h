@@ -1285,6 +1285,56 @@ namespace CGAL {
 				save(file_name, ".ply");
 			}
 
+			template<class Polygons>
+			void save_only_convex_polygons(const Polygons &polygons, const std::string &file_name) {
+				clear();
+
+				size_t num_vertices = 0;
+				size_t num_faces    = 0;
+
+				for (size_t i = 0; i < polygons.size(); ++i) {
+						
+					const auto &polygon = polygons[i];
+					num_vertices += polygon.size();
+				}
+				num_faces += polygons.size();
+
+				out << 
+				"ply" + std::string(PN) + ""               					     << 
+				"format ascii 1.0"  + std::string(PN) + ""     				     << 
+				"element vertex "        				   << num_vertices  << "" + std::string(PN) + "" << 
+				"property double x" + std::string(PN) + ""    				     << 
+				"property double y" + std::string(PN) + ""    				     << 
+				"property double z" + std::string(PN) + "" 					     <<
+				"element face " 						   << num_faces     << "" + std::string(PN) + "" << 
+				"property list uchar int vertex_indices" + std::string(PN) + ""  <<
+				"property uchar red"   + std::string(PN) + "" 				     <<
+				"property uchar green" + std::string(PN) + "" 				     <<
+				"property uchar blue"  + std::string(PN) + "" 				     <<
+				"end_header" + std::string(PN) + "";
+
+				for (size_t i = 0; i < polygons.size(); ++i) {
+					const auto &polygon = polygons[i];
+
+					for (size_t j = 0; j < polygon.size(); ++j)
+						out << polygon[j] << std::endl;
+				}
+
+				size_t count = 0;
+				const CGAL::Color color = generate_random_color();
+
+				for (size_t i = 0; i < polygons.size(); ++i) {
+					const auto &polygon = polygons[i];
+						
+					out << polygon.size() << " ";
+					for (size_t j = 0; j < polygon.size(); ++j, ++count)
+						out << count << " ";	
+					out << color << std::endl;
+				}
+
+				save(file_name, ".ply");
+			}
+
 			template<class Buildings>
 			void save_polyhedron_facets(const Buildings &buildings, const std::string &file_name) {
 				clear();
