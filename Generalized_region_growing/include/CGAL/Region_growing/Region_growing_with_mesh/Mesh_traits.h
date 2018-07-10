@@ -1,12 +1,12 @@
-#ifndef GENERALIZED_REGION_GROWING_MESHES_TRAITS_H
-#define GENERALIZED_REGION_GROWING_MESHES_TRAITS_H
+#ifndef CGAL_GRG_MESH_TRAITS_H
+#define CGAL_GRG_MESH_TRAITS_H
 
 namespace CGAL {
     namespace Region_growing {
-        namespace Region_growing_with_meshes {
+        namespace Region_growing_with_mesh {
 
             template<class InputRange, class ElementMap, class K>
-            class Meshes_traits {
+            class Mesh_traits {
             public:
                 using Kernel                  = K;
                 using Input_range             = InputRange;
