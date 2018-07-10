@@ -90,8 +90,11 @@ namespace CGAL {
 
             using Log = CGAL::LOD::Mylog;
 
-            Level_of_detail_building_kinetic_partition_creator(const CDT &cdt, const FT ground_height) :
+            using Ground = std::vector<Point_3>;
+
+            Level_of_detail_building_kinetic_partition_creator(const CDT &cdt, const Ground &ground_bbox, const FT ground_height) :
             m_cdt(cdt),
+            m_ground_bbox(ground_bbox),
             m_ground_height(ground_height),
             m_big_value(FT(100000000000000))
             { }
@@ -118,17 +121,18 @@ namespace CGAL {
                     if (building.polygons.size() == 0) building.is_valid = false;
 
                     building.index = count;
-                    // std::cout << "index: "    << building.index << " ";
+                    std::cout << "index: "    << building.index << " ";
                     std::cout << "percents: " << FT(count) / FT(buildings.size()) * FT(100) << "%" << std::endl;
 
-                    // Log log; log.save_only_convex_polygons(building.polygons, "tmp/lod_2/buildings/debug_building_" + std::to_string(building.index));
+                    Log log; log.save_only_convex_polygons(building.polygons, "tmp/lod_2/buildings/debug_building_" + std::to_string(building.index));
 					if (building.is_valid) process_building_output(building);
                 }
                 std::cout << std::endl;
             }
 
         private:
-            const CDT &m_cdt;
+            const CDT    &m_cdt;
+            const Ground &m_ground_bbox;
             
             const FT m_ground_height;
             const FT m_big_value;
@@ -204,6 +208,14 @@ namespace CGAL {
                     }
                     polygons.push_back(new_polygon);
                 }
+
+                // Polygon_boundary new_polygon(4);
+                // new_polygon[0] = JP_point_3(JP_FT(m_ground_bbox[0].x()), JP_FT(m_ground_bbox[0].y()), JP_FT(m_ground_bbox[0].z() + m_ground_height));
+                // new_polygon[1] = JP_point_3(JP_FT(m_ground_bbox[1].x()), JP_FT(m_ground_bbox[1].y()), JP_FT(m_ground_bbox[1].z() + m_ground_height));
+                // new_polygon[2] = JP_point_3(JP_FT(m_ground_bbox[2].x()), JP_FT(m_ground_bbox[2].y()), JP_FT(m_ground_bbox[2].z() + m_ground_height));
+                // new_polygon[3] = JP_point_3(JP_FT(m_ground_bbox[3].x()), JP_FT(m_ground_bbox[3].y()), JP_FT(m_ground_bbox[3].z() + m_ground_height));
+
+                // polygons.push_back(new_polygon);
             }
 
             void process_building_output(Building &building) const {

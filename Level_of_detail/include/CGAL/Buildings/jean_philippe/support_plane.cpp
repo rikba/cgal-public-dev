@@ -595,29 +595,39 @@ void Support_Plane::search_lines_in_neighborhood(Polygon_Vertex* v, const FT & t
 	const double x_1 = to_double(M_1.x()), x_2 = to_double(M_2.x()), y_1 = to_double(M_1.y()), y_2 = to_double(M_2.y());
 
 #if 1
+	// for (int j = 0 ; j < lines_inside.size() ; j++) {
+	// 	Intersection_Line* I_j = lines_inside[j];
+	// 	const double & h_a = I_j->hint_a, & h_b = I_j->hint_b, & h_c = I_j->hint_c;
+	// 	const double dh_1 = h_a * x_1 + h_b * y_1 + h_c;
+	// 	const double dh_2 = h_a * x_2 + h_b * y_2 + h_c;
+
+	// 	if (dh_1 * dh_2 > 0.1) {
+	// 		continue;
+	// 	} else if (dh_1 * dh_2 < -0.1) {
+	// 		L.push_back(std::make_tuple(I_j, false, 0));
+	// 	} else {
+	// 		std::pair<FT, bool> R = v->get_intersection_time(I_j);
+	// 		if (R.second) {
+	// 			if (R.first >= t_1 && R.first < t_2) {
+	// 				L.push_back(std::make_tuple(I_j, true, R.first));
+	// 			}
+	// 		}
+	// 		/*const FT &a = I_j->a(), &b = I_j->b(), &c = I_j->c();
+	// 		const FT d_1 = a * M_1.x() + b * M_1.y() + c;
+	// 		const FT d_2 = a * M_2.x() + b * M_2.y() + c;
+	// 		if (d_1 * d_2 <= 0) {
+	// 			L.push_back(I_j);
+	// 		}*/
+	// 	}
+	// }
+
 	for (int j = 0 ; j < lines_inside.size() ; j++) {
 		Intersection_Line* I_j = lines_inside[j];
-		const double & h_a = I_j->hint_a, & h_b = I_j->hint_b, & h_c = I_j->hint_c;
-		const double dh_1 = h_a * x_1 + h_b * y_1 + h_c;
-		const double dh_2 = h_a * x_2 + h_b * y_2 + h_c;
-
-		if (dh_1 * dh_2 > 0.01) {
-			continue;
-		} else if (dh_1 * dh_2 < -0.01) {
-			L.push_back(std::make_tuple(I_j, false, 0));
-		} else {
-			std::pair<FT, bool> R = v->get_intersection_time(I_j);
-			if (R.second) {
-				if (R.first >= t_1 && R.first < t_2) {
-					L.push_back(std::make_tuple(I_j, true, R.first));
-				}
+		std::pair<FT, bool> R = v->get_intersection_time(I_j);
+		if (R.second) {
+			if (R.first >= t_1 && R.first < t_2) {
+				L.push_back(std::make_tuple(I_j, true, R.first));
 			}
-			/*const FT &a = I_j->a(), &b = I_j->b(), &c = I_j->c();
-			const FT d_1 = a * M_1.x() + b * M_1.y() + c;
-			const FT d_2 = a * M_2.x() + b * M_2.y() + c;
-			if (d_1 * d_2 <= 0) {
-				L.push_back(I_j);
-			}*/
 		}
 	}
 #else
