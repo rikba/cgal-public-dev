@@ -121,11 +121,19 @@ namespace CGAL {
                     if (building.polygons.size() == 0) building.is_valid = false;
 
                     building.index = count;
-                    std::cout << "index: "    << building.index << " ";
+                    // std::cout << "index: " << building.index << " ";
                     std::cout << "percents: " << FT(count) / FT(buildings.size()) * FT(100) << "%" << std::endl;
 
-                    Log log; log.save_only_convex_polygons(building.polygons, "tmp/lod_2/buildings/debug_building_" + std::to_string(building.index));
-					if (building.is_valid) process_building_output(building);
+                    // Log log; log.save_only_convex_polygons(building.polygons, "tmp/lod_2/buildings/debug_building_" + std::to_string(building.index));
+					if ( building.is_valid /* && 
+                    building.index != 112 && 
+                    building.index != 113 && 
+                    building.index != 114 && 
+                    building.index != 147 && 
+                    building.index != 148 && 
+                    building.index != 374 && 
+                    building.index != 404 && 
+                    building.index != 392*/ ) process_building_output(building);
                 }
                 std::cout << std::endl;
             }

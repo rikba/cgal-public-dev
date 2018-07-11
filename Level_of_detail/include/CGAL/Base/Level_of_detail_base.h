@@ -1503,13 +1503,13 @@ namespace CGAL {
 
 
 				// (--) ----------------------------------
-				applying_3d_partitioning(cdt, ground_bbox, ground_height, buildings, ++exec_step); 
+				// applying_3d_partitioning(cdt, ground_bbox, ground_height, buildings, ++exec_step); 
 				
 
 				// (--) ----------------------------------
-				applying_3d_visibility(input, cdt, ground_height, buildings, ++exec_step);
+				// applying_3d_visibility(input, cdt, ground_height, buildings, ++exec_step);
 				
-				return;
+				// return;
 
 
 				// (06) ----------------------------------
