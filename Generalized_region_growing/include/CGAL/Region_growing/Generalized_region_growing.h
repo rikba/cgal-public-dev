@@ -19,69 +19,33 @@ namespace CGAL {
             using Element_map             = typename Traits::Element_map;
             using Element_with_properties = typename Element_map::key_type;
 
-            using Neighbors     = typename Connectivity::Neighbor_range;
-            using Region        = std::vector<Element_with_properties>;
+            using Neighbors     = typename Connectivity::Neighbors;
+            using Region        = std::vector<int>;
             using Regions       = std::vector<Region>;
             using Region_range  = CGAL::Iterator_range<typename Regions::const_iterator>;
-
-            template<class, class = void>
-            class Visit_mask {
-
-            public:
-                Visit_mask(size_t) { }
-
-                template<class Ewp>
-                bool& operator [](const Ewp& ewp) { return m_visited[get(m_elem_map, ewp)]; }
-
-            private:
-                std::map<Element, bool> m_visited;
-                Element_map m_elem_map;
-            };
-
-            template<class T>
-            class Visit_mask<T, void_t<typename T::Index_map> > {
-
-            public:
-                Visit_mask(size_t size) : m_visited(std::vector<int>(size, 0)) {}
-
-                template<class Ewp>
-                int& operator [](const Ewp& ewp) { return m_visited[get(m_index_map, ewp)]; }
-
-            private:
-                std::vector<int> m_visited;
-                typename T::Index_map m_index_map;
-
-            };
 
             Generalized_region_growing(const Input_range &input_range, Connectivity &connectivity, Conditions &conditions) :
                 m_input_range(input_range),
                 m_connectivity(connectivity),
                 m_conditions(conditions),
-                m_visited(Visit_mask<Traits>(input_range.end() - input_range.begin())) { }
+                m_visited(std::vector<int>(m_input_range.end() - m_input_range.begin(), false)) { }
 
             void find_regions() {
 
-                for (typename Input_range::const_iterator iter = m_input_range.begin(); iter != m_input_range.end(); ++iter) {
+                for (int i = 0; i < m_input_range.end() - m_input_range.begin(); ++i) {
 
-                    if (!m_visited[*iter]) { // Available element
+                    if (!m_visited[i]) { // Available element
                         Region region;
+                        m_regions.push_back(region);
                         // Grow a region from that element
-//                        std::cout << 1.0 * clock() / CLOCKS_PER_SEC << ">> Starting a new region..." << std::endl;
-                        grow_region(*iter, region);
+                        grow_region(i, m_regions.back());
                         // Check global condition
-                        if (m_conditions.is_valid(region)) {
-
-//                            std::cout << 1.0 * clock() / CLOCKS_PER_SEC << ">> Size is " << region.size() << ". Accept." << std::endl;
-
-                            m_regions.push_back(region); // Add the region grown
-
-                        } else {
-
-//                            std::cout << 1.0 * clock() / CLOCKS_PER_SEC << ">> Size is " << region.size() << ". Revert." << std::endl;
+                        if (!m_conditions.is_valid(m_regions.back())) {
 
                             // Revert the process
-                            for (typename Region::const_iterator it = region.begin(); it != region.end(); ++it)
+                            for (typename Region::const_iterator it = m_regions.back().begin(); it != m_regions.back().end(); ++it)
                                 m_visited[*it] = false;
+                            m_regions.pop_back();
 
                         }
                     }
@@ -92,59 +56,49 @@ namespace CGAL {
                 return Region_range(m_regions.begin(), m_regions.end());
             }
 
-            void print() {
-
-                // Print the geometric elements
-
-                for (Region r : m_regions) {
-                    for (Element_with_properties e : r) {
-                        std::cout << get(m_elem_map, e) << " ";
-                    }
-                    std::cout << '\n';
-                }
-            }
-
         private:
-            void grow_region(const Element_with_properties &seed, Region &region) {
+            void grow_region(const int &seed, Region &region) {
+
                 region.clear();
                 // Use two queues, while running on this queue, push to the other queue;
                 // When the queue is done, update the shape of the current region and swap to the other queue;
                 // depth_index is the index of the queue we're using
-                std::queue<Element_with_properties> ewp_queue[2];
+                std::queue<int> index_queue[2];
                 bool depth_index = 0;
 
                 // Once an element is pushed to the queue, it is pushed to the region too.
-                ewp_queue[depth_index].push(seed);
+                index_queue[depth_index].push(seed);
                 m_visited[seed] = true;
                 region.push_back(seed);
 
                 m_conditions.update_shape(region);
 
-                while (!ewp_queue[depth_index].empty() || !ewp_queue[!depth_index].empty()) {
+                while (!index_queue[depth_index].empty() || !index_queue[!depth_index].empty()) {
 
                     // Call the next element of the queue and remove it from the queue
                     // but the element is not removed from the region.
-                    Element_with_properties ewp = ewp_queue[depth_index].front();
-                    ewp_queue[depth_index].pop();
+                    int elem = index_queue[depth_index].front();
+                    index_queue[depth_index].pop();
+
                     // Get neighbors
-                    Neighbors neighbors = m_connectivity.get_neighbors(ewp);
+                    Neighbors neighbors;
+                    m_connectivity.get_neighbors(elem, neighbors);
 
                     // Visit the neighbors;
                     for (typename Neighbors::const_iterator iter = neighbors.begin(); iter != neighbors.end(); iter++) {
-                        Element_with_properties neighbor = *iter;
+                        int neighbor = *iter;
 
-                        if (!m_visited[neighbor] &&
-                            m_conditions.is_in_same_region(ewp, neighbor, region)) {
+                        if (!m_visited[neighbor] && m_conditions.is_in_same_region(elem, neighbor, region)) {
 
                             // Add to the other queue the neighbor which doesn't belong to any regions
-                            // so that we can visit the neighbor's neighbors later.
-                            ewp_queue[!depth_index].push(neighbor);
+                            // so that we can visit them later.
+                            index_queue[!depth_index].push(neighbor);
                             region.push_back(neighbor);
                             m_visited[neighbor] = true;
                         }
                     }
 
-                    if (ewp_queue[depth_index].empty()) {
+                    if (index_queue[depth_index].empty()) {
                         m_conditions.update_shape(region);
                         depth_index = !depth_index;
                     }
@@ -158,7 +112,8 @@ namespace CGAL {
             Regions m_regions;
             Connectivity &m_connectivity;
             Conditions &m_conditions;
-            Visit_mask<Traits> m_visited;
+            std::vector<int> m_visited;
+
         };
     }
 }

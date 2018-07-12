@@ -6,6 +6,7 @@
 #include <CGAL/Fuzzy_sphere.h>
 #include <CGAL/Search_traits_2.h>
 #include <CGAL/Search_traits_3.h>
+#include <CGAL/property_map.h>
 
 namespace CGAL {
 
@@ -19,57 +20,68 @@ namespace CGAL {
             public:
                 using Input_range             = typename Traits::Input_range;
                 using Kernel                  = typename Traits::Kernel;
-                using Element_map             = typename Traits::Element_map;
-                using Element                 = typename Traits::Element;
+                using Element                 = typename Traits::Element; // Point_2 or Point_3
+                using Element_map_original    = typename Traits::Element_map;
+                
+                struct Element_map {
+                    using key_type = int;
+                    using value_type = Element;
+                    using reference = const value_type&;
+                    using category = boost::lvalue_property_map_tag;
+                    using Self = Element_map;
 
-                using Element_with_properties = typename Element_map::key_type;
+                    Input_range input_range;
+                    Element_map_original elem_map_orig = Element_map_original();
 
-                using Neighbors               = std::vector<Element_with_properties>;
+                    Element_map(const Input_range& ir) : input_range(ir) { }
+
+                    value_type& operator[](key_type& k) const { return elem_map_orig[*(input_range.begin() + k)]; }
+
+                    friend reference get(const Self& map, const key_type& k) {
+                        return get(map.elem_map_orig, *(map.input_range.begin() + k));
+                    }
+                };
+
+                using Neighbors               = std::vector<int>;
                 using Neighbor_range          = CGAL::Iterator_range<typename Neighbors::const_iterator>;
 
                 using Search_base             = typename std::conditional<std::is_same<typename Kernel::Point_2, Element>::value, CGAL::Search_traits_2<Kernel>, CGAL::Search_traits_3<Kernel> >::type;
-                // Primary template
-                template<class PointType, class ElementWithProperties>
-                struct Search_structures {
-                    using Search_traits_adapter = CGAL::Search_traits_adapter<Element_with_properties, Element_map, Search_base>;
-                    using Fuzzy_circle          = CGAL::Fuzzy_sphere<Search_traits_adapter>;
-                    using Tree                  = CGAL::Kd_tree<Search_traits_adapter>;
-                };
+                using Search_traits_adapter   = CGAL::Search_traits_adapter<int, Element_map, Search_base>;
+                using Fuzzy_circle            = CGAL::Fuzzy_sphere<Search_traits_adapter>;
+                using Tree                    = CGAL::Kd_tree<Search_traits_adapter>;
+                using Splitter                = CGAL::Sliding_midpoint<Search_traits_adapter>;
 
-                // Partial specialization when PointType and ElementWithProperties are the same
-                template<class PointType>
-                struct Search_structures<PointType, PointType> {
-                    using Fuzzy_circle  = CGAL::Fuzzy_sphere<Search_base>;
-                    using Tree          = CGAL::Kd_tree<Search_base>;
-                };
-
-                // Element == Point_3 or Point_2
-                using Point             = typename Traits::Element;
-                using FT                = typename Kernel::FT;
-                using Kd_tree_config    = Search_structures<Point, Element_with_properties>;
-                using Fuzzy_circle      = typename Kd_tree_config::Fuzzy_circle;
-                using Tree              = typename Kd_tree_config::Tree;
+                using FT                      = typename Kernel::FT;
 
                 Points_connectivity_circular_query(const Input_range &input_range, const FT &radius) :
                 m_input_range(input_range),
-                m_radius(radius) {
-                    m_tree.insert(m_input_range.begin(), m_input_range.end());
+                m_radius(radius),
+                m_elem_map(Element_map(input_range)),
+                m_sta(Search_traits_adapter(Element_map(input_range), Search_base())),
+                m_tree(Splitter(), Search_traits_adapter(Element_map(input_range), Search_base())) {
+
+                    for(int i = 0; i < m_input_range.end() - m_input_range.begin(); ++i)
+                        indices.push_back(i);
+
+                    m_tree.insert(indices.begin(), indices.end());
+
                 }
 
-                Neighbor_range get_neighbors(const Element_with_properties &center) {
+                void get_neighbors(const int &center, Neighbors& neighbors) {
 
-                    m_neighbors.clear();
-                    Fuzzy_circle circle(center, m_radius);
-                    m_tree.search(std::back_inserter(m_neighbors), circle);
-                    return Neighbor_range(m_neighbors.begin(), m_neighbors.end());
+                    neighbors.clear();
+                    Fuzzy_circle circle(center, m_radius, 0, m_sta);
+                    m_tree.search(std::back_inserter(neighbors), circle);
+
                 }
 
             private:
-                Neighbors m_neighbors;
-                const Element_map m_elem_map = Element_map();
-                const Input_range &m_input_range;
-                Tree m_tree;
-                const FT m_radius;
+                const Element_map               m_elem_map;
+                const Input_range &             m_input_range;
+                Tree                            m_tree;
+                const FT                        m_radius;
+                const Search_traits_adapter     m_sta;
+                Neighbors                       indices;
             };
 
         } // namespace Region_growing_with_points 

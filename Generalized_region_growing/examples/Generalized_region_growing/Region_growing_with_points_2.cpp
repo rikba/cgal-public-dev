@@ -6,7 +6,7 @@
 #include <CGAL/Iterator_range.h>
 #include <CGAL/IO/write_ply_points.h>
 
-using Kernel            = CGAL::Exact_predicates_exact_constructions_kernel;
+using Kernel            = CGAL::Exact_predicates_inexact_constructions_kernel;
 using Point_2           = Kernel::Point_2;
 using Vector_2          = Kernel::Vector_2;
 using Point_with_normal = std::pair<Point_2, Vector_2>;
@@ -16,7 +16,7 @@ using Input_range       = CGAL::Iterator_range<std::vector<Point_with_normal>::i
 
 using Traits            = CGAL::Region_growing::Region_growing_with_points::Points_traits<Input_range, Point_map, Kernel>;
 using Conditions        = CGAL::Region_growing::Region_growing_with_points::Points_conditions_2<Traits, Normal_map>;
-using Connectivity      = CGAL::Region_growing::Region_growing_with_points::Points_connectivity_nearest_neighbors<Traits>;
+using Connectivity      = CGAL::Region_growing::Region_growing_with_points::Points_connectivity_circular_query<Traits>;
 using Region_growing    = CGAL::Region_growing::Generalized_region_growing<Traits, Connectivity, Conditions>;
 
 using Region_range      = Region_growing::Region_range;
@@ -47,29 +47,38 @@ namespace CGAL {
 }
 
 int main(int argc, char *argv[]) {
-    std::ifstream in(argc > 1 ? argv[1] : "../data/quadrilateral_and_circle.xy");
+    std::ifstream in(argc > 1 ? argv[1] : "../data/inputbig_2.xyz");
     CGAL::set_ascii_mode(in);
 
-    Point_2 point;
-    Vector_2 normal;
-
-    std::vector<Point_with_normal> pwn;
-    while (in >> point >> normal) {
-        pwn.push_back(std::make_pair(point, normal));
+    std::vector<Point_with_normal > pwn;
+    double a,b,c,d,e,f;
+    int i = 0;
+    while (in >> a >> b >> c >> d >> e >> f) {
+        pwn.push_back(std::make_pair(Point_2(a, b), Vector_2(d, e)));
+        ++i;
     }
 
     Input_range input_range(pwn.begin(), pwn.end());
 
-    Connectivity connectivity(input_range, 5);
+    Connectivity connectivity(input_range, 2.9);
 
-    Conditions conditions(0.2, 0.3, 0);
+    Conditions conditions(input_range, 4.5, 0.7, 5);
 
     Region_growing region_growing(input_range, connectivity, conditions);
 
+    clock_t start = clock();
+
     region_growing.find_regions();
+
+    clock_t end = clock();
 
     Region_range regions = region_growing.regions();
 
+    std::cerr << "Time elapsed: " << 1.0 * (end-start) / CLOCKS_PER_SEC << std::endl;
+
+//    return 0;
+
+    std::cout << std::setprecision(20);
     std::vector<Point_with_color> pwc;
 
     srand(time(NULL));
@@ -77,9 +86,10 @@ int main(int argc, char *argv[]) {
         Color c = CGAL::make_array(static_cast<unsigned char>(rand() % 256),
                                    static_cast<unsigned char>(rand() % 256),
                                    static_cast<unsigned char>(rand() % 256));
-        const std::vector<Point_with_normal> &region = *it;
-        for (Point_with_normal p : region) {
-            pwc.push_back(std::make_pair(Point_3(p.first.x(), p.first.y(), 0), c));
+        const std::vector<int> &region = *it;
+        for (int i : region) {
+            Point_2 tmp = get(Point_map(), *(input_range.begin() + i));
+            pwc.push_back(std::make_pair(Point_3(tmp.x(), tmp.y(), 0), c));
         }
     }
     CGAL::set_ascii_mode(std::cout);
