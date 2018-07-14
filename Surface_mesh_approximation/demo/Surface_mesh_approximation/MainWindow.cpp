@@ -242,7 +242,7 @@ void MainWindow::on_actionApproximation_triggered()
       dial.method_incremental->isChecked() ? CGAL::VSA::Incremental : CGAL::VSA::Hierarchical);
     std::size_t nb_relaxations = dial.nb_relaxations->value();
     std::size_t nb_iterations = dial.nb_iterations->value();
-    m_pScene->seeding(method,
+    m_pScene->initialize_seeds(method,
       (dial.cb_nb_proxies->isChecked() ? boost::optional<std::size_t>(dial.nb_proxies->value()) : boost::none),
       (dial.cb_error_drop->isChecked() ? boost::optional<FT>(dial.error_drop->value()) : boost::none),
       nb_relaxations,
@@ -273,7 +273,7 @@ void MainWindow::on_actionSeeding_triggered()
       dial.method_incremental->isChecked() ? CGAL::VSA::Incremental : CGAL::VSA::Hierarchical);
     std::size_t nb_relaxations = dial.nb_relaxations->value();
     std::size_t nb_iterations = dial.nb_iterations->value();
-    m_pScene->seeding(method,
+    m_pScene->initialize_seeds(method,
       (dial.cb_nb_proxies->isChecked() ? boost::optional<std::size_t>(dial.nb_proxies->value()) : boost::none),
       (dial.cb_error_drop->isChecked() ? boost::optional<FT>(dial.error_drop->value()) : boost::none),
       nb_relaxations,

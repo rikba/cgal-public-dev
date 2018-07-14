@@ -59,7 +59,7 @@ public:
 
   // algorithms
   void set_metric(const int init);
-  void seeding(const CGAL::VSA::Seeding_method method,
+  void initialize_seeds(const CGAL::VSA::Seeding_method method,
     const boost::optional<std::size_t> num_proxies,
     const boost::optional<FT> min_error_drop,
     const std::size_t nb_relaxations,

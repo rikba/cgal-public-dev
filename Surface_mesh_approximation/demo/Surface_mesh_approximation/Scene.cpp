@@ -153,7 +153,7 @@ void Scene::set_metric(const int m) {
   }
 }
 
-void Scene::seeding(
+void Scene::initialize_seeds(
   const CGAL::VSA::Seeding_method method,
   const boost::optional<std::size_t> max_nb_of_proxies,
   const boost::optional<FT> min_error_drop,
@@ -163,7 +163,7 @@ void Scene::seeding(
   if (!m_pmesh)
     return;
 
-  m_approx.seeding(method, max_nb_of_proxies, min_error_drop, nb_relaxations);
+  m_approx.initialize_seeds(method, max_nb_of_proxies, min_error_drop, nb_relaxations);
   m_approx.run(nb_iterations);
   m_approx.proxy_map(m_fidx_pmap);
 #ifdef CGAL_SURFACE_MESH_APPROXIMATION_DEBUG

@@ -153,19 +153,19 @@ public:
     }
   }
 
-  std::size_t seeding(const CGAL::VSA::Seeding_method method,
+  std::size_t initialize_seeds(const CGAL::VSA::Seeding_method method,
     const boost::optional<std::size_t> max_nb_of_proxies,
     const boost::optional<FT> min_error_drop,
     const std::size_t nb_relaxations) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.seeding(
+        return m_l21_approx.initialize_seeds(
           method, max_nb_of_proxies, min_error_drop, nb_relaxations);
       case L2:
-        return m_l2_approx.seeding(
+        return m_l2_approx.initialize_seeds(
           method, max_nb_of_proxies, min_error_drop, nb_relaxations);
       case Compact:
-        return m_iso_approx.seeding(
+        return m_iso_approx.initialize_seeds(
           method, max_nb_of_proxies, min_error_drop, nb_relaxations);
     }
     return 0;
