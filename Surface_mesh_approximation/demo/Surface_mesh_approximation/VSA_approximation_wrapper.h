@@ -51,7 +51,7 @@ class VSA_approximation_wrapper {
     }
 
     template <typename FaceRange>
-    Proxy fit_proxy(const TriangleMesh &tm, const FaceRange &faces) const {
+    Proxy fit_proxy(const FaceRange &faces, const TriangleMesh &tm) const {
       (void)(tm);
       CGAL_assertion(!faces.empty());
 
