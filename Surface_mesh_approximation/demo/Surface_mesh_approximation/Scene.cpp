@@ -154,7 +154,7 @@ void Scene::set_metric(const int m) {
 }
 
 void Scene::seeding(
-  const CGAL::Approximation_seeding_tag method,
+  const CGAL::VSA::Seeding_method method,
   const boost::optional<std::size_t> max_nb_proxies,
   const boost::optional<FT> min_error_drop,
   const std::size_t nb_relaxations,

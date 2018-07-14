@@ -153,7 +153,7 @@ public:
     }
   }
 
-  std::size_t seeding(const CGAL::Approximation_seeding_tag method,
+  std::size_t seeding(const CGAL::VSA::Seeding_method method,
     const boost::optional<std::size_t> max_nb_proxies,
     const boost::optional<FT> min_error_drop,
     const std::size_t nb_relaxations) {
