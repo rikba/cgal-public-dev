@@ -69,7 +69,7 @@ int Scene::open(QString filename)
       he->opposite()->vertex()->point(),
       he->vertex()->point(),
       he->next()->vertex()->point()))
-      std::cerr << "Warning: degenerate facet" << std::endl;
+      std::cerr << "Warning: degenerate face" << std::endl;
   }
   std::cerr << "Done." << std::endl;
 #endif

@@ -15,8 +15,8 @@ class VSA_approximation_wrapper {
   typedef typename boost::graph_traits<TriangleMesh>::halfedge_descriptor halfedge_descriptor;
 
   typedef typename boost::property_map<TriangleMesh, boost::vertex_point_t>::type Vertex_point_map;
-  typedef boost::associative_property_map<std::map<face_descriptor, FT> > Facet_area_map;
-  typedef boost::associative_property_map<std::map<face_descriptor, Point_3> > Facet_center_map;
+  typedef boost::associative_property_map<std::map<face_descriptor, FT> > Face_area_map;
+  typedef boost::associative_property_map<std::map<face_descriptor, Point_3> > Face_center_map;
 
 #ifdef CGAL_LINKED_WITH_TBB
   typedef CGAL::Variational_shape_approximation<TriangleMesh, Vertex_point_map,
@@ -40,8 +40,8 @@ class VSA_approximation_wrapper {
   struct Compact_metric_point_proxy {
     typedef Point_3 Proxy;
 
-    Compact_metric_point_proxy(const Facet_center_map &_center_pmap,
-      const Facet_area_map &_area_pmap)
+    Compact_metric_point_proxy(const Face_center_map &_center_pmap,
+      const Face_area_map &_area_pmap)
       : center_pmap(_center_pmap), area_pmap(_area_pmap) {}
 
     FT compute_error(const TriangleMesh &tm, const face_descriptor f, const Proxy &px) const {
@@ -66,8 +66,8 @@ class VSA_approximation_wrapper {
       return CGAL::ORIGIN + center;
     }
 
-    const Facet_center_map center_pmap;
-    const Facet_area_map area_pmap;
+    const Face_center_map center_pmap;
+    const Face_area_map area_pmap;
   };
   typedef Compact_metric_point_proxy Compact_metric;
 
@@ -90,8 +90,8 @@ public:
 
   VSA_approximation_wrapper()
     : m_metric(L21),
-    m_center_pmap(m_facet_centers),
-    m_area_pmap(m_facet_areas),
+    m_center_pmap(m_face_centers),
+    m_area_pmap(m_face_areas),
     m_pl21_metric(NULL),
     m_pl2_metric(NULL),
     m_pcompact_metric(NULL) {}
@@ -108,19 +108,19 @@ public:
   void set_mesh(const TriangleMesh &mesh) {
     Vertex_point_map vpm = get(boost::vertex_point, const_cast<TriangleMesh &>(mesh));
 
-    m_facet_centers.clear();
-    m_facet_areas.clear();
+    m_face_centers.clear();
+    m_face_areas.clear();
     BOOST_FOREACH(face_descriptor f, faces(mesh)) {
       const halfedge_descriptor he = halfedge(f, mesh);
       const Point_3 &p0 = vpm[source(he, mesh)];
       const Point_3 &p1 = vpm[target(he, mesh)];
       const Point_3 &p2 = vpm[target(next(he, mesh), mesh)];
 
-      m_facet_centers.insert(std::pair<face_descriptor, Point_3>(
+      m_face_centers.insert(std::pair<face_descriptor, Point_3>(
         f, CGAL::centroid(p0, p1, p2)));
 
       FT area(std::sqrt(CGAL::to_double(CGAL::squared_area(p0, p1, p2))));
-      m_facet_areas.insert(std::pair<face_descriptor, FT>(f, area));
+      m_face_areas.insert(std::pair<face_descriptor, FT>(f, area));
     }
 
     if (m_pl21_metric)
@@ -277,8 +277,8 @@ public:
   }
 #endif
 
-  template <typename FacetProxyMap>
-  void proxy_map(FacetProxyMap &fpmap) {
+  template <typename FaceProxyMap>
+  void proxy_map(FaceProxyMap &fpmap) {
     switch (m_metric) {
       case L21:
         return m_l21_approx.proxy_map(fpmap);
@@ -340,11 +340,11 @@ public:
 private:
   Metric m_metric; // current metric
 
-  // facet property maps
-  std::map<face_descriptor, Point_3> m_facet_centers;
-  Facet_center_map m_center_pmap;
-  std::map<face_descriptor, FT> m_facet_areas;
-  Facet_area_map m_area_pmap;
+  // face property maps
+  std::map<face_descriptor, Point_3> m_face_centers;
+  Face_center_map m_center_pmap;
+  std::map<face_descriptor, FT> m_face_areas;
+  Face_area_map m_area_pmap;
 
   L21_metric *m_pl21_metric;
   L21_approx m_l21_approx;
