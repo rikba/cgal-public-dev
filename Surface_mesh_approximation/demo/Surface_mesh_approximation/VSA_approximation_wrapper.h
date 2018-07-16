@@ -93,14 +93,23 @@ public:
     m_center_pmap(m_face_centers),
     m_area_pmap(m_face_areas),
     m_pl21_metric(NULL),
+    m_l21_approx(NULL),
     m_pl2_metric(NULL),
-    m_pcompact_metric(NULL) {}
+    m_l2_approx(NULL),
+    m_pcompact_metric(NULL),
+    m_iso_approx(NULL) {}
 
   ~VSA_approximation_wrapper() {
+    if (m_l21_approx)
+      delete m_l21_approx;
     if (m_pl21_metric)
       delete m_pl21_metric;
+    if (m_l2_approx)
+      delete m_l2_approx;
     if (m_pl2_metric)
       delete m_pl2_metric;
+    if (m_iso_approx)
+      delete m_iso_approx;
     if (m_pcompact_metric)
       delete m_pcompact_metric;
   }
@@ -123,35 +132,30 @@ public:
       m_face_areas.insert(std::pair<face_descriptor, FT>(f, area));
     }
 
+    if (m_l21_approx)
+      delete m_l21_approx;
     if (m_pl21_metric)
       delete m_pl21_metric;
+    if (m_l2_approx)
+      delete m_l2_approx;
     if (m_pl2_metric)
       delete m_pl2_metric;
+    if (m_iso_approx)
+      delete m_iso_approx;
     if (m_pcompact_metric)
       delete m_pcompact_metric;
 
     m_pl21_metric = new L21_metric(mesh, vpm);
+    m_l21_approx = new L21_approx(mesh, vpm, *m_pl21_metric);
+
     m_pl2_metric = new L2_metric(mesh, vpm);
+    m_l2_approx = new L2_approx(mesh, vpm, *m_pl2_metric);
+
     m_pcompact_metric = new Compact_metric(m_center_pmap, m_area_pmap);
-
-    m_l21_approx.set_mesh(mesh, vpm);
-    m_l21_approx.set_metric(*m_pl21_metric);
-
-    m_l2_approx.set_mesh(mesh, vpm);
-    m_l2_approx.set_metric(*m_pl2_metric);
-
-    m_iso_approx.set_mesh(mesh, vpm);
-    m_iso_approx.set_metric(*m_pcompact_metric);
+    m_iso_approx = new Compact_approx(mesh, vpm, *m_pcompact_metric);
   }
 
-  void set_metric(const Metric m) {
-    m_metric = m;
-    switch (m_metric) {
-      case L21: return m_l21_approx.rebuild();
-      case L2: return m_l2_approx.rebuild();
-      case Compact: return m_iso_approx.rebuild();
-    }
-  }
+  void set_metric(const Metric &m) { m_metric = m; }
 
   std::size_t initialize_seeds(const CGAL::VSA::Seeding_method method,
     const boost::optional<std::size_t> max_nb_of_proxies,
@@ -159,13 +163,13 @@ public:
     const std::size_t nb_relaxations) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.initialize_seeds(
+        return m_l21_approx->initialize_seeds(
           method, max_nb_of_proxies, min_error_drop, nb_relaxations);
       case L2:
-        return m_l2_approx.initialize_seeds(
+        return m_l2_approx->initialize_seeds(
           method, max_nb_of_proxies, min_error_drop, nb_relaxations);
       case Compact:
-        return m_iso_approx.initialize_seeds(
+        return m_iso_approx->initialize_seeds(
           method, max_nb_of_proxies, min_error_drop, nb_relaxations);
     }
     return 0;
@@ -175,13 +179,13 @@ public:
     FT err(0.0);
     switch (m_metric) {
       case L21:
-        m_l21_approx.run(nb_iterations);
+        m_l21_approx->run(nb_iterations);
         break;
       case L2:
-        m_l2_approx.run(nb_iterations);
+        m_l2_approx->run(nb_iterations);
         break;
       case Compact:
-        m_iso_approx.run(nb_iterations);
+        m_iso_approx->run(nb_iterations);
         break;
     }
   }
@@ -189,11 +193,11 @@ public:
   std::size_t add_one_proxy() {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.add_to_furthest_proxies(1, 0);
+        return m_l21_approx->add_to_furthest_proxies(1, 0);
       case L2:
-        return m_l2_approx.add_to_furthest_proxies(1, 0);
+        return m_l2_approx->add_to_furthest_proxies(1, 0);
       case Compact:
-        return m_iso_approx.add_to_furthest_proxies(1, 0);
+        return m_iso_approx->add_to_furthest_proxies(1, 0);
     }
     return 0;
   }
@@ -201,11 +205,11 @@ public:
   std::size_t teleport_one_proxy() {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.teleport_proxies(1, 0, true);
+        return m_l21_approx->teleport_proxies(1, 0, true);
       case L2:
-        return m_l2_approx.teleport_proxies(1, 0, true);
+        return m_l2_approx->teleport_proxies(1, 0, true);
       case Compact:
-        return m_iso_approx.teleport_proxies(1, 0, true);
+        return m_iso_approx->teleport_proxies(1, 0, true);
     }
     return 0;
   }
@@ -213,11 +217,11 @@ public:
   bool split(const std::size_t px_idx, const std::size_t n, const std::size_t nb_relaxations) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.split(px_idx, n, nb_relaxations);
+        return m_l21_approx->split(px_idx, n, nb_relaxations);
       case L2:
-        return m_l2_approx.split(px_idx, n, nb_relaxations);
+        return m_l2_approx->split(px_idx, n, nb_relaxations);
       case Compact:
-        return m_iso_approx.split(px_idx, n, nb_relaxations);
+        return m_iso_approx->split(px_idx, n, nb_relaxations);
     }
     return false;
   }
@@ -229,21 +233,21 @@ public:
     const bool pca_plane) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.extract_mesh(
+        return m_l21_approx->extract_mesh(
           CGAL::VSA::parameters::subdivision_ratio(subdivision_ratio).
           relative_to_chord(relative_to_chord).
           with_dihedral_angle(with_dihedral_angle).
           optimize_anchor_location(optimize_anchor_location).
           pca_plane(pca_plane));
       case L2:
-        return m_l2_approx.extract_mesh(
+        return m_l2_approx->extract_mesh(
           CGAL::VSA::parameters::subdivision_ratio(subdivision_ratio).
           relative_to_chord(relative_to_chord).
           with_dihedral_angle(with_dihedral_angle).
           optimize_anchor_location(optimize_anchor_location).
           pca_plane(pca_plane));
       case Compact:
-        return m_iso_approx.extract_mesh(
+        return m_iso_approx->extract_mesh(
           CGAL::VSA::parameters::subdivision_ratio(subdivision_ratio).
           relative_to_chord(relative_to_chord).
           with_dihedral_angle(with_dihedral_angle).
@@ -256,11 +260,11 @@ public:
   std::size_t proxies_size() {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.proxies_size();
+        return m_l21_approx->proxies_size();
       case L2:
-        return m_l2_approx.proxies_size();
+        return m_l2_approx->proxies_size();
       case Compact:
-        return m_iso_approx.proxies_size();
+        return m_iso_approx->proxies_size();
     }
     return 0;
   }
@@ -270,7 +274,7 @@ public:
   void get_l21_proxies(OutputIterator outitr) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.wrapped_proxies(outitr);
+        return m_l21_approx->wrapped_proxies(outitr);
       default:
         return;
     }
@@ -281,11 +285,11 @@ public:
   void proxy_map(FaceProxyMap &fpmap) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.proxy_map(fpmap);
+        return m_l21_approx->proxy_map(fpmap);
       case L2:
-        return m_l2_approx.proxy_map(fpmap);
+        return m_l2_approx->proxy_map(fpmap);
       case Compact:
-        return m_iso_approx.proxy_map(fpmap);
+        return m_iso_approx->proxy_map(fpmap);
     }
   }
 
@@ -293,11 +297,11 @@ public:
   void indexed_triangles(OutputIterator outitr) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.indexed_triangles(outitr);
+        return m_l21_approx->indexed_triangles(outitr);
       case L2:
-        return m_l2_approx.indexed_triangles(outitr);
+        return m_l2_approx->indexed_triangles(outitr);
       case Compact:
-        return m_iso_approx.indexed_triangles(outitr);
+        return m_iso_approx->indexed_triangles(outitr);
     }
   }
 
@@ -305,11 +309,11 @@ public:
   void anchor_points(OutputIterator outitr) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.anchor_points(outitr);
+        return m_l21_approx->anchor_points(outitr);
       case L2:
-        return m_l2_approx.anchor_points(outitr);
+        return m_l2_approx->anchor_points(outitr);
       case Compact:
-        return m_iso_approx.anchor_points(outitr);
+        return m_iso_approx->anchor_points(outitr);
     }
   }
 
@@ -317,11 +321,11 @@ public:
   void anchor_vertices(OutputIterator outitr) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.anchor_vertices(outitr);
+        return m_l21_approx->anchor_vertices(outitr);
       case L2:
-        return m_l2_approx.anchor_vertices(outitr);
+        return m_l2_approx->anchor_vertices(outitr);
       case Compact:
-        return m_iso_approx.anchor_vertices(outitr);
+        return m_iso_approx->anchor_vertices(outitr);
     }
   }
 
@@ -329,11 +333,11 @@ public:
   void indexed_boundary_polygons(OutputIterator outitr) {
     switch (m_metric) {
       case L21:
-        return m_l21_approx.indexed_boundary_polygons(outitr);
+        return m_l21_approx->indexed_boundary_polygons(outitr);
       case L2:
-        return m_l2_approx.indexed_boundary_polygons(outitr);
+        return m_l2_approx->indexed_boundary_polygons(outitr);
       case Compact:
-        return m_iso_approx.indexed_boundary_polygons(outitr);
+        return m_iso_approx->indexed_boundary_polygons(outitr);
     }
   }
 
@@ -347,13 +351,13 @@ private:
   Face_area_map m_area_pmap;
 
   L21_metric *m_pl21_metric;
-  L21_approx m_l21_approx;
+  L21_approx *m_l21_approx;
 
   L2_metric *m_pl2_metric;
-  L2_approx m_l2_approx;
+  L2_approx *m_l2_approx;
 
   Compact_metric *m_pcompact_metric;
-  Compact_approx m_iso_approx;
+  Compact_approx *m_iso_approx;
 };
 
 #endif // VSA_APPROXIMAITON_WRAPPER_H
