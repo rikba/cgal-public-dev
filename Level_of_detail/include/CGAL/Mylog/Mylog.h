@@ -854,7 +854,7 @@ namespace CGAL {
 			}
 
 			template<class CDT, class Buildings>
-			void save_roofs_based_cdt(const Buildings &buildings, const std::string &file_name) {
+			void save_cdt_per_each_building(const Buildings &buildings, const std::string &file_name) {
 				clear();
 
 				typedef typename CDT::Vertex_handle    		   Vertex_handle;
@@ -1418,7 +1418,7 @@ namespace CGAL {
 			}
 
 			template<class Buildings>
-			void save_polyhedrons(const Buildings &buildings, const std::string &file_name) {
+			void save_polyhedrons(const Buildings &buildings, const std::string &file_name, bool use_uniform_color = false) {
 				clear();
 
 				size_t num_vertices = 0;
@@ -1471,10 +1471,13 @@ namespace CGAL {
 					}
 				}
 
-				size_t count = 0;
+				size_t count = 0; Color color;
 				for (auto bit = buildings.begin(); bit != buildings.end(); ++bit) {
+
 					const auto &building = bit->second;
 					if (!building.is_valid) continue;
+
+					if (use_uniform_color) color = building.color;
 
 					const auto &polyhedrons = building.polyhedrons;
 					for (size_t i = 0; i < polyhedrons.size(); ++i) {
@@ -1482,7 +1485,7 @@ namespace CGAL {
 						const auto &polyhedron = polyhedrons[i];
 						if (!polyhedron.is_valid) continue;
 
-						const Color color = generate_random_color();
+						if (!use_uniform_color) color = generate_random_color();
 
 						const auto &facets = polyhedron.facets;
 						for (size_t j = 0; j < facets.size(); ++j) {

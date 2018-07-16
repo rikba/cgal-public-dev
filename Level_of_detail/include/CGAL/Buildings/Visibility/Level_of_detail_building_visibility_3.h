@@ -13,7 +13,7 @@
 #include <CGAL/utils.h>
 
 // New CGAL includes.
-#include <CGAL/Buildings/Level_of_detail_building_roof_face_validator.h>
+#include <CGAL/Buildings/Roofs/Level_of_detail_building_roof_face_validator.h>
 
 namespace CGAL {
 

@@ -23,7 +23,7 @@
 #include <CGAL/IO/Color.h>
 #include <CGAL/Mylog/Mylog.h>
 #include <CGAL/Level_of_detail_enum.h>
-#include <CGAL/Buildings/Level_of_detail_building_envelope_input.h>
+#include <CGAL/Buildings/Envelope/Level_of_detail_building_envelope_input.h>
 #include <CGAL/Region_growing/Level_of_detail_linear_region_growing.h>
 
 namespace CGAL {

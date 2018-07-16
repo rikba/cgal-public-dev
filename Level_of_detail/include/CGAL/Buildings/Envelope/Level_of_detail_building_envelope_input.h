@@ -16,7 +16,7 @@
 // New CGAL includes.
 #include <CGAL/IO/Color.h>
 #include <CGAL/Level_of_detail_enum.h>
-#include <CGAL/Buildings/Level_of_detail_diagonalize_traits.h>
+#include <CGAL/Buildings/Utils/Level_of_detail_diagonalize_traits.h>
 
 namespace CGAL {
 

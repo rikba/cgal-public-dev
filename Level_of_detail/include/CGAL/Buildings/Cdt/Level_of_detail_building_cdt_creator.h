@@ -1,18 +1,19 @@
-#ifndef CGAL_LEVEL_OF_DETAIL_BUILDING_ROOFS_BASED_CDT_CREATOR_H
-#define CGAL_LEVEL_OF_DETAIL_BUILDING_ROOFS_BASED_CDT_CREATOR_H
+#ifndef CGAL_LEVEL_OF_DETAIL_BUILDING_CDT_CREATOR_H
+#define CGAL_LEVEL_OF_DETAIL_BUILDING_CDT_CREATOR_H
 
 // STL includes.
 #include <vector>
+#include <memory>
 
 // New CGAL includes.
-#include <CGAL/Buildings/Level_of_detail_building_roof_face_validator.h>
+#include <CGAL/Buildings/Cdt/Level_of_detail_building_cdt_face_validator.h>
 
 namespace CGAL {
 
 	namespace LOD {
 
 		template<class InputKernel, class InputBuilding, class InputBuildings>
-		class Level_of_detail_building_roofs_based_cdt_creator {
+		class Level_of_detail_building_cdt_creator {
 
         public:
             using Kernel    = InputKernel;
@@ -33,10 +34,10 @@ namespace CGAL {
             using Roofs_iterator         = typename Roofs::const_iterator;
             using Roof_boundary_iterator = typename Roof_boundary::const_iterator;
 
-            using Vertex_handles      = std::vector< std::vector<Vertex_handle> >;
-            using Roof_face_validator = CGAL::LOD::Level_of_detail_building_roof_face_validator<Kernel, Building>;
+            using Vertex_handles = std::vector< std::vector<Vertex_handle> >;
+            using Face_validator = CGAL::LOD::Level_of_detail_building_cdt_face_validator<Kernel, Building>;
 
-            Level_of_detail_building_roofs_based_cdt_creator(Buildings &buildings) : 
+            Level_of_detail_building_cdt_creator(Buildings &buildings) : 
             m_buildings(buildings)
             { }
 
@@ -45,18 +46,21 @@ namespace CGAL {
                 for (Buildings_iterator bit = m_buildings.begin(); bit != m_buildings.end(); ++bit) {
                     Building &building = (*bit).second;
 
+                    if (!building.is_valid) continue;
                     create_cdt(building);
-                    m_roof_face_validator.mark_wrong_faces(building);
+
+                    m_face_validator = std::make_shared<Face_validator>(building);
+                    m_face_validator->validate();
                 }
             }
 
         private:
             Buildings &m_buildings;
-            Roof_face_validator m_roof_face_validator;
+            std::shared_ptr<Face_validator> m_face_validator;
 
             void create_cdt(Building &building) const {
-
                 Vertex_handles vhs;
+
                 insert_vertices(vhs, building);
                 insert_constraints(vhs, building);
             }

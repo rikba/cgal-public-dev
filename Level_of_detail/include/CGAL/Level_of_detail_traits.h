@@ -163,9 +163,10 @@ namespace CGAL {
 
 			typedef CGAL::LOD::Level_of_detail_lod2<Kernel, Building, Buildings, Mesh> LOD2_reconstruction;
 
-			typedef CGAL::LOD::Level_of_detail_building_roofs_based_cdt_creator<Kernel, Building, Buildings> 		       Roofs_based_cdt_creator;
-			typedef CGAL::LOD::Level_of_detail_building_roofs_based_cdt_cleaner<Kernel, Container_3D, Building, Buildings> Roofs_based_cdt_cleaner;
-			typedef CGAL::LOD::Level_of_detail_building_roofs_based_cdt_estimator<Kernel, Building, Buildings> 			   Cdt_based_roof_estimator;
+			typedef CGAL::LOD::Level_of_detail_building_cdt_creator<Kernel, Building, Buildings> 			   Cdt_creator;
+			typedef CGAL::LOD::Level_of_detail_building_cdt_cleaner<Kernel, Container_3D, Building, Buildings> Cdt_cleaner;
+			
+			typedef CGAL::LOD::Level_of_detail_building_cdt_based_roofs_estimator<Kernel, Building, Buildings> Cdt_based_roofs_estimator;
 
 			typedef CGAL::LOD::Level_of_detail_building_visibility_3<Kernel, Container_3D, CDT, Building, Buildings> Visibility_3;
 		};

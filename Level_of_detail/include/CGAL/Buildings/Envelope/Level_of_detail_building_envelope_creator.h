@@ -19,7 +19,7 @@
 
 // New CGAL includes.
 #include <CGAL/Level_of_detail_enum.h>
-#include <CGAL/Buildings/Level_of_detail_building_roof_face_validator.h>
+#include <CGAL/Buildings/Roofs/Level_of_detail_building_roof_face_validator.h>
 #include <CGAL/Buildings/Associaters/Level_of_detail_building_envelope_plane_associater.h>
 
 namespace CGAL {

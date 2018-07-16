@@ -1,24 +1,24 @@
 #ifndef CGAL_LEVEL_OF_DETAIL_BUILDINGS_H
 #define CGAL_LEVEL_OF_DETAIL_BUILDINGS_H
 
-#include <CGAL/Buildings/Level_of_detail_diagonalize_traits.h>
-#include <CGAL/Buildings/Level_of_detail_building_splitter.h>
-#include <CGAL/Buildings/Level_of_detail_building_outliner.h>
-#include <CGAL/Buildings/Level_of_detail_building_roof_cleaner.h>
-#include <CGAL/Buildings/Level_of_detail_building_roof_fitter.h>
-#include <CGAL/Buildings/Level_of_detail_building_envelope_input.h>
-#include <CGAL/Buildings/Level_of_detail_building_envelope_creator.h>
-#include <CGAL/Buildings/Level_of_detail_building_roof_estimator.h>
-#include <CGAL/Buildings/Level_of_detail_building_partition_input.h>
-#include <CGAL/Buildings/Level_of_detail_building_partition_creator.h>
-#include <CGAL/Buildings/Level_of_detail_building_kinetic_partition_creator.h>
-#include <CGAL/Buildings/Level_of_detail_building_roof_face_validator.h>
+#include <CGAL/Buildings/Utils/Level_of_detail_building_splitter.h>
+#include <CGAL/Buildings/Utils/Level_of_detail_building_outliner.h>
+#include <CGAL/Buildings/Utils/Level_of_detail_diagonalize_traits.h>
 
-#include <CGAL/Buildings/Level_of_detail_building_roofs_based_cdt_creator.h>
-#include <CGAL/Buildings/Level_of_detail_building_roofs_based_cdt_cleaner.h>
-#include <CGAL/Buildings/Level_of_detail_building_roofs_based_cdt_estimator.h>
+#include <CGAL/Buildings/Roofs/Level_of_detail_building_roof_fitter.h>
+#include <CGAL/Buildings/Roofs/Level_of_detail_building_roof_cleaner.h>
+#include <CGAL/Buildings/Roofs/Level_of_detail_building_roof_estimator.h>
+#include <CGAL/Buildings/Roofs/Level_of_detail_building_roof_face_validator.h>
 
-#include <CGAL/Buildings/Level_of_detail_building_visibility_3.h>
+#include <CGAL/Buildings/Envelope/Level_of_detail_building_envelope_input.h>
+#include <CGAL/Buildings/Envelope/Level_of_detail_building_envelope_creator.h>
+
+#include <CGAL/Buildings/Partition/Level_of_detail_building_partition_input.h>
+#include <CGAL/Buildings/Partition/Level_of_detail_building_partition_creator.h>
+#include <CGAL/Buildings/Partition/Level_of_detail_building_kinetic_partition_creator.h>
+
+#include <CGAL/Buildings/Cdt/Level_of_detail_building_cdt.h>
+#include <CGAL/Buildings/Visibility/Level_of_detail_building_visibility_3.h>
 
 #include <CGAL/Buildings/Associaters/Level_of_detail_building_envelope_plane_associater.h>
 #include <CGAL/Buildings/Associaters/Level_of_detail_building_partition_naive_plane_associater.h>

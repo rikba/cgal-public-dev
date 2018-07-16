@@ -1,10 +1,10 @@
-#ifndef CGAL_LEVEL_OF_DETAIL_BUILDING_ROOFS_BASED_CDT_ESTIMATOR_H
-#define CGAL_LEVEL_OF_DETAIL_BUILDING_ROOFS_BASED_CDT_ESTIMATOR_H
+#ifndef CGAL_LEVEL_OF_DETAIL_BUILDING_CDT_BASED_ROOFS_ESTIMATOR_H
+#define CGAL_LEVEL_OF_DETAIL_BUILDING_CDT_BASED_ROOFS_ESTIMATOR_H
 
 // STL includes.
 #include <map>
 #include <vector>
-#include <iostream>
+#include <utility>
 
 // CGAL includes.
 #include <CGAL/utils.h>
@@ -18,11 +18,11 @@ namespace CGAL {
 
 	namespace LOD {
 
-		template<class KernelTraits, class InputBuilding, class InputBuildings>
-		class Level_of_detail_building_roofs_based_cdt_estimator {
+		template<class InputKernel, class InputBuilding, class InputBuildings>
+		class Level_of_detail_building_cdt_based_roofs_estimator {
             
         public:
-            typedef KernelTraits   Kernel;
+            typedef InputKernel    Kernel;
             typedef InputBuilding  Building;
             typedef InputBuildings Buildings;
 
@@ -51,17 +51,18 @@ namespace CGAL {
             using Face_circulator   = typename CDT::Face_circulator;
 
             using Associated_planes = typename Roof::Associated_planes; 
-            using Boundary          = typename Roof::Roof_boundary;
+            using Boundary          = Roof_boundary;
 
-            using Roof_indices  = std::vector<int>;
-            using Heights       = std::map<int, FT>;
+            using Roof_indices = std::vector<int>;
+            using Heights      = std::map<int, FT>;
             
             using Final_height  = std::pair<FT, Roof_indices>;
             using Final_heights = std::vector<Final_height>;
             
             using Inter_heights = std::vector<FT>;
-            using Tmp_height    = std::pair<Inter_heights, Roof_indices>;
-            using Tmp_heights   = std::vector<Tmp_height>;
+
+            using Tmp_height  = std::pair<Inter_heights, Roof_indices>;
+            using Tmp_heights = std::vector<Tmp_height>;
 
             using Const_planes_iterator        = typename Planes::const_iterator;
             using Const_heights_iterator       = typename Heights::const_iterator; 
@@ -70,7 +71,7 @@ namespace CGAL {
             using Const_tmp_heights_iterator   = typename Tmp_heights::const_iterator;
             using Tmp_heights_iterator         = typename Tmp_heights::iterator;
 
-            Level_of_detail_building_roofs_based_cdt_estimator(const FT ground_height, Buildings &buildings) :
+            Level_of_detail_building_cdt_based_roofs_estimator(const FT ground_height, Buildings &buildings) :
             m_ground_height(ground_height),
             m_buildings(buildings),
             m_tolerance(FT(1) / FT(1000000)),
@@ -78,9 +79,11 @@ namespace CGAL {
             { }
 
             void estimate() {
-                for (Building_iterator bit = m_buildings.begin(); bit != m_buildings.end(); ++bit) {
-                    
+                
+                for (Building_iterator bit = m_buildings.begin(); bit != m_buildings.end(); ++bit) {  
                     Building &building = bit->second;
+
+                    if (!building.is_valid) continue;
                     handle_building(building);
                 }
             }
@@ -109,18 +112,15 @@ namespace CGAL {
 
                 Planes planes; Roof_indices roof_indices;
                 get_planes_with_indices(vh, building, planes, roof_indices);
-
                 CGAL_precondition(roof_indices.size() == planes.size());
                 if (planes.size() == 0) return;
 
                 Heights heights;
                 compute_heights(line, planes, building.height, roof_indices, heights);
-
                 if (heights.size() == 0) return;
 
                 Final_heights final_heights;
                 compute_final_heights(heights, final_heights);
-
                 if (final_heights.size() == 0) return;
 
                 update_roof_heights(vh, final_heights, building);
@@ -379,11 +379,11 @@ namespace CGAL {
                 }
             }
 
-            inline bool are_equal(const Point_3 &p, const Point_2 &ref) const {
+            bool are_equal(const Point_3 &p, const Point_2 &ref) const {
                 return CGAL::abs(p.x() - ref.x()) < m_tolerance && CGAL::abs(p.y() - ref.y()) < m_tolerance;
             }
 
-            inline void update_point_height(const FT final_height, Point_3 &point) const {
+            void update_point_height(const FT final_height, Point_3 &point) const {
                 point = Point_3(point.x(), point.y(), final_height);
             }
         };
@@ -392,4 +392,4 @@ namespace CGAL {
 
 } // CGAL
 
-#endif // CGAL_LEVEL_OF_DETAIL_BUILDING_ROOFS_BASED_CDT_ESTIMATOR_H
+#endif // CGAL_LEVEL_OF_DETAIL_BUILDING_CDT_BASED_ROOFS_ESTIMATOR_H
