@@ -1,5 +1,5 @@
-#ifndef CGAL_GRG_MESH_TRAITS_H
-#define CGAL_GRG_MESH_TRAITS_H
+#ifndef CGAL_REGION_GROWING_MESH_TRAITS_H
+#define CGAL_REGION_GROWING_MESH_TRAITS_H
 
 namespace CGAL {
     namespace Region_growing {

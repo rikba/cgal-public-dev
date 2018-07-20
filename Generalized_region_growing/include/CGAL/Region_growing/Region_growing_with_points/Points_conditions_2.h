@@ -1,5 +1,5 @@
-#ifndef CGAL_GRG_POINTS_CONDITIONS_2_H
-#define CGAL_GRG_POINTS_CONDITIONS_2_H
+#ifndef CGAL_REGION_GROWING_POINTS_CONDITIONS_2_H
+#define CGAL_REGION_GROWING_POINTS_CONDITIONS_2_H
 
 #include <CGAL/linear_least_squares_fitting_2.h>
 #include <CGAL/squared_distance_2.h>
@@ -35,6 +35,7 @@ namespace CGAL {
                 using Kernel                  = typename Traits::Kernel;
                 using Element_map             = typename Traits::Element_map;
                 using Normal_map              = NormalMap;
+                using Element_index           = size_t;
 
                 using Element_with_properties = typename Element_map::key_type;
                 using Point_2                 = typename Kernel::Point_2;
@@ -61,16 +62,16 @@ namespace CGAL {
 
                 // Local condition
                 template < class Region_ >
-                bool is_in_same_region(const int &assigned_element, const int &unassigned_element,const Region_ &region) {
+                bool is_in_same_region(const Element_index assigned_element, const Element_index unassigned_element, const Region_ &region) {
 
-                    Point_2 point_unassigned = get(m_elem_map, get_data_from_index(unassigned_element));
-                    Vector_2 normal = get(m_normal_map, get_data_from_index(unassigned_element));
+                    const Point_2& point_unassigned = get(m_elem_map, get_data_from_index(unassigned_element));
+                    const Vector_2& normal = get(m_normal_map, get_data_from_index(unassigned_element));
 
                     const FT normal_length = m_sqrt_object(normal.squared_length());
                     Vector_2 normal_unassigned = normal / normal_length;
 
                     // Must use Local_FT because fit line is of local kernel
-                    const Local_FT distance_to_fit_line = m_sqrt_object(CGAL::squared_distance(m_to_local_converter(point_unassigned), m_line_of_best_fit));
+                    const Local_FT distance_to_fit_line = CGAL::sqrt(CGAL::squared_distance(m_to_local_converter(point_unassigned), m_line_of_best_fit));
                     const Local_FT cos_angle = CGAL::abs(m_to_local_converter(normal_unassigned) * m_normal_of_best_fit);
 
                     return (distance_to_fit_line <= m_epsilon && cos_angle >= m_normal_threshold);
@@ -79,7 +80,7 @@ namespace CGAL {
                 // Global condition
                 template < class Region_ >
                 inline bool is_valid(const Region_ &region) const {
-                    return (region.end() - region.begin() >= m_min_region_size);
+                    return (region.size() >= m_min_region_size);
                 }
 
                 // Update the line of best fit
@@ -88,11 +89,11 @@ namespace CGAL {
 
                     CGAL_precondition(region.end() != region.begin());
 
-                    if (region.end() - region.begin() == 1) {
+                    if (region.size() == 1) {
                         // The best fit line will be a line through this point with its normal being the point's normal
 
-                        Point_2 point = get(m_elem_map, get_data_from_index(*region.begin()));
-                        Vector_2 normal = get(m_normal_map, get_data_from_index(*region.begin()));
+                        const Point_2& point = get(m_elem_map, get_data_from_index(*region.begin()));
+                        const Vector_2& normal = get(m_normal_map, get_data_from_index(*region.begin()));
                         const FT normal_length = m_sqrt_object(normal.squared_length());
 
                         m_line_of_best_fit = m_to_local_converter(Line_2(point, normal).perpendicular(point));
@@ -102,24 +103,27 @@ namespace CGAL {
 
                         // Extract the geometric Element (Point_2)
                         int i = 0;
-                        std::vector<Point_2> points(region.end()-region.begin());
+                        std::vector<Local_point_2> points(region.size());
                         for (typename Region_::const_iterator it = region.begin(); it != region.end(); ++it, ++i)
-                            points[i] = (m_to_local_converter(get(m_elem_map, get_data_from_index(*it))));
+                            points[i] = m_to_local_converter(get(m_elem_map, get_data_from_index(*it)));
 
                         // Fit the region to a line
-                        Line_2 temp_best_fit;
-                        linear_least_squares_fitting_2(points.begin(), points.end(), temp_best_fit, CGAL::Dimension_tag<0>());
+                        Local_point_2 centroid; // unused
 
-                        m_line_of_best_fit = m_to_local_converter(temp_best_fit);
+                        #ifndef CGAL_EIGEN2_ENABLED
+                            linear_least_squares_fitting_2(points.begin(), points.end(), m_line_of_best_fit, centroid, CGAL::Dimension_tag<0>(), Kernel(), Default_diagonalize_traits<typename Kernel::FT, 2>());
+                        #else 
+                            linear_least_squares_fitting_2(points.begin(), points.end(), m_line_of_best_fit, centroid, CGAL::Dimension_tag<0>(), Kernel(), Eigen_diagonalize_traits<typename Kernel::FT, 2>());
+                        #endif
 
                         Local_vector_2 normal = m_line_of_best_fit.perpendicular(m_line_of_best_fit.point(0)).to_vector();
-                        const Local_FT normal_length = m_sqrt_object(normal.squared_length());
+                        const Local_FT normal_length = CGAL::sqrt(normal.squared_length());
 
                         m_normal_of_best_fit = normal / normal_length;
                     }
                 }
 
-                inline Element_with_properties get_data_from_index(const int& i) const {
+                inline Element_with_properties get_data_from_index(const Element_index i) const {
                     return *(m_input_range.begin() + i);
                 }
 

@@ -1,5 +1,5 @@
-#ifndef CGAL_GRG_POINTS_CONNECTIVITY_CIRCULAR_QUERY_H
-#define CGAL_GRG_POINTS_CONNECTIVITY_CIRCULAR_QUERY_H
+#ifndef CGAL_REGION_GROWING_POINTS_CONNECTIVITY_CIRCULAR_QUERY_H
+#define CGAL_REGION_GROWING_POINTS_CONNECTIVITY_CIRCULAR_QUERY_H
 
 #include <CGAL/Iterator_range.h>
 #include <CGAL/Kd_tree.h>
@@ -22,9 +22,10 @@ namespace CGAL {
                 using Kernel                  = typename Traits::Kernel;
                 using Element                 = typename Traits::Element; // Point_2 or Point_3
                 using Element_map_original    = typename Traits::Element_map;
+                using Element_index           = size_t;
                 
                 struct Element_map {
-                    using key_type = int;
+                    using key_type = Element_index;
                     using value_type = Element;
                     using reference = const value_type&;
                     using category = boost::lvalue_property_map_tag;
@@ -42,9 +43,6 @@ namespace CGAL {
                     }
                 };
 
-                using Neighbors               = std::vector<int>;
-                using Neighbor_range          = CGAL::Iterator_range<typename Neighbors::const_iterator>;
-
                 using Search_base             = typename std::conditional<std::is_same<typename Kernel::Point_2, Element>::value, CGAL::Search_traits_2<Kernel>, CGAL::Search_traits_3<Kernel> >::type;
                 using Search_traits_adapter   = CGAL::Search_traits_adapter<int, Element_map, Search_base>;
                 using Fuzzy_circle            = CGAL::Fuzzy_sphere<Search_traits_adapter>;
@@ -60,14 +58,16 @@ namespace CGAL {
                 m_sta(Search_traits_adapter(Element_map(input_range), Search_base())),
                 m_tree(Splitter(), Search_traits_adapter(Element_map(input_range), Search_base())) {
 
-                    for(int i = 0; i < m_input_range.end() - m_input_range.begin(); ++i)
-                        indices.push_back(i);
+                    size_t i = 0;
+                    for (typename Input_range::iterator it = m_input_range.begin(); it != m_input_range.end(); ++it, ++i)
+                        m_indices.push_back(i);
 
-                    m_tree.insert(indices.begin(), indices.end());
+                    m_tree.insert(m_indices.begin(), m_indices.end());
 
                 }
 
-                void get_neighbors(const int &center, Neighbors& neighbors) {
+                template < class Neighbors_ >
+                void get_neighbors(const Element_index center, Neighbors_& neighbors) {
 
                     neighbors.clear();
                     Fuzzy_circle circle(center, m_radius, 0, m_sta);
@@ -81,7 +81,7 @@ namespace CGAL {
                 Tree                            m_tree;
                 const FT                        m_radius;
                 const Search_traits_adapter     m_sta;
-                Neighbors                       indices;
+                std::vector<Element_index>      m_indices;
             };
 
         } // namespace Region_growing_with_points 

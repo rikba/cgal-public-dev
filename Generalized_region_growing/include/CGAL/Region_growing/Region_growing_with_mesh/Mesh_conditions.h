@@ -1,5 +1,5 @@
-#ifndef CGAL_GRG_MESH_CONDITIONS_H
-#define CGAL_GRG_MESH_CONDITIONS_H
+#ifndef CGAL_REGION_GROWING_MESH_CONDITIONS_H
+#define CGAL_REGION_GROWING_MESH_CONDITIONS_H
 
 #include <Surface_mesh.h>
 #include <Iterator_range.h>

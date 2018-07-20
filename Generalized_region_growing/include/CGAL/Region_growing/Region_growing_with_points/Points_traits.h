@@ -1,5 +1,5 @@
-#ifndef CGAL_GRG_POINTS_TRAITS_H
-#define CGAL_GRG_POINTS_TRAITS_H
+#ifndef CGAL_REGION_GROWING_POINTS_TRAITS_H
+#define CGAL_REGION_GROWING_POINTS_TRAITS_H
 
 namespace CGAL {
     namespace Region_growing {
