@@ -121,8 +121,11 @@ namespace CGAL {
 			typedef typename Traits::Roof_cleaner      		   Roof_cleaner;
 			typedef typename Traits::Partition_input   		   Partition_input;
 			typedef typename Traits::Partition_creator 		   Partition_creator;
-			typedef typename Traits::Kinetic_partition_creator Kinetic_partition_creator;
-			typedef typename Traits::Roof_estimator    		   Roof_estimator;
+
+			typedef typename Traits::Kinetic_partition_input_creator  Kinetic_partition_input_creator;
+			typedef typename Traits::Kinetic_partition_output_creator Kinetic_partition_output_creator;
+
+			typedef typename Traits::Roof_estimator Roof_estimator;
 			
 			typedef typename Traits::LOD2_reconstruction LOD2_reconstruction;
 			
@@ -1110,64 +1113,7 @@ namespace CGAL {
 				estimate_lod1_coverage(input);
 			}
 
-			void translating_lod0_and_lod1(
-			const FT ground_height, 
-			Mesh &mesh_0, const Mesh_facet_colors &mesh_facet_colors_0, 
-			Mesh &mesh_1, const Mesh_facet_colors &mesh_facet_colors_1, 
-			const size_t exec_step) {
-
-				// Translate LOD0 and LOD1 results to the ground plane.
-				std::cout << "(" << exec_step << ") translating lod0 and lod1;" << std::endl;
-
-				m_utils.translate_mesh_along_z(mesh_0, ground_height);
-				m_utils.translate_mesh_along_z(mesh_1, ground_height);
-
-				Log lod_saver;
-				lod_saver.save_mesh_as_ply(mesh_0, mesh_facet_colors_0, "LOD0");
-				lod_saver.save_mesh_as_ply(mesh_1, mesh_facet_colors_1, "LOD1");
-			}
-
-			void adding_points_inside_buildings(const Container_3D &input, const CDT &cdt, const Indices &indices, Buildings &buildings, const std::string &name, const size_t exec_step) {
-
-				// Select all points that lie inside each building.
-				std::cout << "(" << exec_step << ") adding " << name << " points inside buildings;" << std::endl;
-
-				m_inside_buildings_selector = std::make_shared<Inside_buildings_selector>(input, cdt, indices);
-				
-				m_inside_buildings_selector->make_silent(m_silent);
-				m_inside_buildings_selector->add_indices(buildings);
-			}
-
-			void applying_3d_region_growing(const Container_3D &input, Buildings &buildings, const size_t exec_step) {
-				
-				// Run region growing on all points that form roofs of the given buildings.
-				std::cout << "(" << exec_step << ") detecting 3D planes on roof points;" << std::endl;
-
-				m_region_growing_3 = std::make_shared<Region_growing_3>(input);
-				m_region_growing_3->make_silent(m_silent);
-
-				m_region_growing_3->set_epsilon(m_region_growing_epsilon_3d);
-				m_region_growing_3->set_cluster_epsilon(m_region_growing_cluster_epsilon_3d);
-				m_region_growing_3->set_normal_threshold(m_region_growing_normal_threshold_3d);
-				m_region_growing_3->set_minimum_shape_points(m_region_growing_min_points_3d);
-
-				m_region_growing_3->detect(buildings);
-			}
-
-			void roofs_filtering(const Container_3D &input, const FT ground_height, Buildings &buildings, const size_t exec_step) {
-
-				// Remove all regions detected before that do not satisfy the correct criteria.
-				std::cout << "(" << exec_step << ") filtering roof regions;" << std::endl;
-				m_roof_cleaner = std::make_shared<Roof_cleaner>(input, ground_height);
-				
-				m_roof_cleaner->set_scale_upper_bound(m_roof_cleaner_scale);
-				m_roof_cleaner->set_max_percentage(m_roof_cleaner_max_percentage);
-				
-				m_roof_cleaner->make_silent(m_silent);
-				m_roof_cleaner->clean_shapes(buildings);
-			}
-
-			void creating_partition_input(const Container_3D &input, Buildings &buildings, const size_t exec_step) {
+			void creating_2d_partition_input(const Container_3D &input, Buildings &buildings, const size_t exec_step) {
 				
 				// Fit a plane to each found region of the given roof and compute its bounding box.
 				std::cout << "(" << exec_step << ") creating partition input;" << std::endl;
@@ -1182,37 +1128,6 @@ namespace CGAL {
 					exporter.save_building_roofs_without_faces(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "fitted_roof_planes", true);
 					exporter.save_partition_input(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "partition_input");
 				}
-			}
-
-			void applying_3d_partitioning(const CDT &cdt, const Ground &ground_bbox, const FT ground_height, Buildings &buildings, const size_t exec_step) {
-				
-				// Apply 3D partitioning and get a set of filtered 3D faces.
-				std::cout << "(" << exec_step << ") applying 3D partitioning;" << std::endl;
-				m_kinetic_partition_creator = std::make_shared<Kinetic_partition_creator>(cdt, ground_bbox, ground_height);
-				
-				m_kinetic_partition_creator->create_input(buildings);
-				if (!m_silent) {
-					Log exporter; exporter.save_convex_polygons(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "3d_partitioning_input");
-				}
-
-				m_kinetic_partition_creator->create_output(buildings);
-				if (!m_silent) {
-					Log exporter; exporter.save_polyhedron_facets(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "3d_partitioning_facets");
-				}
-			}
-
-			void applying_3d_visibility(const Container_3D &input, const CDT &cdt, const FT ground_height, Buildings &buildings, const size_t exec_step) {
-
-				// Apply 3D visibility.
-				std::cout << "(" << exec_step << ") applying 3D visibility;" << std::endl;
-
-				m_visibility_3 = std::make_shared<Visibility_3>(input, cdt, ground_height);
-				m_visibility_3->filter(buildings);
-
-				Log exporter;
-				if (!m_silent)
-					exporter.save_polyhedrons(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "3d_partitioning_polyhedrons");
-				exporter.save_polyhedrons(buildings, "LOD2", true);
 			}
 
 			void applying_2d_partitioning(const Container_3D &input, const FT ground_height, Buildings &buildings, const size_t exec_step) {
@@ -1292,6 +1207,108 @@ namespace CGAL {
 
 				Log lod2_saver; 
 				lod2_saver.save_mesh_as_ply(mesh, mesh_facet_colors, "LOD2");
+			}
+
+			// Kinetic framework!
+
+			void translating_lod0_and_lod1(
+			const FT ground_height, 
+			Mesh &mesh_0, const Mesh_facet_colors &mesh_facet_colors_0, 
+			Mesh &mesh_1, const Mesh_facet_colors &mesh_facet_colors_1, 
+			const size_t exec_step) {
+
+				// Translate LOD0 and LOD1 results to the ground plane.
+				std::cout << "(" << exec_step << ") translating lod0 and lod1;" << std::endl;
+
+				m_utils.translate_mesh_along_z(mesh_0, ground_height);
+				m_utils.translate_mesh_along_z(mesh_1, ground_height);
+
+				Log lod_saver;
+				lod_saver.save_mesh_as_ply(mesh_0, mesh_facet_colors_0, "LOD0");
+				lod_saver.save_mesh_as_ply(mesh_1, mesh_facet_colors_1, "LOD1");
+			}
+
+			void adding_3d_points_inside_buildings(const Container_3D &input, const CDT &cdt, const Indices &indices, Buildings &buildings, const std::string &name, const size_t exec_step) {
+
+				// Select all points that lie inside each building.
+				std::cout << "(" << exec_step << ") adding 3D " << name << " points inside buildings;" << std::endl;
+
+				m_inside_buildings_selector = std::make_shared<Inside_buildings_selector>(input, cdt, indices);
+				
+				m_inside_buildings_selector->make_silent(m_silent);
+				m_inside_buildings_selector->add_indices(buildings);
+			}
+
+			void applying_3d_region_growing(const Container_3D &input, Buildings &buildings, const size_t exec_step) {
+				
+				// Run region growing on all points that form roofs of the given buildings.
+				std::cout << "(" << exec_step << ") applying 3D region growing;" << std::endl;
+
+				m_region_growing_3 = std::make_shared<Region_growing_3>(input);
+				m_region_growing_3->make_silent(m_silent);
+
+				m_region_growing_3->set_epsilon(m_region_growing_epsilon_3d);
+				m_region_growing_3->set_cluster_epsilon(m_region_growing_cluster_epsilon_3d);
+				m_region_growing_3->set_normal_threshold(m_region_growing_normal_threshold_3d);
+				m_region_growing_3->set_minimum_shape_points(m_region_growing_min_points_3d);
+
+				m_region_growing_3->detect(buildings);
+			}
+
+			void cleaning_3d_regions(const Container_3D &input, const FT ground_height, Buildings &buildings, const size_t exec_step) {
+
+				// Remove all regions detected before that do not satisfy the correct criteria.
+				std::cout << "(" << exec_step << ") cleaning 3D regions;" << std::endl;
+				m_roof_cleaner = std::make_shared<Roof_cleaner>(input, ground_height);
+				
+				m_roof_cleaner->set_scale_upper_bound(m_roof_cleaner_scale);
+				m_roof_cleaner->set_max_percentage(m_roof_cleaner_max_percentage);
+				
+				m_roof_cleaner->make_silent(m_silent);
+				m_roof_cleaner->clean_shapes(buildings);
+			}
+
+			void creating_3d_partitioning_input(const FT ground_height, Buildings &buildings, const size_t exec_step) {
+				
+				// Create 3D partitioning input.
+				std::cout << "(" << exec_step << ") creating 3D partitioning input;" << std::endl;
+				m_kinetic_partition_input_creator = std::make_shared<Kinetic_partition_input_creator>(ground_height, buildings);
+
+				m_kinetic_partition_input_creator->create();
+				if (!m_silent) {
+					Log exporter; exporter.save_convex_polygons(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "3_kinetic_partitioning_input");
+				}
+			}
+
+			void creating_3d_partitioning_output(const CDT &cdt, const Ground &ground_bbox, const FT ground_height, Buildings &buildings, const size_t exec_step) {
+				
+				// Apply 3D partitioning and get a set of filtered 3D faces.
+				std::cout << "(" << exec_step << ") creating 3D partitioning output;" << std::endl;
+				m_kinetic_partition_output_creator = std::make_shared<Kinetic_partition_output_creator>(cdt, ground_bbox, ground_height);
+				
+				m_kinetic_partition_output_creator->create_input(buildings);
+				m_kinetic_partition_output_creator->create_output(buildings);
+
+				if (!m_silent) {
+					Log exporter; 
+					
+					exporter.save_polyhedron_facets(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "4_kinetic_partitioning_facets");
+					exporter.save_polyhedrons(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "4_kinetic_partitioning_polyhedrons");
+				}
+			}
+
+			void applying_3d_visibility(const Container_3D &input, const CDT &cdt, const FT ground_height, Buildings &buildings, const size_t exec_step) {
+
+				// Apply 3D visibility.
+				std::cout << "(" << exec_step << ") applying 3D visibility;" << std::endl;
+
+				m_visibility_3 = std::make_shared<Visibility_3>(input, cdt, ground_height);
+				m_visibility_3->filter(buildings);
+
+				Log exporter;
+				if (!m_silent)
+					exporter.save_polyhedrons(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "5_kinetic_polyhedrons");
+				exporter.save_polyhedrons(buildings, "LOD2", true);
 			}
 
 			void finishing_execution() {
@@ -1493,7 +1510,7 @@ namespace CGAL {
 
 				// (02) ----------------------------------
 				clear_interior_indices(buildings);
-				adding_points_inside_buildings(input, cdt, building_interior_idxs, buildings, "interior", ++exec_step);
+				adding_3d_points_inside_buildings(input, cdt, building_interior_idxs, buildings, "interior", ++exec_step);
 
 
 				// (03) ----------------------------------
@@ -1501,50 +1518,54 @@ namespace CGAL {
 
 
 				// (04) ----------------------------------
-				roofs_filtering(input, ground_height, buildings, ++exec_step);
-
-				
-				// (05) ----------------------------------
-				creating_partition_input(input, buildings, ++exec_step);
+				cleaning_3d_regions(input, ground_height, buildings, ++exec_step);
 
 
 				if (m_use_kenetic) {
-					
+
+					// (05) ----------------------------------
+					creating_3d_partitioning_input(ground_height, buildings, ++exec_step); return;
+
+
 					// (06) ----------------------------------
-					applying_3d_partitioning(cdt, ground_bbox, ground_height, buildings, ++exec_step); 
+					creating_3d_partitioning_output(cdt, ground_bbox, ground_height, buildings, ++exec_step); 
 				
 
 					// (07) ----------------------------------
 					applying_3d_visibility(input, cdt, ground_height, buildings, ++exec_step);
-				
+					
 					return;
 				}
 
 
 				// (08) ----------------------------------
+				creating_2d_partition_input(input, buildings, ++exec_step);
+
+
+				// (09) ----------------------------------
 				applying_2d_partitioning(input, ground_height, buildings, ++exec_step);
 
 				
 				if (m_use_cdt) {
 					
-					// (09) ----------------------------------
+					// (10) ----------------------------------
 					creating_cdt_per_each_building(buildings, ++exec_step);
 
 
-					// (10) ----------------------------------
+					// (11) ----------------------------------
 					cleaning_cdt_per_each_building(input, ground_height, buildings, ++exec_step);
  				
 
-					// (11) ----------------------------------
+					// (12) ----------------------------------
 					estimating_cdt_based_roofs_per_each_building(ground_height, buildings, ++exec_step);
 
 				 } else {
 
-					// (12) ----------------------------------
+					// (13) ----------------------------------
 					estimating_initial_roofs(ground_height, buildings, ++exec_step);
 				}
 
-				// (13) ----------------------------------
+				// (14) ----------------------------------
 				reconstructing_lod2(buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
 			}
 
@@ -1635,8 +1656,11 @@ namespace CGAL {
 			std::shared_ptr<Roof_cleaner> 		       m_roof_cleaner;
 			std::shared_ptr<Partition_input> 		   m_partition_input;
 			std::shared_ptr<Partition_creator> 		   m_partition_creator;
-			std::shared_ptr<Kinetic_partition_creator> m_kinetic_partition_creator;
-			std::shared_ptr<Roof_estimator> 		   m_roof_estimator;
+
+			std::shared_ptr<Kinetic_partition_input_creator>  m_kinetic_partition_input_creator;
+			std::shared_ptr<Kinetic_partition_output_creator> m_kinetic_partition_output_creator;
+
+			std::shared_ptr<Roof_estimator> m_roof_estimator;
 
 			std::shared_ptr<Visibility_3> m_visibility_3;
 			std::shared_ptr<LOD2_reconstruction> m_lod2;

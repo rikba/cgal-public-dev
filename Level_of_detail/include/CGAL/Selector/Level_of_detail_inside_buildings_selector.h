@@ -102,7 +102,7 @@ namespace CGAL {
                 } */
 
                 if (!m_silent) {
-                    Log exporter; exporter.export_points_inside_buildings(buildings, m_input, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "points_inside_buildings");
+                    Log exporter; exporter.export_points_inside_buildings(buildings, m_input, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "0_points_inside_buildings");
                 }
             }
 

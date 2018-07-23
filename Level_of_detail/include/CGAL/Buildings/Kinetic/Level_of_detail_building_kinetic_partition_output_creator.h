@@ -1,5 +1,5 @@
-#ifndef CGAL_LEVEL_OF_DETAIL_BUILDING_KINETIC_PARTITION_CREATOR_H
-#define CGAL_LEVEL_OF_DETAIL_BUILDING_KINETIC_PARTITION_CREATOR_H
+#ifndef CGAL_LEVEL_OF_DETAIL_BUILDING_KINETIC_PARTITION_OUTPUT_CREATOR_H
+#define CGAL_LEVEL_OF_DETAIL_BUILDING_KINETIC_PARTITION_OUTPUT_CREATOR_H
 
 // STL includes.
 #include <map>
@@ -23,7 +23,7 @@ namespace CGAL {
 	namespace LOD {
 
 		template<class InputKernel, class InputBuilding, class InputBuildings>
-		class Level_of_detail_building_kinetic_partition_creator {
+		class Level_of_detail_building_kinetic_partition_output_creator {
             
         public:
             using Kernel    = InputKernel;
@@ -43,8 +43,8 @@ namespace CGAL {
             using Building_iterator = typename Buildings::iterator;
             using Building_boundary = typename Building::Boundary;
 
-            using Polygon_boundary = typename Building::Polygon_boundary;
-            using Polygons         = typename Building::Polygons;
+            using Polygon_boundary = typename Building::JP_polygon;
+            using Polygons         = typename Building::JP_polygons;
 
             using JP_kinetic_propagation = JPTD::Kinetic_Propagation;
 
@@ -92,7 +92,7 @@ namespace CGAL {
 
             using Ground = std::vector<Point_3>;
 
-            Level_of_detail_building_kinetic_partition_creator(const CDT &cdt, const Ground &ground_bbox, const FT ground_height) :
+            Level_of_detail_building_kinetic_partition_output_creator(const CDT &cdt, const Ground &ground_bbox, const FT ground_height) :
             m_cdt(cdt),
             m_ground_bbox(ground_bbox),
             m_ground_height(ground_height),
@@ -118,7 +118,7 @@ namespace CGAL {
 				for (Building_iterator bit = buildings.begin(); bit != buildings.end(); ++bit, ++count) {
                     
                     Building &building = bit->second; 
-                    if (building.polygons.size() == 0) building.is_valid = false;
+                    if (building.jp_polygons.size() == 0) building.is_valid = false;
 
                     building.index = count;
                     // std::cout << "index: " << building.index << " ";
@@ -147,7 +147,7 @@ namespace CGAL {
             
             void process_building_input(Building &building) const {
                 
-                Polygons &polygons = building.polygons;
+                Polygons &polygons = building.jp_polygons;
                 set_input(building, polygons);
             }
 
@@ -228,7 +228,7 @@ namespace CGAL {
 
             void process_building_output(Building &building) const {
                 
-                const Polygons &polygons = building.polygons;
+                const Polygons &polygons = building.jp_polygons;
                 JP_kinetic_propagation kinetic(polygons);
              
                 /*
@@ -369,4 +369,4 @@ namespace CGAL {
 
 } // CGAL
 
-#endif // CGAL_LEVEL_OF_DETAIL_BUILDING_KINETIC_PARTITION_CREATOR_H
+#endif // CGAL_LEVEL_OF_DETAIL_BUILDING_KINETIC_PARTITION_OUTPUT_CREATOR_H

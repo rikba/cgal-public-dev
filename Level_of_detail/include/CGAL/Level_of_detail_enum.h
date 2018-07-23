@@ -163,9 +163,11 @@ namespace CGAL {
 			using Boundaries = std::vector<Boundary>;
 			using Planes 	 = std::vector<Plane_3>;
 
+			using Floor_faces = std::vector<Face_handle>;
+
 			Boundaries 		   				  								  boundaries; // boundary vertices of the building ordered counterclockwise (may store multiple boundaries)
 			std::vector< std::map<Vertex_handle, std::vector<Face_handle> > > wedges;     // all faces adjacent to each boundary vertex above - must be unique face handles
-			std::vector<Face_handle>   						   				  faces;	  // all faces that belong to this building
+			Floor_faces   						   				  			  faces;	  // all faces that belong to this building
 
 			bool is_oriented = true;    		// flag to check if the computed boundary is oriented or not, see Building_boundary_type above
 			std::unordered_set<int> neighbours; // indices of all neighbouring buildings of the given building
@@ -214,11 +216,11 @@ namespace CGAL {
 			Polyhedrons polyhedrons;
 			Polyhedrons polyhedron_facets;
 
-			using JP_point_3 = typename CGAL::Exact_predicates_exact_constructions_kernel::Point_3;
-            using Polygon_boundary = std::vector<JP_point_3>;
-            using Polygons = std::vector<Polygon_boundary>;
+			using JP_point_3  = typename CGAL::Exact_predicates_exact_constructions_kernel::Point_3;
+            using JP_polygon  = std::vector<JP_point_3>;
+            using JP_polygons = std::vector<JP_polygon>;
 
-			Polygons polygons;
+			JP_polygons jp_polygons;
 
 			void clear_interior_indices() {
 				interior_indices.clear();

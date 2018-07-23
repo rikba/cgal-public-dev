@@ -1230,7 +1230,7 @@ namespace CGAL {
 				for (auto bit = buildings.begin(); bit != buildings.end(); ++bit) {
 					if (!bit->second.is_valid) continue;
 
-					const auto &polygons = bit->second.polygons;
+					const auto &polygons = bit->second.jp_polygons;
 					for (size_t i = 0; i < polygons.size(); ++i) {
 						
 						const auto &polygon = polygons[i];
@@ -1256,7 +1256,7 @@ namespace CGAL {
 				for (auto bit = buildings.begin(); bit != buildings.end(); ++bit) {
 					if (!bit->second.is_valid) continue;
 					
-					const auto &polygons = bit->second.polygons;
+					const auto &polygons = bit->second.jp_polygons;
 					for (size_t i = 0; i < polygons.size(); ++i) {
 						const auto &polygon = polygons[i];
 
@@ -1269,7 +1269,7 @@ namespace CGAL {
 				for (auto bit = buildings.begin(); bit != buildings.end(); ++bit) {
 					if (!bit->second.is_valid) continue;
 
-					const auto &polygons = bit->second.polygons;
+					const auto &polygons = bit->second.jp_polygons;
 					const CGAL::Color color = generate_random_color();
 
 					for (size_t i = 0; i < polygons.size(); ++i) {
