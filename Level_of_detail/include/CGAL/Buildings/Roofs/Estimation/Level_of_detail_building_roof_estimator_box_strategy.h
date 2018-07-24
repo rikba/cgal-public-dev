@@ -213,9 +213,13 @@ namespace CGAL {
 					std::isnan(CGAL::to_double(boundary[3].y())) ||
 					std::isnan(CGAL::to_double(boundary[3].z()))  ) return;
 
+				if (boundary.size() < 3) return;
+
                 Roof roof;
 
                 roof.boundary = boundary;
+				roof.is_valid = true;
+
                 building.roofs.push_back(roof);
             }
 

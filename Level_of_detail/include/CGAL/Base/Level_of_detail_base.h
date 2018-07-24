@@ -251,7 +251,12 @@ namespace CGAL {
 			m_roof_cleaner_scale(-FT(1)),
 			m_roof_cleaner_max_percentage(-FT(1)),
 			m_use_cdt(false),
-			m_use_kenetic(false)
+			m_use_kenetic(false),
+			m_kinetic_3d_scale(false),
+			m_kinetic_3d_perturb_vertices(false),
+			m_kinetic_3d_perturb_support_plane(false),
+			m_kinetic_3d_merge_walls(false),
+			m_kinetic_3d_tolerance(FT(1) / FT(100000))
 			{ }
 
 
@@ -463,6 +468,13 @@ namespace CGAL {
 
 				m_use_cdt     = false; // build roofs using triangulation
 				m_use_kenetic = false; // use 3D kientic partitioning
+
+				m_kinetic_3d_scale 				   = false; // 3d kinetic parameters
+				m_kinetic_3d_perturb_vertices 	   = false;
+				m_kinetic_3d_perturb_support_plane = false;
+				m_kinetic_3d_merge_walls		   = false;
+
+				m_kinetic_3d_tolerance = FT(1) / FT(100000);
 			}
 
 			void set_the_most_important_options() {
@@ -533,6 +545,11 @@ namespace CGAL {
 
 				add_bool_parameter("-use_cdt"    , m_use_cdt    , m_parameters);
 				add_bool_parameter("-use_kinetic", m_use_kenetic, m_parameters);
+
+				add_bool_parameter("-kin_scale"	   , m_kinetic_3d_scale			  	   , m_parameters);
+				add_bool_parameter("-kin_pert_vert", m_kinetic_3d_perturb_vertices	   , m_parameters);
+				add_bool_parameter("-kin_pert_sp"  , m_kinetic_3d_perturb_support_plane, m_parameters);
+				add_bool_parameter("-kin_merge"    , m_kinetic_3d_merge_walls		   , m_parameters);
 				
 
 				// Important.
@@ -572,6 +589,8 @@ namespace CGAL {
 				add_val_parameter("-rg_ce_3d" , m_region_growing_cluster_epsilon_3d, m_parameters);
 
 				add_val_parameter("-roof_scale", m_roof_cleaner_scale, m_parameters);
+
+				add_val_parameter("-kin_tol", m_kinetic_3d_tolerance, m_parameters);
 			}
 
 			void set_user_defined_parameters(const Parameters_wrapper &parameters_wrapper) {
@@ -1268,11 +1287,17 @@ namespace CGAL {
 				m_roof_cleaner->clean_shapes(buildings);
 			}
 
-			void creating_3d_partitioning_input(const FT ground_height, Buildings &buildings, const size_t exec_step) {
+			void creating_3d_partitioning_input(const Container_3D &input, const FT ground_height, Buildings &buildings, const size_t exec_step) {
 				
 				// Create 3D partitioning input.
 				std::cout << "(" << exec_step << ") creating 3D partitioning input;" << std::endl;
-				m_kinetic_partition_input_creator = std::make_shared<Kinetic_partition_input_creator>(ground_height, buildings);
+				m_kinetic_partition_input_creator = std::make_shared<Kinetic_partition_input_creator>(input, ground_height, buildings);
+
+				m_kinetic_partition_input_creator->scale(m_kinetic_3d_scale);
+				m_kinetic_partition_input_creator->perturb_vertices(m_kinetic_3d_perturb_vertices);
+				m_kinetic_partition_input_creator->perturb_support_plane(m_kinetic_3d_perturb_support_plane);
+				m_kinetic_partition_input_creator->merge_walls(m_kinetic_3d_merge_walls);
+				m_kinetic_partition_input_creator->set_tolerance(m_kinetic_3d_tolerance);
 
 				m_kinetic_partition_input_creator->create();
 				if (!m_silent) {
@@ -1280,14 +1305,13 @@ namespace CGAL {
 				}
 			}
 
-			void creating_3d_partitioning_output(const CDT &cdt, const Ground &ground_bbox, const FT ground_height, Buildings &buildings, const size_t exec_step) {
+			void creating_3d_partitioning_output(Buildings &buildings, const size_t exec_step) {
 				
 				// Apply 3D partitioning and get a set of filtered 3D faces.
 				std::cout << "(" << exec_step << ") creating 3D partitioning output;" << std::endl;
-				m_kinetic_partition_output_creator = std::make_shared<Kinetic_partition_output_creator>(cdt, ground_bbox, ground_height);
 				
-				m_kinetic_partition_output_creator->create_input(buildings);
-				m_kinetic_partition_output_creator->create_output(buildings);
+				m_kinetic_partition_output_creator = std::make_shared<Kinetic_partition_output_creator>(buildings);
+				m_kinetic_partition_output_creator->create();
 
 				if (!m_silent) {
 					Log exporter; 
@@ -1297,13 +1321,13 @@ namespace CGAL {
 				}
 			}
 
-			void applying_3d_visibility(const Container_3D &input, const CDT &cdt, const FT ground_height, Buildings &buildings, const size_t exec_step) {
+			void applying_3d_visibility(const Container_3D &input, const FT ground_height, Buildings &buildings, const size_t exec_step) {
 
 				// Apply 3D visibility.
 				std::cout << "(" << exec_step << ") applying 3D visibility;" << std::endl;
 
-				m_visibility_3 = std::make_shared<Visibility_3>(input, cdt, ground_height);
-				m_visibility_3->filter(buildings);
+				m_visibility_3 = std::make_shared<Visibility_3>(input, ground_height, buildings);
+				m_visibility_3->apply();
 
 				Log exporter;
 				if (!m_silent)
@@ -1524,15 +1548,15 @@ namespace CGAL {
 				if (m_use_kenetic) {
 
 					// (05) ----------------------------------
-					creating_3d_partitioning_input(ground_height, buildings, ++exec_step); return;
+					creating_3d_partitioning_input(input, ground_height, buildings, ++exec_step);
 
 
 					// (06) ----------------------------------
-					creating_3d_partitioning_output(cdt, ground_bbox, ground_height, buildings, ++exec_step); 
+					creating_3d_partitioning_output(buildings, ++exec_step); return;
 				
 
 					// (07) ----------------------------------
-					applying_3d_visibility(input, cdt, ground_height, buildings, ++exec_step);
+					applying_3d_visibility(input, ground_height, buildings, ++exec_step);
 					
 					return;
 				}
@@ -1790,6 +1814,13 @@ namespace CGAL {
 
 			bool m_use_cdt;
 			bool m_use_kenetic;
+
+			bool m_kinetic_3d_scale;
+			bool m_kinetic_3d_perturb_vertices;
+			bool m_kinetic_3d_perturb_support_plane;
+			bool m_kinetic_3d_merge_walls;
+
+			FT m_kinetic_3d_tolerance;
 
 
 			// Assert default values of all global parameters.

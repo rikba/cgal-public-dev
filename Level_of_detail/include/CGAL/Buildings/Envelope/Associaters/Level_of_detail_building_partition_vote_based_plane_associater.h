@@ -16,7 +16,7 @@
 
 // New CGAL includes.
 #include <CGAL/Level_of_detail_enum.h>
-#include <CGAL/Buildings/Associaters/Level_of_detail_building_partition_naive_plane_associater.h>
+#include <CGAL/Buildings/Envelope/Associaters/Level_of_detail_building_partition_naive_plane_associater.h>
 
 namespace CGAL {
 

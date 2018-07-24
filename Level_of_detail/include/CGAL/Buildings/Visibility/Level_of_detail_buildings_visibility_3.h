@@ -1,36 +1,27 @@
-#ifndef CGAL_LEVEL_OF_DETAIL_BUILDING_VISIBILITY_3_H
-#define CGAL_LEVEL_OF_DETAIL_BUILDING_VISIBILITY_3_H
-
-// STL includes.
-#include <map>
-#include <set>
-#include <list>
-#include <vector>
-#include <string>
-#include <iostream>
+#ifndef CGAL_LEVEL_OF_DETAIL_BUILDINGS_VISIBILITY_3_H
+#define CGAL_LEVEL_OF_DETAIL_BUILDINGS_VISIBILITY_3_H
 
 // CGAL includes.
 #include <CGAL/utils.h>
 
 // New CGAL includes.
-#include <CGAL/Buildings/Roofs/Level_of_detail_building_roof_face_validator.h>
+#include <CGAL/Buildings/Roofs/Roof/Level_of_detail_building_roof_face_validator.h>
 
 namespace CGAL {
 
 	namespace LOD {
 
-		template<class InputKernel, class InputContainer, class InputCDT, class InputBuilding, class InputBuildings>
-		class Level_of_detail_building_visibility_3 {
+		template<class InputKernel, class InputContainer, class InputBuilding, class InputBuildings>
+		class Level_of_detail_buildings_visibility_3 {
             
         public:
             using Kernel    = InputKernel;
             using Input     = InputContainer;
-            using CDT       = InputCDT;
             using Building  = InputBuilding;
             using Buildings = InputBuildings;
 
             using FT = typename Kernel::FT;
-            using Building_iterator = typename Buildings::iterator;
+            using Buildings_iterator = typename Buildings::iterator;
 
             using Polyhedron  = typename Building::Polyhedron;
             using Polyhedrons = typename Building::Polyhedrons;
@@ -44,26 +35,29 @@ namespace CGAL {
             using Roof_face_validator = CGAL::LOD::Level_of_detail_building_roof_face_validator<Kernel, Building>;
             using Boundary = typename Roof_face_validator::Boundary;
 
-            Level_of_detail_building_visibility_3(const Input &input, const CDT &cdt, const FT ground_height) :
+            Level_of_detail_buildings_visibility_3(const Input &input, const FT ground_height, Buildings &buildings) :
             m_input(input),
-            m_cdt(cdt),
+            m_buildings(buildings),
             m_ground_height(ground_height),
             m_ground_tolerance(FT(1) / FT(10))
             { }
 
-            void filter(Buildings &buildings) const {
+            void apply() {
 
-                if (buildings.size() == 0) return; int count = 0;
-				for (Building_iterator bit = buildings.begin(); bit != buildings.end(); ++bit, ++count) {
+                if (m_buildings.size() == 0)
+                    return; 
+                    
+				for (Buildings_iterator b_it = m_buildings.begin(); b_it != m_buildings.end(); ++b_it) {
+                    Building &building = b_it->second;
 
-                    Building &building = bit->second; building.index = count;
-					if (building.is_valid) process_building(building);
+					if (building.is_valid) 
+                        process_building(building);
                 }
             }
 
         private:
             const Input &m_input;
-            const CDT   &m_cdt;
+            Buildings   &m_buildings;
 
             const FT m_ground_height;
             const FT m_ground_tolerance;
@@ -123,4 +117,4 @@ namespace CGAL {
 
 } // CGAL
 
-#endif // CGAL_LEVEL_OF_DETAIL_BUILDING_VISIBILITY_3_H
+#endif // CGAL_LEVEL_OF_DETAIL_BUILDINGS_VISIBILITY_3_H

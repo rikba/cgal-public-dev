@@ -2,8 +2,8 @@
 #define CGAL_LEVEL_OF_DETAIL_BUILDING_KINETIC_PARTITION_OUTPUT_CREATOR_H
 
 // STL includes.
-#include <map>
 #include <set>
+#include <map>
 #include <list>
 #include <vector>
 #include <string>
@@ -11,6 +11,7 @@
 
 // CGAL includes.
 #include <CGAL/utils.h>
+#include <CGAL/number_utils.h>
 
 // Jean Philippe includes.
 #include <CGAL/Buildings/jean_philippe/propagation.h>
@@ -34,17 +35,10 @@ namespace CGAL {
             using Point_2 = typename Kernel::Point_2;
             using Point_3 = typename Kernel::Point_3;
 
-            using CDT   = typename Building::CDT;
-            using Roofs = typename Building::Roofs;
-            
-            using Roof = typename Building::Roof;
-            using Roof_boundary = typename Roof::Roof_boundary;
+            using Buildings_iterator = typename Buildings::iterator;
 
-            using Building_iterator = typename Buildings::iterator;
-            using Building_boundary = typename Building::Boundary;
-
-            using Polygon_boundary = typename Building::JP_polygon;
-            using Polygons         = typename Building::JP_polygons;
+            using JP_polygon  = typename Building::JP_polygon;
+            using JP_polygons = typename Building::JP_polygons;
 
             using JP_kinetic_propagation = JPTD::Kinetic_Propagation;
 
@@ -52,6 +46,7 @@ namespace CGAL {
             using JP_polyhedrons = std::list<JP_polyhedron*>;
 
             using JP_polyhedrons_iterator = typename JP_polyhedrons::const_iterator;
+
             using JP_vertex = JPTD::Partition_Vertex;
 
             using JP_sequence  = std::list<JP_vertex*>;
@@ -63,21 +58,20 @@ namespace CGAL {
             using JP_sequence_iterator     = typename JP_sequence::const_iterator;
             using JP_sequence_set_iterator = typename JP_sequence_set::const_iterator;
 
+            using JP_conversions = std::map<const JP_vertex*, int>;
+
             using JP_side  = JPTD::Partition_Side;
             using JP_sides = std::list<JP_side>;
 
             using JP_sides_iterator = typename JP_sides::const_iterator;
-            using JP_facet = JPTD::Partition_Facet;
 
+            using JP_facet          = JPTD::Partition_Facet;
+            using JP_facet_vertices = std::vector<JP_vertex*>;
+            
             using JP_facets = std::list<JP_facet*>;
             using JP_facets_iterator = typename JP_facets::const_iterator;
 
-            using JP_FT      = JPTD::FT;
             using JP_point_3 = JPTD::CGAL_Point_3;
-
-            using JP_conversions = std::map<const JP_vertex*, int>;
-
-            using JP_facet_vertices = std::vector<JP_vertex*>;
 
             using Polyhedron  = typename Building::Polyhedron;
             using Polyhedrons = typename Building::Polyhedrons;
@@ -87,44 +81,32 @@ namespace CGAL {
 
             using Polyhedron_facet  = typename Polyhedron::Facet;
             using Polyhedron_facets = typename Polyhedron::Facets;
-
+            
             using Log = CGAL::LOD::Mylog;
 
-            using Ground = std::vector<Point_3>;
-
-            Level_of_detail_building_kinetic_partition_output_creator(const CDT &cdt, const Ground &ground_bbox, const FT ground_height) :
-            m_cdt(cdt),
-            m_ground_bbox(ground_bbox),
-            m_ground_height(ground_height),
-            m_big_value(FT(100000000000000))
+            Level_of_detail_building_kinetic_partition_output_creator(Buildings &buildings) :
+            m_buildings(buildings) 
             { }
 
-            void create_input(Buildings &buildings) const {
+            void create() const {
                 
-                if (buildings.size() == 0) return; int count = 0;
-				for (Building_iterator bit = buildings.begin(); bit != buildings.end(); ++bit, ++count) {
-
-                    Building &building = bit->second; 
-                    if (building.roofs.size() == 0) building.is_valid = false;
+                if (m_buildings.size() == 0) 
+                    return; 
                     
-                    building.index = count;
-					if (building.is_valid) process_building_input(building);
-                }   
-            }
-
-            void create_output(Buildings &buildings) const {
-                
-                if (buildings.size() == 0) return; int count = 0; std::cout << std::endl;
-				for (Building_iterator bit = buildings.begin(); bit != buildings.end(); ++bit, ++count) {
+                int count = 0; std::cout << std::endl;
+				for (Buildings_iterator b_it = m_buildings.begin(); b_it != m_buildings.end(); ++b_it, ++count) {
                     
-                    Building &building = bit->second; 
+                    Building &building = b_it->second; 
                     if (building.jp_polygons.size() == 0) building.is_valid = false;
 
                     building.index = count;
                     // std::cout << "index: " << building.index << " ";
-                    std::cout << "percents: " << FT(count) / FT(buildings.size()) * FT(100) << "%" << std::endl;
 
-                    // Log log; log.save_only_convex_polygons(building.polygons, "tmp/lod_2/buildings/debug_building_" + std::to_string(building.index));
+                    std::cout << "percents: " << FT(count) / FT(m_buildings.size()) * FT(100) << "%" << std::endl;
+
+                    // Log log; 
+                    // log.save_only_convex_polygons(building.jp_polygons, "tmp/buildings/debug_building_" + std::to_string(building.index));
+
 					if ( building.is_valid /* && 
                     building.index != 112 && 
                     building.index != 113 && 
@@ -133,106 +115,21 @@ namespace CGAL {
                     building.index != 148 && 
                     building.index != 374 && 
                     building.index != 404 && 
-                    building.index != 392*/ ) process_building_output(building);
+                    building.index != 392*/ ) process_building(building);
                 }
                 std::cout << std::endl;
             }
 
         private:
-            const CDT    &m_cdt;
-            const Ground &m_ground_bbox;
-            
-            const FT m_ground_height;
-            const FT m_big_value;
-            
-            void process_building_input(Building &building) const {
+            Buildings &m_buildings;
+
+            void process_building(Building &building) const {
                 
-                Polygons &polygons = building.jp_polygons;
-                set_input(building, polygons);
-            }
-
-            void set_input(const Building &building, Polygons &polygons) const {
-
-                polygons.clear();
-                const Building_boundary &building_boundary = building.boundaries[0];
-
-                const FT height = FT(10);
-                const FT b1 = FT(9) / FT(10);
-                const FT b2 = FT(1) - b1;
-
-                // Add boundaries.
-                for (size_t i = 0; i < building_boundary.size(); i += 2) {
-					
-                    const size_t ip = i + 1;
-					CGAL_precondition(ip < building_boundary.size());
-
-                    const Point_2 &p = building_boundary[i]->point();
-                    const Point_2 &q = building_boundary[ip]->point();
-
-                    const Point_2 a = Point_2(b1 * p.x() + b2 * q.x(), b1 * p.y() + b2 *q.y());
-                    const Point_2 b = Point_2(b2 * p.x() + b1 * q.x(), b2 * p.y() + b1 *q.y());
-
-                    const Point_3 p1 = Point_3(a.x(), a.y(), m_ground_height);
-                    const Point_3 p2 = Point_3(b.x(), b.y(), m_ground_height);
-                    const Point_3 p3 = Point_3(b.x(), b.y(), m_ground_height + height);
-                    const Point_3 p4 = Point_3(a.x(), a.y(), m_ground_height + height);
-
-                    Polygon_boundary new_polygon(4);
-                    new_polygon[0] = JP_point_3(JP_FT(p1.x()), JP_FT(p1.y()), JP_FT(p1.z()));
-                    new_polygon[1] = JP_point_3(JP_FT(p2.x()), JP_FT(p2.y()), JP_FT(p2.z()));
-                    new_polygon[2] = JP_point_3(JP_FT(p3.x()), JP_FT(p3.y()), JP_FT(p3.z()));
-                    new_polygon[3] = JP_point_3(JP_FT(p4.x()), JP_FT(p4.y()), JP_FT(p4.z()));
-
-                    polygons.push_back(new_polygon);
-				}
-
-                // Add roofs.
-                const Roofs &roofs = building.roofs;
-                
-                for (size_t i = 0; i < roofs.size(); ++i) {
-					const Roof_boundary &roof_boundary = roofs[i].boundary;
-
-					if (roof_boundary.size() == 0) continue;
-					if (!roofs[i].is_valid)        continue;
-
-                    Polygon_boundary new_polygon(roof_boundary.size());
-					for (size_t j = 0; j < roof_boundary.size(); ++j) {
-							
-                        const Point_3 &p = roof_boundary[j];
-						new_polygon[j] = JP_point_3(JP_FT(p.x()), JP_FT(p.y()), JP_FT(p.z()));
-					}
-                    polygons.push_back(new_polygon);
-				}
-
-                // Add ground.
-                const auto &faces = building.faces;
-                Polygon_boundary new_polygon(3);
-
-                for (size_t i = 0; i < faces.size(); ++i) {
-                    for (size_t j = 0; j < 3; ++j) {
-                        
-                        const Point_2 &p = faces[i]->vertex(j)->point();
-                        new_polygon[j] = JP_point_3(JP_FT(p.x()), JP_FT(p.y()), JP_FT(m_ground_height));
-                    }
-                    polygons.push_back(new_polygon);
-                }
-
-                // Polygon_boundary new_polygon(4);
-                // new_polygon[0] = JP_point_3(JP_FT(m_ground_bbox[0].x()), JP_FT(m_ground_bbox[0].y()), JP_FT(m_ground_bbox[0].z() + m_ground_height));
-                // new_polygon[1] = JP_point_3(JP_FT(m_ground_bbox[1].x()), JP_FT(m_ground_bbox[1].y()), JP_FT(m_ground_bbox[1].z() + m_ground_height));
-                // new_polygon[2] = JP_point_3(JP_FT(m_ground_bbox[2].x()), JP_FT(m_ground_bbox[2].y()), JP_FT(m_ground_bbox[2].z() + m_ground_height));
-                // new_polygon[3] = JP_point_3(JP_FT(m_ground_bbox[3].x()), JP_FT(m_ground_bbox[3].y()), JP_FT(m_ground_bbox[3].z() + m_ground_height));
-
-                // polygons.push_back(new_polygon);
-            }
-
-            void process_building_output(Building &building) const {
-                
-                const Polygons &polygons = building.jp_polygons;
-                JP_kinetic_propagation kinetic(polygons);
+                const JP_polygons &jp_polygons = building.jp_polygons;
+                JP_kinetic_propagation kinetic(jp_polygons);
              
                 /*
-                const std::string path = "/Users/danisimo/Documents/pipeline/logs/tmp/lod_2/buildings/debug_building_" + std::to_string(building.index) + ".ply";
+                const std::string path = "/Users/danisimo/Documents/pipeline/logs/tmp/buildings/debug_building_" + std::to_string(building.index) + ".ply";
                 std::cout << "input file: " << path << std::endl << std::endl;
  
                 const std::string str1 = "./kinetic";

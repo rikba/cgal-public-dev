@@ -2,7 +2,7 @@
 #define CGAL_LEVEL_OF_DETAIL_BUILDING_CDT_BASED_ROOFS_BUILDER_H
 
 // New CGAL includes.
-#include <CGAL/Buildings/Associaters/Level_of_detail_building_partition_vote_based_plane_associater.h>
+#include <CGAL/Buildings/Envelope/Associaters/Level_of_detail_building_partition_vote_based_plane_associater.h>
 
 namespace CGAL {
 

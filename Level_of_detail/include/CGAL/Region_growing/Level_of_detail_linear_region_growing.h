@@ -2,7 +2,6 @@
 #define CGAL_LEVEL_OF_DETAIL_LINEAR_REGION_GROWING_H
 
 // STL includes.
-#include <map>
 #include <cmath>
 #include <vector>
 #include <cassert>
@@ -38,6 +37,10 @@ namespace CGAL {
 			m_tolerance(FT(1) / FT(100000)) 
 			{ }
 
+			void set_tolerance(const FT new_value) {
+				m_tolerance = new_value;
+			}
+
 			void find_connected_segments(const Segments &segments, const States &to_be_used, Output &output) const {
 				
 				output.clear();
@@ -59,7 +62,7 @@ namespace CGAL {
 			}
 
 		private:
-			const FT m_tolerance;
+			FT m_tolerance;
 
 			void grow_region(const Segments &segments, const States &to_be_used, const size_t segment_index, States &was_used, Indices &indices) const {
 				
