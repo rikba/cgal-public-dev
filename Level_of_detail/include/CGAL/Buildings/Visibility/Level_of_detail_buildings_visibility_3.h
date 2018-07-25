@@ -27,6 +27,7 @@ namespace CGAL {
 
             using Index       = typename Building::Index;
             using Indices     = typename Building::Indices;
+            using Shapes      = typename Building::Shapes;
             using Floor_faces = typename Building::Floor_faces;
 
             using Polyhedron  = typename Building::Polyhedron;
@@ -97,9 +98,10 @@ namespace CGAL {
                 Point_3 b;
                 compute_polyhedron_barycentre(polyhedron, b);
 
-                if (is_above_building(b, building.max_height)) return false;
-                if (is_below_ground(b, m_ground_height)) return false;
-                if (is_outside_building(b, building)) return false;
+                if (is_above_building_max_height(b, building.max_height)) return false;
+                if (is_below_ground(b, m_ground_height))                  return false;
+                if (is_outside_building(b, building))                     return false;
+                if (is_above_building_roofs(b, building))                 return false;
 
                 return true;
             }
@@ -126,7 +128,7 @@ namespace CGAL {
                 b = Point_3(x, y, z);
             }
 
-            bool is_above_building(const Point_3 &query, const FT building_max_height) const {
+            bool is_above_building_max_height(const Point_3 &query, const FT building_max_height) const {
                 return query.z() > building_max_height;
             }
 
@@ -147,6 +149,31 @@ namespace CGAL {
 
                     const Triangle_2 triangle = Triangle_2(p1, p2, p3);
                     if (triangle.has_on_bounded_side(p) || triangle.has_on_boundary(p)) return false;
+                }
+                return true;
+            }
+
+            bool is_above_building_roofs(const Point_3 &query, const Building &building) const {
+
+                const Shapes &shapes = building.shapes;
+                CGAL_precondition(shapes.size() > 0);
+
+                if (shapes.size() == 0) return false;
+
+				for (size_t i = 0; i < shapes.size(); ++i) {
+                    const Indices &indices = shapes[i];
+
+                    FT z = FT(0);
+                    for (size_t j = 0; j < indices.size(); ++j) {    
+                        
+                        const Index point_index = indices[j];
+                        const Point_3 &p = m_input.point(point_index);
+
+                        z += p.z();
+                    }
+                    z /= static_cast<FT>(indices.size());
+
+                    if (query.z() < z) return false;
                 }
                 return true;
             }
