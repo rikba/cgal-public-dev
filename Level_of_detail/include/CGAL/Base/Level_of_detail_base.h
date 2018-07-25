@@ -1326,12 +1326,13 @@ namespace CGAL {
 				// Apply 3D visibility.
 				std::cout << "(" << exec_step << ") applying 3D visibility;" << std::endl;
 
+				Log exporter;
+				if (!m_silent) exporter.save_polyhedrons(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "5_kinetic_polyhedrons_original");
+
 				m_visibility_3 = std::make_shared<Visibility_3>(input, ground_height, buildings);
 				m_visibility_3->apply();
 
-				Log exporter;
-				if (!m_silent)
-					exporter.save_polyhedrons(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "5_kinetic_polyhedrons");
+				if (!m_silent) exporter.save_polyhedrons(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "5_kinetic_polyhedrons_clean");
 				exporter.save_polyhedrons(buildings, "LOD2", true);
 			}
 
@@ -1552,7 +1553,7 @@ namespace CGAL {
 
 
 					// (06) ----------------------------------
-					creating_3d_partitioning_output(buildings, ++exec_step); return;
+					creating_3d_partitioning_output(buildings, ++exec_step);
 				
 
 					// (07) ----------------------------------

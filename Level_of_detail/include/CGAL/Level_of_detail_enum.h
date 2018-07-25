@@ -120,6 +120,9 @@ namespace CGAL {
 
 			FT roofs_min_height = FT(0); // min height among all roof points
 			FT roofs_max_height = FT(0); // max height among all roof points
+
+			FT max_height = -FT(1);
+
 			struct Roof {
 				
 				using Roof_boundary     = std::vector<Point_3>;
