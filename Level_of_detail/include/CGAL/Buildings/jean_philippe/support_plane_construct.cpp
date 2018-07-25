@@ -1,7 +1,7 @@
 #include "support_plane.h"
 
-
 namespace JPTD {
+
 std::vector<int> Support_Plane::box_edges_to_facets(const int i)
 {
 	int _facets[12][2] = { {0, 4}, {1, 4}, {0, 5}, {1, 5}, {2, 4}, {3, 4}, {2, 5}, {3, 5}, {0, 2}, {0, 3}, {1, 2}, {1, 3} };
@@ -227,4 +227,5 @@ void Support_Plane::construct_bounding_polygon_of_support_plane(const CGAL_Point
 
 	} while (curr_object != init_object);
 }
+
 }

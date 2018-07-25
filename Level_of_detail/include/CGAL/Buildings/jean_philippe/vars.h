@@ -2,6 +2,7 @@
 #include <vector>
 
 namespace JPTD {
+
 namespace Counters {
 	extern int id_planes;
 	extern int id_objects;
@@ -14,4 +15,5 @@ namespace Counters {
 	extern std::vector<int> par_v_local_ids;
 	extern std::vector<int> par_e_local_ids;
 }
+
 }

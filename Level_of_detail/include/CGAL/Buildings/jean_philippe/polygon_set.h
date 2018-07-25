@@ -3,6 +3,7 @@
 #include "polygon_cell.h"
 
 namespace JPTD {
+
 class Polygon_Set
 {
 public:
@@ -33,4 +34,5 @@ public:
 protected:
 	std::map<Signature, Polygon_Cell*, Vector_Bool_Comparator> cells;
 };
+
 }

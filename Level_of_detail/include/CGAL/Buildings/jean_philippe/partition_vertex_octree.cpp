@@ -1,6 +1,7 @@
 #include "partition_vertex_octree.h"
 
 namespace JPTD {
+
 Partition_Vertex_Octree::Partition_Vertex_Octree(const double _x_min, const double _x_max, const double _y_min, const double _y_max, 
 	const double _z_min, const double _z_max, Partition_Vertex_Octree* _parent)
 : 
@@ -183,7 +184,7 @@ bool Partition_Vertex_Octree::children_are_empty_leaves() const
 
 Partition_Vertex_Octree* Partition_Vertex_Octree::assign(Partition_Vertex* v) const
 {
-	const CGAL_EPICK_Point_3 & M = v->hint_M;
+	const CGAL_Inexact_Point_3 & M = v->hint_M;
 	const double dx = x_max - x_min;
 	const double dy = y_max - y_min;
 	const double dz = z_max - z_min;
@@ -197,8 +198,7 @@ Partition_Vertex_Octree* Partition_Vertex_Octree::assign(Partition_Vertex* v) co
 }
 
 
-
-void Partition_Vertex_Octree::search(const CGAL_Point_3 & M, const CGAL_EPICK_Point_3 & hint_M, std::list<Partition_Vertex *> & R) const
+void Partition_Vertex_Octree::search(const CGAL_Point_3 & M, const CGAL_Inexact_Point_3 & hint_M, std::list<Partition_Vertex *> & R) const
 {
 	const double a_min = hint_M.x() - eps, a_max = hint_M.x() + eps;
 	const double b_min = hint_M.y() - eps, b_max = hint_M.y() + eps;
@@ -262,15 +262,15 @@ bool Partition_Vertex_Octree::exists(CGAL_Point_3 & M, const std::list<int> & P)
 
 Partition_Vertex* Partition_Vertex_Octree::match(const CGAL_Point_3 & M, const std::list<int> & P) const
 {
-	const double prec = 1.0 / (1 << 30) / (1 << 10);
-	FT::set_relative_precision_of_to_double(prec);
-
 	// We test the existence of a Partition_Vertex with the same coordinates as M
 	// and located at the intersection of the points listed in P
 	std::list<Partition_Vertex*> V;
 
+	double prec = 1.0 / (1 << 30) / (1 << 10);
+	FT::set_relative_precision_of_to_double(prec);
+
 	double x = to_double(M.x()), y = to_double(M.y()), z = to_double(M.z());
-	CGAL_EPICK_Point_3 hint_M (x, y, z);
+	CGAL_Inexact_Point_3 hint_M (x, y, z);
 	search(M, hint_M, V);
 
 	// We got a list of candidates, then we check if one of them has the same list P
@@ -287,15 +287,15 @@ Partition_Vertex* Partition_Vertex_Octree::match(const CGAL_Point_3 & M, const s
 
 Partition_Vertex* Partition_Vertex_Octree::partial_match(const CGAL_Point_3 & M, const std::list<int> & P) const
 {
-	const double prec = 1.0 / (1 << 30) / (1 << 10);
-	FT::set_relative_precision_of_to_double(prec);
-
 	// We test the existence of a Partition_Vertex with the same coordinates as M
 	// and located at the intersection of the points listed in P
 	std::list<Partition_Vertex*> V;
 
+	double prec = 1.0 / (1 << 30) / (1 << 10);
+	FT::set_relative_precision_of_to_double(prec);
+
 	double x = to_double(M.x()), y = to_double(M.y()), z = to_double(M.z());
-	CGAL_EPICK_Point_3 hint_M (x, y, z);
+	CGAL_Inexact_Point_3 hint_M (x, y, z);
 	search(M, hint_M, V);
 
 	// We got a list of candidates, then we check if one of them has the same list P
@@ -399,4 +399,5 @@ void Partition_Vertex_Octree::get_all_vertices_sorted_by_identifier(std::vector<
 	std::copy(l_V.begin(), l_V.end(), std::back_inserter(V));
 	std::sort(V.begin(), V.end(), sort_by_vertex_id);
 }
+
 }

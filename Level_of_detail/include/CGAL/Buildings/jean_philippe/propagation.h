@@ -47,7 +47,7 @@ public:
 	 * @param primitives The list of polygons to process.
 	 * @param process Specifies a task to perform on the data
 	 */
-	KINETIC_PARTITION_API Kinetic_Propagation(const std::vector<std::vector<CGAL_EPICK_Point_3> > & primitives, Preprocess process = NONE);
+	KINETIC_PARTITION_API Kinetic_Propagation(const std::vector<std::vector<CGAL_Inexact_Point_3> > & primitives, Preprocess process = NONE);
 
 	/**
 	 * Constructs a Kinetic_Propagation object by copying a sequence of polygons.
@@ -127,6 +127,7 @@ protected:
 
 	void generate_polygons_randomly(const int N);
 
+	void init_point_cloud_octree(const std::string & filename);
 
 	// Preprocesses data
 

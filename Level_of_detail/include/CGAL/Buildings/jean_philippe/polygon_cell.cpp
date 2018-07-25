@@ -1,7 +1,7 @@
 #include "polygon_cell.h"
 
-
 namespace JPTD {
+
 Polygon_Cell::Polygon_Cell(const Signature & S, Polygon* P)
 {
 	signature = S;
@@ -63,4 +63,5 @@ const std::list<Polygon*>::iterator Polygon_Cell::polygons_end()
 {
 	return polygons.end();
 }
+
 }

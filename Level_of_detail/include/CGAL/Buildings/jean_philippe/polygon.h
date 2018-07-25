@@ -2,6 +2,7 @@
 #include "support_plane_objects.h"
 
 namespace JPTD {
+
 class Polygon_Cell;
 
 
@@ -41,9 +42,9 @@ public:
 
 	~Polygon_Tree();
 	
-	bool split(Intersection_Line* I, const FT & t, Event_Flags flags, bool pair_constrained_vertices);
+	bool split(Intersection_Line* I, const FT & t, const int K, Event_Flags flags, bool pair_constrained_vertices);
 
-	bool split(Intersection_Line* I, std::list<Polygon_Vertex *> & V, const FT & t, Event_Flags flags, bool pair_constrained_vertices);
+	bool split(Intersection_Line* I, std::list<Polygon_Vertex *> & V, const FT & t, const int K, Event_Flags flags, bool pair_constrained_vertices);
 
 	void turn_into_node(Intersection_Line* I, Polygon* subpolygon_plus, Polygon* subpolygon_minus, bool destroy_polygon);
 
@@ -208,4 +209,5 @@ public:
 protected:
 	Polygon_Cell* cell;
 };
+
 }

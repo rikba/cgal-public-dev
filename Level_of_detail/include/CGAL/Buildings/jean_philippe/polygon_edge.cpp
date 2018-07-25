@@ -3,6 +3,7 @@
 #include "universe.h"
 
 namespace JPTD {
+
 Polygon_Edge::Polygon_Edge(const int _id_plane, Polygon_Vertex* _v1, Polygon_Vertex* _v2)
 	: Support_Plane_Object(_id_plane),
 	v1 (_v1),
@@ -50,23 +51,23 @@ bool Polygon_Edge::is_constrained_by(Intersection_Line* I) const
 
 
 
-Polygon_Vertex* Polygon_Edge::intersection(Intersection_Line* I, Sign s, const FT & t, Event_Flags flags) const
+Polygon_Vertex* Polygon_Edge::intersection(Intersection_Line* I, Sign s, const FT & t, const int K, Event_Flags flags) const
 {
 	CGAL_Point_2 M;
 	CGAL_Vector_2 dM;
 	intersection_pt_dir(I, t, M, dM);
 
-	return intersection(I, s, t, M, dM, flags);
+	return intersection(I, s, t, M, dM, K, flags);
 }
 
 
 
-Polygon_Vertex* Polygon_Edge::intersection(Intersection_Line* I, Sign s, const FT & t, const CGAL_Point_2 & M, const CGAL_Vector_2 & dM, Event_Flags flags) const
+Polygon_Vertex* Polygon_Edge::intersection(Intersection_Line* I, Sign s, const FT & t, const CGAL_Point_2 & M, const CGAL_Vector_2 & dM, const int K, Event_Flags flags) const
 {
 	Polygon_Vertex* v = nullptr;
 	Constraint C = Constraint(I, s);
 	if (!is_constrained) {
-		v = new Polygon_Vertex(I->id_plane, t, M, dM, C, nullptr, flags);
+		v = new Polygon_Vertex(I->id_plane, t, M, dM, C, nullptr, K, flags);
 	} else {
 		v = new Polygon_Vertex(I->id_plane, t, M, C, constraint);
 	}

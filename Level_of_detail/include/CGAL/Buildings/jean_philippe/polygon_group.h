@@ -2,6 +2,7 @@
 #include "polygon.h"
 
 namespace JPTD {
+
 class Polygon_Group
 {
 public:
@@ -44,4 +45,5 @@ private:
 	std::list<std::tuple<int, int, int, CGAL_Point_2> > intersections;
 	std::list<Polygon_Edge*> borders;
 };
+
 }

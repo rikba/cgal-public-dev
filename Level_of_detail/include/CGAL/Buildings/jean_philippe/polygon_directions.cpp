@@ -1,6 +1,7 @@
 #include "polygon.h"
 
 namespace JPTD {
+
 Polygon_Directions::Polygon_Directions(const CGAL_Point_2 & _O, 
 	const std::vector<std::pair<CGAL_Point_2, CGAL_Vector_2> > & _vertices,
 	const std::vector<Intersection_Line*> & _reference_lines)
@@ -80,4 +81,5 @@ const CGAL_Point_2 & Polygon_Directions::get_barycenter() const
 {
 	return O;
 }
+
 }

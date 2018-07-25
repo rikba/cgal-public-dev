@@ -5,8 +5,10 @@
 #include "vars.h"
 #include "ply_out.h"
 #include <queue>
+#include <CGAL/Direction_2.h>
 
 namespace JPTD {
+
 using CGAL::to_double;
 
 Partition::Partition()
@@ -142,7 +144,7 @@ void Partition::build_facets_for_support_planes()
 	// they are adjacent and not separated by any Polygon_Segment.
 
 	clock_t t_begin = clock();
-#pragma omp parallel for
+
 	for (int p = 6 ; p < Universe::map_of_planes.size() ; p++) {
 		Support_Plane* SP = Universe::map_of_planes[p];
 		SP->group_final_polygons();
@@ -155,11 +157,11 @@ void Partition::build_facets_for_support_planes()
 		Support_Plane* SP = Universe::map_of_planes[p];
 		std::list<Partition_Facet*> faces_p;
 
-		// We loop on all the- obtained groups of convex polygons.
+		// We loop on all the obtained groups of convex polygons.
 		// We get points that are on the convex hull of the group of polygons.
 		for (std::list<Polygon_Group*>::iterator it_g = SP->groups.begin() ; it_g != SP->groups.end() ; it_g++) {
 			Polygon_Group* G = (*it_g);
-
+			
 			// We loop on the set of Polygon_Edges identified as delimiters of the convex polygon group.
 			// We take the two Polygon_Vertices at its ends, interpret them as intersections of 3 planes or more.
 			// We insert these points in the octree if they do not exist yet, and build an edge.
@@ -449,11 +451,12 @@ void Partition::build_halfedges(const int F_i, Partition_Edge* e, std::vector<st
 	const CGAL_Line_2 I_l = I->line;
 
 	// n(I) = (a, b) => u(I) = (-b, a) => mes(u) = atan2(a, -b)
-	const double theta = atan2(to_double(-I_l.a()), to_double(I_l.b())); 
-	const CGAL_Vector_2 I_dir (I_l.b(), -I_l.a());
+	//const double theta = atan2(to_double(-I_l.a()), to_double(I_l.b())); 
+	//const CGAL_Vector_2 I_dir (I_l.b(), -I_l.a());
 	const CGAL_Vector_2 v_12 = SP->project(v2->M) - SP->project(v1->M);
+	const CGAL_Vector_2 v_21 = -v_12;
 
-	double alpha_1, alpha_2;
+	/*double alpha_1, alpha_2;
 	if (I_dir * v_12 > 0) {
 		// (v1 v2) is in the same direction as (cos(theta), sin(theta))
 		// So, v1 receives theta and v2 receives theta + PI or theta - PI
@@ -462,11 +465,11 @@ void Partition::build_halfedges(const int F_i, Partition_Edge* e, std::vector<st
 	} else {
 		alpha_2 = theta;
 		alpha_1 = (theta > 0 ? theta - PI : theta + PI);
-	}
+	}*/
 
 	// Constructs halfedge that are inserted at the correct entry in the table of directions
-	add_halfedge(directions, id_v1, alpha_1, e, true);
-	add_halfedge(directions, id_v2, alpha_2, e, false);
+	add_halfedge(directions, id_v1, v_12, e, true);
+	add_halfedge(directions, id_v2, v_21, e, false);
 
 	const CGAL_Vector_3 v12 = v2->M - v1->M;
 	const double dx = to_double(v12.x()), dy = to_double(v12.y()), dz = to_double(v12.z());
@@ -527,13 +530,27 @@ void Partition::build_halfedges(const int F_i, Partition_Edge* e, std::vector<st
 
 
 
-void Partition::add_halfedge(std::vector<std::vector<Direction_H> > & D, int id_v, double theta, Partition_Edge* e, bool v1_v2)
+/*void Partition::add_halfedge(std::vector<std::vector<Direction_H> > & D, int id_v, double theta, Partition_Edge* e, bool v1_v2)
 {
 	std::vector<Direction_H>::iterator it;
 	for (it = D[id_v].begin() ; it != D[id_v].end() ; it++) {
 		if (it->first > theta) break;
 	}
 	D[id_v].insert(it, std::make_pair(theta, std::make_pair(e, v1_v2)));
+}*/
+
+
+
+void Partition::add_halfedge(std::vector<std::vector<Direction_H> > & D, int id_v, const CGAL_Vector_2 & u_theta, Partition_Edge* e, bool v1_v2)
+{
+	CGAL_Direction_2 d_theta(u_theta);
+
+	std::vector<Direction_H>::iterator it;
+	for (it = D[id_v].begin() ; it != D[id_v].end() ; it++) {
+		if (it->first > d_theta) break;
+	}
+
+	D[id_v].insert(it, std::make_pair(d_theta, std::make_pair(e, v1_v2)));
 }
 
 
@@ -546,7 +563,7 @@ void Partition::loop_and_build_facets(const int F_i, std::vector<std::vector<Dir
 	// Halfedges (v1 v2) have previously been added to directions[v1] with the angle made by (v1, v2) in the frame F_i.
 
 	// When an edge e = (v1 v2) is inside the facet F_i, both halfedges are considered and can be queued.
-	// However, when the edge is shared by another facet, only one halfedge can be used :
+	// However, when the edge is shared by another bounding box facet, only one halfedge can be used :
 	// indeed, the use of the opposite halfedge would make us loop outside the facet.
 
 	// For each bounding box facet F_i, the indices of top/bottom/left/right facets are known.
@@ -895,6 +912,44 @@ void Partition::index_facets_sides(std::vector<std::vector<Direction_S> > & D)
 		// To this end, we find a vertex v of F that doesn't define e, project it on E and measure the angle (v_i, vec(O, v_proj).
 		// Finally, we insert a couple of values in D.
 
+#if TEST_DIRECTION_S
+		CGAL_Direction_2 i(1, 0);
+		D_edge.push_back(std::make_pair(i, std::make_pair(F_ref, false)));
+		D_edge.push_back(std::make_pair(i, std::make_pair(F_ref, true)));
+
+		while (++it_f != e->facets_end()) {
+			Partition_Facet* F = (*it_f);
+
+			if (F->p == F_ref->p) {
+				// Particular case : when the facet is on the same plane as F_ref, 
+				// we already know that we should insert it at PI.
+				add_side(D_edge, -i, F, true);
+			
+			} else {
+				Support_Plane* SP = Universe::map_of_planes[F->p];
+
+				// Finds a vertex to project on E
+				Partition_Vertex* v = F->get_projectible_vertex(e);
+				assert(v != nullptr);
+
+				// Gets A, the coordinates of v, and obtains B by translating A along the normal vector of SP.
+				const CGAL_Point_3 & A = v->M;
+				const CGAL_Point_3 B = v->M + CGAL_Vector_3(SP->plane.a(), SP->plane.b(), SP->plane.c());
+
+				// Projects A to get an indexaction value for F in the circulator
+				CGAL_Direction_2 u_theta_a = get_angle_of_projected_vertex(A, O, v_i, v_j, v_k);
+
+				// Now, in which order should we insert the sides (F, true) and (F, false) ?
+				// The answer is given by another projection (v + SP(F)->orthonormal_vector)
+				CGAL_Direction_2 u_theta_b = get_angle_of_projected_vertex(B, O, v_i, v_j, v_k);
+
+				bool front_side_is_positive = u_theta_b.counterclockwise_in_between(u_theta_a, -u_theta_a);
+
+				// Finally indexes F
+				add_side(D_edge, u_theta_a, F, front_side_is_positive);
+			}
+		}
+#else
 		D_edge.push_back(std::make_pair(0, std::make_pair(F_ref, true)));
 
 		while (++it_f != e->facets_end()) {
@@ -938,20 +993,32 @@ void Partition::index_facets_sides(std::vector<std::vector<Direction_S> > & D)
 		}
 
 		D_edge.push_back(std::make_pair(2 * PI, std::make_pair(F_ref, false)));
+#endif
 	}
-
-	/*for (int i = 0 ; i < D.size() ; i++) {
-		const std::vector<Direction_S> & D_i = D[i];
-		std::cout << "** Edge i = " << i << " : " << std::endl;
-		for (int j = 0 ; j < D_i.size() ; j++) {
-			const Direction_S & d_ij = D_i[j];
-			std::cout << d_ij.first << " : " << d_ij.second.first->id << " " << (d_ij.second.second ? "TRUE" : "FALSE") << std::endl;
-		}
-	}*/
 }
 
 
+#if TEST_DIRECTION_S
+void Partition::add_side(std::vector<Direction_S> & D, const CGAL_Direction_2 & u_theta, Partition_Facet* F, bool positive_side_comes_first)
+{
+	std::vector<Direction_S>::iterator it;
+	for (it = D.begin() ; it != D.end() ; it++) {
+		if (it->first > u_theta) break;
+	}
 
+	if (positive_side_comes_first) {
+		// If the positive side of F must appear first,
+		// then the negative side of F is the first element to insert
+		it = D.insert(it, std::make_pair(u_theta, std::make_pair(F, false)));
+		it = D.insert(it, std::make_pair(u_theta, std::make_pair(F, true)));
+	} 
+	
+	else {
+		it = D.insert(it, std::make_pair(u_theta, std::make_pair(F, true)));
+		it = D.insert(it, std::make_pair(u_theta, std::make_pair(F, false)));
+	}
+}
+#else
 void Partition::add_side(std::vector<Direction_S> & D, double theta, Partition_Facet* F, bool positive_side_comes_first)
 {
 	std::vector<Direction_S>::iterator it;
@@ -971,7 +1038,7 @@ void Partition::add_side(std::vector<Direction_S> & D, double theta, Partition_F
 		it = D.insert(it, std::make_pair(theta, std::make_pair(F, false)));
 	}
 }
-
+#endif
 
 
 void Partition::get_local_frame(Partition_Edge* e, Partition_Facet* f, Partition_Vertex* & O, CGAL_Vector_3 & v_i, CGAL_Vector_3 & v_j, CGAL_Vector_3 & v_k)
@@ -1007,14 +1074,14 @@ void Partition::get_local_frame(Partition_Edge* e, Partition_Facet* f, Partition
 		
 		CGAL_Line_3 e_ortho_line(v_1->M, e_ortho_dir);
 		CGAL_Point_3 v_3_proj = e_ortho_line.projection(v_3->M);
-		v_k = CGAL::cross_product(v_3_proj - v_1->M, N); //CGAL::unit_normal(v_1->M, v_3_proj, v_1->M + N);
+		v_k = CGAL::cross_product(v_3_proj - v_1->M, N);
 	} else {
 		// Otherwise we center the frame in v_2
 		O = v_2;
 
 		CGAL_Line_3 e_ortho_line(v_2->M, e_ortho_dir);
 		CGAL_Point_3 v_3_proj = e_ortho_line.projection(v_3->M);
-		v_k = CGAL::cross_product(v_3_proj - v_2->M, N); // -CGAL::unit_normal(v_2->M, v_3_proj, v_2->M + N);
+		v_k = CGAL::cross_product(v_3_proj - v_2->M, N);
 	}
 
 	v_j = N;
@@ -1025,7 +1092,42 @@ void Partition::get_local_frame(Partition_Edge* e, Partition_Facet* f, Partition
 }
 
 
+#if TEST_DIRECTION_S
+CGAL_Direction_2 Partition::get_angle_of_projected_vertex(const CGAL_Point_3 & M, Partition_Vertex* v_O, const CGAL_Vector_3 & v_i, const CGAL_Vector_3 & v_j, const CGAL_Vector_3 & v_k)
+{
+	// First we find t s.t. v->M + t * v_k belongs to (O, v_k)
+	const CGAL_Point_3 & O = v_O->M;
+	const FT a = v_k.x(), b = v_k.y(), c = v_k.z(), d = -a * O.x() - b * O.y() - c * O.z();
+	const FT t = -(a * M.x() + b * M.y() + c * M.z() + d) / (a * a + b * b + c * c);
+	const CGAL_Point_3 M_t = M + t * v_k;
 
+	// There exists a couple (l, m) s.t. V_t = O + l * v_i + m * v_j
+	// We obtain a system with 3 equations and two unknown variables
+	FT l, m;
+	const FT det_xy = (v_i.x() * v_j.y() - v_i.y() * v_j.x());
+	const FT det_xz = (v_i.x() * v_j.z() - v_i.z() * v_j.x());
+	const FT det_yz = (v_i.y() * v_j.z() - v_i.z() * v_j.y());
+	assert((CGAL::abs(det_xy) > 0) || (CGAL::abs(det_xz) > 0) || (CGAL::abs(det_yz) > 0));
+
+	if (CGAL::abs(det_xy) > 1e-6) {
+		const FT dx = (M_t.x() - O.x()), dy = (M_t.y() - O.y());
+		l = ((dx * v_j.y() - dy * v_j.x()) / det_xy);
+		m = ((v_i.x() * dy - v_i.y() * dx) / det_xy);
+	} else if (CGAL::abs(det_xz) > 1e-6) {
+		const FT dx = (M_t.x() - O.x()), dz = (M_t.z() - O.z());
+		l = ((dx * v_j.z() - dz * v_j.x()) / det_xz);
+		m = ((v_i.x() * dz - v_i.z() * dx) / det_xz);
+	} else {
+		const FT dy = (M_t.y() - O.y()), dz = (M_t.z() - O.z());
+		l = ((dy * v_j.z() - dz * v_j.y()) / det_yz);
+		m = ((v_i.y() * dz - v_i.z() * dy) / det_yz);
+	}
+
+	// (l, m) are coordinates of V_t in the 2D frame (O, v_i, v_j))
+	// We finally compute an angle in [0, 2 * PI] representing mes(v_i, vec(O, V_t))
+	return CGAL_Direction_2(l, m);
+}
+#else
 double Partition::get_angle_of_projected_vertex(const CGAL_Point_3 & M, Partition_Vertex* v_O, const CGAL_Vector_3 & v_i, const CGAL_Vector_3 & v_j, const CGAL_Vector_3 & v_k)
 {
 	// First we find t s.t. v->M + t * v_k belongs to (O, v_k)
@@ -1062,7 +1164,7 @@ double Partition::get_angle_of_projected_vertex(const CGAL_Point_3 & M, Partitio
 	if (theta < 0) theta += 2 * PI;
 	return theta;
 }
-
+#endif
 
 
 void Partition::loop_and_build_polyhedrons(std::vector<std::vector<Direction_S> > & directions, bool** & queued)
@@ -1178,7 +1280,7 @@ void Partition::ply_facets(const std::string & filename) const
 		}
 	}
 
-	Ply_Out::print_plain_colorful_facets(filename, P, F, C);
+	Ply_Out::print_plain_colorful_facets(filename, P, F, C, 25);
 }
 
 
@@ -1302,4 +1404,5 @@ std::list<Partition_Polyhedron*>::iterator Partition::polyhedrons_end()
 {
 	return polyhedrons.end();
 }
+
 }

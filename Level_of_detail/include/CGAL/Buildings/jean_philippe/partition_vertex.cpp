@@ -2,12 +2,13 @@
 #include "vars.h"
 
 namespace JPTD {
+
 using CGAL::to_double;
 
 
 Partition_Vertex::Partition_Vertex(const CGAL_Point_3 & _M, std::list<int> & P)
 	: M (_M),
-	hint_M (CGAL_EPICK_Point_3(to_double(M.x()), to_double(M.y()), to_double(M.z()))),
+	hint_M (CGAL_Inexact_Point_3(to_double(M.x()), to_double(M.y()), to_double(M.z()))),
 	id (++Counters::id_partition_vertex)
 {
 	for (std::list<int>::iterator it_p = P.begin() ; it_p != P.end() ; it_p++) {
@@ -176,4 +177,5 @@ int Partition_Vertex::connectivity() const
 {
 	return int(edges.size());
 }
+
 }

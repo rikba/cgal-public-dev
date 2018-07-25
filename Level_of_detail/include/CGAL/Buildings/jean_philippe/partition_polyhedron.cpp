@@ -43,4 +43,5 @@ std::list<Partition_Side>::iterator Partition_Polyhedron::facets_end()
 {
 	return facets.end();
 }
+
 }

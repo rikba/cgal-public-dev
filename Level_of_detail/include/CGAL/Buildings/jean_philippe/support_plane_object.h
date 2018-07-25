@@ -1,6 +1,7 @@
 #pragma once
 
 namespace JPTD {
+
 class Support_Plane_Object 
 {
 protected:
@@ -13,4 +14,5 @@ public:
 	const int id_object;
 	const int id_plane;
 };
+
 }

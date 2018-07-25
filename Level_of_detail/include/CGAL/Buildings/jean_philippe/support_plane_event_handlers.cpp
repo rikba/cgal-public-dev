@@ -1,6 +1,7 @@
 #include "support_plane.h"
 
 namespace JPTD {
+
 using CGAL::to_double;
 
 //
@@ -45,7 +46,7 @@ void Support_Plane::unconstrained_vertex_intersects_line(const std::list<Event_V
 
 	Signature S_os = polygon_set->get_adjacent_polygons_signature(P_ts, I);
 	
-	if (propagation_continues_outside_intersections(I, V_t, t, S_os, P_ts->seed)) {
+	if (propagation_continues_outside_intersections(I, v, V_t, W_t, t, S_os, P_ts->seed)) {
 
 		Polygon* P_os = Polygon::build_as_unconstrained_vertex_propagates(v, t, P_ts->seed, v1_ts, v2_ts, C_ts, v1_os, v2_os);
 		polygon_set->insert(S_os, P_os);
@@ -260,7 +261,7 @@ void Support_Plane::constrained_vertex_intersects_single_line(Event_Vertex_Line*
 	// it depends on the other of the Intersection_Lines as we go down the tree.
 
 	Signature S_2 = polygon_set->get_adjacent_polygons_signature(P_1, I);
-	if (propagation_continues_at_intersection(I, V_t, C_v_ts, t, S_2, seed)) {
+	if (propagation_continues_at_intersection(I, v, V_t, W_t, C_v_ts, t, S_2, seed)) {
 
 		v->extend_segments(I);
 
@@ -279,8 +280,7 @@ void Support_Plane::constrained_vertex_intersects_single_line(Event_Vertex_Line*
 		Signature S_3 = polygon_set->get_adjacent_polygons_signature(P_1, I, I_v);
 		Signature S_4 = polygon_set->get_adjacent_polygons_signature(P_1, I_v);
 
-		if (propagation_continues_at_intersection(I_v, V_t, C_os, t, S_3, seed)) {
-		// if (!polygon_set->exists(S_3, seed) && !I_v->exists_segment_that_includes(M, C_os, t)) {
+		if (propagation_continues_at_intersection(I_v, nullptr, V_t, W_t, C_os, t, S_3, seed)) {
 
 			// If the polygon is allowed to propagate laterally, then we initialize a local Polygon_Tree
 			// with all vertices centered in M, that we hierarchically divide using I_v and I.
@@ -289,10 +289,10 @@ void Support_Plane::constrained_vertex_intersects_single_line(Event_Vertex_Line*
 			CGAL_Vector_2 OM = M - polygon_directions[seed]->get_barycenter();
 			Polygon_Tree* T = new Polygon_Tree(v->id_plane, seed, polygon_directions[seed], OM, t);
 
-			T->split(I_v, t, NO_SCHEDULE, false);
+			T->split(I_v, t, 0, NO_SCHEDULE, false);
 			Polygon_Tree* T_34 = (C_v_os.second == PLUS ? T->subtree_plus : T->subtree_minus);
 			
-			T_34->split(I, t, NO_SCHEDULE, false);
+			T_34->split(I, t, 0, NO_SCHEDULE, false);
 			Polygon_Tree* T_3 = (C_os.second == PLUS ? T_34->subtree_plus : T_34->subtree_minus);
 			Polygon_Tree* T_4 = (C_ts.second == PLUS ? T_34->subtree_plus : T_34->subtree_minus);
 			
@@ -315,7 +315,7 @@ void Support_Plane::constrained_vertex_intersects_single_line(Event_Vertex_Line*
 			// and set two segments on (H34), and one segment on (H14).
 			// Otherwise, we only initialize one segment on that halfline.
 
-			if (propagation_continues_at_intersection(I, V_t, C_v_os, t, S_4, seed)) {
+			if (propagation_continues_at_intersection(I, nullptr, V_t, W_t, C_v_os, t, S_4, seed)) {
 
 				P_4 = T_4->remove_reference_to_polygon();
 				polygon_set->insert(S_4, P_4);
@@ -433,7 +433,7 @@ bool Support_Plane::constrained_vertex_intersects_multiple_lines_ts(Polygon_Vert
 		get_stop_constraints_at_multiple_intersections(C, k, true, C_limits_k);
 		polygon_set->get_signature_of_adjacent_cell(S, I[k]);
 
-		if (propagation_continues_at_intersection(I[k], V_t, C_limits_k, t, S, seed)) {
+		if (propagation_continues_at_intersection(I[k], v, V_t, W_t, C_limits_k, t, S, seed)) {
 			++v->crossed_lines;
 
 			// v crosses the line I[k] : we build a triangle
@@ -471,7 +471,7 @@ bool Support_Plane::constrained_vertex_intersects_multiple_lines_ts(Polygon_Vert
 	get_stop_constraints_at_multiple_intersections(C, 0, true, C_limits_0);
 
 	polygon_set->get_signature_of_adjacent_cell(S, I[0]);
-	return propagation_continues_at_intersection(I[0], V_t, C_limits_0, t, S, seed);
+	return propagation_continues_at_intersection(I[0], nullptr, V_t, W_t, C_limits_0, t, S, seed);
 }
 
 
@@ -495,7 +495,7 @@ void Support_Plane::constrained_vertex_intersects_multiple_lines_os(Polygon_Vert
 	CGAL_Vector_2 OV_t = V_t - polygon_directions[seed]->get_barycenter();
 	Polygon_Tree* T_R = new Polygon_Tree(v->id_plane, seed, polygon_directions[seed], OV_t, t);
 
-	T_R->split(I[0], t, NO_SCHEDULE, false);
+	T_R->split(I[0], t, 0, NO_SCHEDULE, false);
 	Polygon_Tree* T = (C_0_ts.second == PLUS ? T_R->subtree_minus : T_R->subtree_plus);
 	std::list<Polygon*> L_P;
 
@@ -506,7 +506,7 @@ void Support_Plane::constrained_vertex_intersects_multiple_lines_os(Polygon_Vert
 		// - another is for iterating.
 
 		const Constraint & C_k_os = C[k + 1].second;
-		T->split(I[k + 1], t, NO_SCHEDULE, false);
+		T->split(I[k + 1], t, 0, NO_SCHEDULE, false);
 		
 		Polygon_Tree* T_poly = (C_k_os.second == PLUS ? T->subtree_plus : T->subtree_minus);
 		Polygon_Tree* T_iter = (C_k_os.second == PLUS ? T->subtree_minus : T->subtree_plus);
@@ -537,12 +537,12 @@ void Support_Plane::constrained_vertex_intersects_multiple_lines_os(Polygon_Vert
 		std::list<Constraint> C_limits;
 		get_stop_constraints_at_multiple_intersections(C, k + 1, false, C_limits);
 
-		if (propagation_continues_at_intersection(I[k + 1], V_t, C_limits, t, S, seed)) {
+		if (propagation_continues_at_intersection(I[k + 1], nullptr, V_t, W_t, C_limits, t, S, seed)) {
 			T = T_iter; 
 
 		} else {
 			// goto postprocess;
-			
+
 			// Shifts remaining vertices of the tree and deletes its root
 			std::list<Intersection_Line*> L_I;
 			std::copy(I.begin(), I.end(), std::back_inserter(L_I));
@@ -744,7 +744,8 @@ void Support_Plane::get_stop_constraints_at_multiple_intersections(const std::ve
 
 
 
-bool Support_Plane::edge_is_propagating_frontally(Intersection_Line* I, Polygon_Vertex* v1, Polygon_Vertex* v2, const FT t, const CGAL_Point_2 & V_1, const CGAL_Point_2 & V_2)
+bool Support_Plane::edge_is_propagating_frontally(Intersection_Line* I, Polygon_Vertex* v1, Polygon_Vertex* v2, const FT & t, 
+	const CGAL_Point_2 & V_1, const CGAL_Point_3 & W_1, const CGAL_Point_2 & V_2, const CGAL_Point_3 & W_2)
 {
 	// An edge e = (v1 v2), intersecting I at time t,
 	// crosses the line I if v1 or v2 can propagate
@@ -758,17 +759,30 @@ bool Support_Plane::edge_is_propagating_frontally(Intersection_Line* I, Polygon_
 
 	Signature S_os = polygon_set->get_adjacent_polygons_signature(P, I);
 
-	std::list<Constraint> C_limits_1, C_limits_2;
-	if (C_1.first != nullptr) C_limits_1.push_back(C_1);
-	if (C_2.first != nullptr) C_limits_2.push_back(C_2);
+	//std::list<Constraint> C_limits_1, C_limits_2;
+	//if (C_1.first != nullptr) C_limits_1.push_back(C_1);
+	//if (C_2.first != nullptr) C_limits_2.push_back(C_2);
 
-	return (propagation_continues_at_intersection(I, V_1, C_1, t, S_os, seed) 
-		|| propagation_continues_at_intersection(I, V_2, C_2, t, S_os, seed));
+	bool v1_keeps_propagating, v2_keeps_propagating;
+	if (C_1.first == nullptr) {
+		v1_keeps_propagating = propagation_continues_outside_intersections(I, v1, V_1, W_1, t, S_os, seed);
+	} else {
+		v1_keeps_propagating = propagation_continues_at_intersection(I, v1, V_1, W_1, C_1, t, S_os, seed);
+	}
+
+	if (C_2.first == nullptr) {
+		v2_keeps_propagating = propagation_continues_outside_intersections(I, v2, V_2, W_2, t, S_os, seed);
+	} else {
+		v2_keeps_propagating = propagation_continues_at_intersection(I, v2, V_2, W_2, C_2, t, S_os, seed);
+	}
+
+	return (v1_keeps_propagating || v2_keeps_propagating);
 }
 
 
 
-bool Support_Plane::edge_is_propagating_laterally(Intersection_Line* I, Intersection_Line* I_l, Polygon_Vertex* v, const FT t, const CGAL_Point_2 & V_t)
+bool Support_Plane::edge_is_propagating_laterally(Intersection_Line* I, Intersection_Line* I_l, Polygon_Vertex* v, const FT & t, 
+	const CGAL_Point_2 & V_t, const CGAL_Point_3 & W_t)
 {
 	// At time t, a constrained vertex v moving on line I_l,
 	// intersects the line I and induces a collision between an edge and I.
@@ -781,7 +795,7 @@ bool Support_Plane::edge_is_propagating_laterally(Intersection_Line* I, Intersec
 	Signature S_lat = polygon_set->get_adjacent_polygons_signature(P, I, I_l);
 	Constraint C_I_os = Constraint(I, I->sign(v, 0) == PLUS ? MINUS : PLUS);
 
-	if (!propagation_continues_at_intersection(I_l, V_t, C_I_os, t, S_lat, P->seed)) return false;
+	if (!propagation_continues_at_intersection(I_l, nullptr, V_t, W_t, C_I_os, t, S_lat, P->seed)) return false;
 
 	// Second check :
 	// Is there a polygon adjacent to P via I, with a parallel edge to I, about to cross it at time t ?
@@ -799,13 +813,15 @@ bool Support_Plane::edge_is_propagating_laterally(Intersection_Line* I, Intersec
 	Polygon_Edge* e = (v_os->e1->is_constrained_by(I_l) ? v_os->e2 : v_os->e1);
 
 	const CGAL_Point_2 V_1 = e->v1->pt(t), V_2 = e->v2->pt(t);
+	const CGAL_Point_3 W_1 = backproject(V_1), W_2 = backproject(V_2);
+	
 	const CGAL_Vector_2 V_12 = V_2 - V_1;
 	if (CGAL::determinant(V_12, I->line.to_vector()) != 0) return true;
 
 	// Third check :
 	// If the edge is parallel, we determine if it propagates frontally
 	// If so, then no need to propagate laterally because this event will be later processed
-	return (!edge_is_propagating_frontally(I, e->v1, e->v2, t, V_1, V_2));
+	return (!edge_is_propagating_frontally(I, e->v1, e->v2, t, V_1, W_1, V_2, W_2));
 }
 
 
@@ -844,9 +860,7 @@ void Support_Plane::edge_intersects_line(const std::list<Event_Vertex_Line*> & E
 
 	Event_Vertex_Line* e_vl_2;
 	std::list<Event_Vertex_Line*> E_2;
-	if (v2->id_object == 25916) {
-		std::cout << "break" << std::endl;
-	}
+
 	get_simultaneous_events_as_edge_intersects_line(v2, t, V_2, I, E_2, e_vl_2);
 	v2->decrement_queued_events(E_2.size());
 
@@ -870,18 +884,18 @@ void Support_Plane::edge_intersects_line(const std::list<Event_Vertex_Line*> & E
 	const CGAL_Point_3 W_1 = backproject(V_1);
 	const CGAL_Point_3 W_2 = backproject(V_2);
 
-	bool propagate_frontally = edge_is_propagating_frontally(I, v1, v2, t, V_1, V_2);
+	bool propagate_frontally = edge_is_propagating_frontally(I, v1, v2, t, V_1, W_1, V_2, W_2);
 	bool propagate_laterally_1 = false, propagate_laterally_2 = false;
 
 	if (propagate_frontally) {
 		if (!v1->unconstrained()) {
 			Intersection_Line* I_1 = v1->get_constraint().first;
-			propagate_laterally_1 = edge_is_propagating_laterally(I, I_1, v1, t, V_1);
+			propagate_laterally_1 = edge_is_propagating_laterally(I, I_1, v1, t, V_1, W_1);
 		}
 
 		if (!v2->unconstrained()) {
 			Intersection_Line* I_2 = v2->get_constraint().first;
-			propagate_laterally_2 = edge_is_propagating_laterally(I, I_2, v2, t, V_2);
+			propagate_laterally_2 = edge_is_propagating_laterally(I, I_2, v2, t, V_2, W_2);
 		}
 	}
 
@@ -909,7 +923,7 @@ void Support_Plane::edge_intersects_line(const std::list<Event_Vertex_Line*> & E
 
 
 
-void Support_Plane::edge_propagates_frontally(Intersection_Line* I, Polygon_Vertex* v1, Polygon_Vertex* v2, const FT t, 
+void Support_Plane::edge_propagates_frontally(Intersection_Line* I, Polygon_Vertex* v1, Polygon_Vertex* v2, const FT & t, 
 	const CGAL_Point_2 & V_1, const CGAL_Point_3 & W_1, const CGAL_Point_2 & V_2, const CGAL_Point_3 & W_2, const bool propagate_frontally)
 {
 	// Replaces the vertices v1 and v2 by constrained or still vertices inside their polygon
@@ -961,7 +975,7 @@ void Support_Plane::edge_propagates_frontally(Intersection_Line* I, Polygon_Vert
 
 
 
-void Support_Plane::edge_propagates_laterally(Intersection_Line* I, Polygon_Vertex* v, const FT t, const CGAL_Point_2 & V_t, const CGAL_Point_3 & W_t)
+void Support_Plane::edge_propagates_laterally(Intersection_Line* I, Polygon_Vertex* v, const FT & t, const CGAL_Point_2 & V_t, const CGAL_Point_3 & W_t)
 {
 	// We assume that the constrained vertex v is part of an edge, that has propagated frontally.
 	// It is now in the quarter of plane (Q2).
@@ -983,14 +997,14 @@ void Support_Plane::edge_propagates_laterally(Intersection_Line* I, Polygon_Vert
 	CGAL_Vector_2 OV_t = V_t - polygon_directions[seed]->get_barycenter();
 	Polygon_Tree* T_R = new Polygon_Tree(v->id_plane, seed, polygon_directions[seed], OV_t, t);
 
-	T_R->split(I_v, t, NO_SCHEDULE, false);
+	T_R->split(I_v, t, 0, NO_SCHEDULE, false);
 	Polygon_Tree* T = (C_v_ts.second == PLUS ? T_R->subtree_minus : T_R->subtree_plus);
 	std::list<Polygon*> L_P;
 
 	// Part 1
 	// Splits T to obtain a polygon in (Q3)
 	
-	T->split(I, t, NO_SCHEDULE, false);
+	T->split(I, t, 0, NO_SCHEDULE, false);
 	Polygon_Tree* T_3 = (C_os.second == PLUS ? T->subtree_plus : T->subtree_minus);
 	Polygon_Tree* T_4 = (C_os.second == PLUS ? T->subtree_minus : T->subtree_plus);
 	
@@ -1049,56 +1063,4 @@ void Support_Plane::edge_propagates_laterally(Intersection_Line* I, Polygon_Vert
 	delete T_R;
 }
 
-
-
-bool Support_Plane::propagation_continues_outside_intersections(Intersection_Line* I, const CGAL_Point_2 & V_t, const FT & t, const std::vector<bool> & S, const int seed) const
-{
-	// The propagation of a vertex v, such that V_t = v(t) at time t, continues beyond line I
-	// when the three following conditions are respected :
-
-	// a) there is no polygon already existing in the cell identified by S ;
-	// b) I is not a border.
-	// c) there is no couple of segments, of opposite signs, supported by I containing V_t ;
-
-	// Tests condition a)
-	if (polygon_set->exists(S, seed)) {
-		return false;
-	}
-	
-	// Tests condition b)
-	if (I->is_border) {
-		return false;
-	}
-
-	// Tests condition c)
-	if (I->exist_segments_including_point_outside_intersections(V_t, t)) {
-		return false;
-	}
-	
-	return true;
-}
-
-
-
-bool Support_Plane::propagation_continues_at_intersection(Intersection_Line* I, const CGAL_Point_2 & V_t, const Constraint & C, const FT & t, const std::vector<bool> & S, const int seed) const
-{
-	// Same function as above, except that we make use of the fact that V_t is the intersection of I and C.first
-
-	if (polygon_set->exists(S, seed) || I->is_border || I->exist_segments_including_point_at_intersection(V_t, C, t)) {
-		return false;
-	}
-	return true;
-}
-
-
-
-bool Support_Plane::propagation_continues_at_intersection(Intersection_Line* I, const CGAL_Point_2 & V_t, const std::list<Constraint> & C_limits, const FT & t, const std::vector<bool> & S, const int seed) const
-{
-	// Same function as above, in the case of a multi-line intersection
-
-	if (polygon_set->exists(S, seed) || I->is_border || I->exist_segments_including_point_at_intersection(V_t, C_limits, t)) {
-		return false;
-	}
-	return true;
-}
 }

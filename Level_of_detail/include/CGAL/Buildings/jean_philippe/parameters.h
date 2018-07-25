@@ -1,8 +1,10 @@
 #pragma once
 #include "defs.h"
+#include "defs_cgal.h"
 #include <string>
 
 namespace JPTD {
+
 class Kinetic_Parameters
 {
 public:
@@ -23,8 +25,6 @@ public:
 protected:
 	void reset();
 
-	FT read_quotient(const std::string & frac);
-
 public:
 	int rand_n;
 	int rand_p;
@@ -33,6 +33,7 @@ public:
 	std::string path;
 	std::string location;
 	std::string basename;
+	std::string path_point_cloud;
 
 	uint boxes;
 	FT D;
@@ -43,7 +44,16 @@ public:
 	bool output_polyhedrons;
 
 	bool check;
+	bool rt_check;
 	bool print_schedule;
 	bool print_drawings;
+
+	int stopping_condition;
+	int K;
+	FT density_box_length;
+	FT density_box_width;
+	FT density_box_height;
+	int density_pts;
 };
+
 }

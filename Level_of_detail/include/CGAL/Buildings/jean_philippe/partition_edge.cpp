@@ -2,6 +2,7 @@
 #include "vars.h"
 
 namespace JPTD {
+
 Partition_Edge::Partition_Edge(Partition_Vertex* _v1, Partition_Vertex* _v2)
 	: id (++Counters::id_partition_edge)
 {
@@ -176,4 +177,5 @@ std::list<Partition_Facet*>::iterator Partition_Edge::facets_end()
 {
 	return facets.end();
 }
+
 }

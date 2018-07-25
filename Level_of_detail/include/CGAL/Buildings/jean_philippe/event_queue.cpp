@@ -198,4 +198,5 @@ void Event_Queue::get_simultaneous_events_for_this_vertex(const int intersectant
 		queue.erase(it_queue_begin);
 	}
 }
+
 }

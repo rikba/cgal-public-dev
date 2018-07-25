@@ -4,19 +4,23 @@
 #include "parameters.h"
 #include "event_queue.h"
 #include "stats.h"
+#include "sqrt_ft.h"
 
 namespace JPTD {
+
 using CGAL::to_double;
 
 
 
-Polygon_Vertex::Polygon_Vertex(const int _id_plane, const FT & _t_init, const CGAL_Point_2 & _M, const CGAL_Vector_2 & _dM, Event_Flags flags, bool is_moving)
+Polygon_Vertex::Polygon_Vertex(const int _id_plane, const FT & _t_init, const CGAL_Point_2 & _M, const CGAL_Vector_2 & _dM, const int _K, Event_Flags flags, bool is_moving)
 	: Support_Plane_Object(_id_plane)
 {
 	Universe::map_of_planes[_id_plane]->vertices[id_object] = this;
 
 	M = _M;
 	dM = _dM;
+	K = _K;
+
 	t_init = _t_init;
 	t_stop = _t_init;
 
@@ -27,8 +31,15 @@ Polygon_Vertex::Polygon_Vertex(const int _id_plane, const FT & _t_init, const CG
 		// Sets the lower and upper bounds for the time tau,
 		// which is the time required by this vertex to move by a distance D
 		const FT dm_sq = dM.squared_length();
+
+		double prec = 1.0 / (1 << 30) / (1 << 10);
+		FT::set_relative_precision_of_to_double(prec);
+
 		tau_inf = FT(sqrt(CGAL::to_double(Universe::params->D_inf_2 / dm_sq)));
 		tau_sup = FT(sqrt(CGAL::to_double(Universe::params->D_sup_2 / dm_sq)));
+		//tau_inf = approximate_sqrt(Universe::params->D_inf_2 / dm_sq);
+		//tau_sup = approximate_sqrt(Universe::params->D_sup_2 / dm_sq);
+		assert(tau_inf * tau_inf <= Universe::params->D / dm_sq && Universe::params->D / dm_sq <= tau_sup * tau_sup);
 
 		// Adds this vertex to the table of moving objects.
 		Universe::map_of_objects[id_object] = this;
@@ -54,8 +65,8 @@ Polygon_Vertex::Polygon_Vertex(const int _id_plane, const FT & _t_init, const CG
 
 
 
-Polygon_Vertex::Polygon_Vertex(const int _id_plane, const FT & _t_init, const CGAL_Point_2 & _M, const CGAL_Vector_2 & _dM, const Constraint & C, Intersection_Line* I_discarded, Event_Flags flags)
-	: Polygon_Vertex(_id_plane, _t_init, _M, _dM, NO_SCHEDULE, true)
+Polygon_Vertex::Polygon_Vertex(const int _id_plane, const FT & _t_init, const CGAL_Point_2 & _M, const CGAL_Vector_2 & _dM, const Constraint & C, Intersection_Line* I_discarded, const int _K, Event_Flags flags)
+	: Polygon_Vertex(_id_plane, _t_init, _M, _dM, _K, NO_SCHEDULE, true)
 {
 	assert(C.second != ZERO);
 	constraints.push_back(C);
@@ -65,8 +76,8 @@ Polygon_Vertex::Polygon_Vertex(const int _id_plane, const FT & _t_init, const CG
 
 
 
-Polygon_Vertex::Polygon_Vertex(const int _id_plane, const FT & _t_init, const CGAL_Point_2 & _M, const CGAL_Vector_2 & _dM, const Constraint & C, const std::list<Intersection_Line*> & I_discarded, Event_Flags flags)
-	: Polygon_Vertex(_id_plane, _t_init, _M, _dM, NO_SCHEDULE, true)
+Polygon_Vertex::Polygon_Vertex(const int _id_plane, const FT & _t_init, const CGAL_Point_2 & _M, const CGAL_Vector_2 & _dM, const Constraint & C, const std::list<Intersection_Line*> & I_discarded, const int _K, Event_Flags flags)
+	: Polygon_Vertex(_id_plane, _t_init, _M, _dM, _K, NO_SCHEDULE, true)
 {
 	assert(C.second != ZERO);
 	constraints.push_back(C);
@@ -77,7 +88,7 @@ Polygon_Vertex::Polygon_Vertex(const int _id_plane, const FT & _t_init, const CG
 
 
 Polygon_Vertex::Polygon_Vertex(const int _id_plane, const FT & _t_init, const CGAL_Point_2 & _M, const Constraint & C_1, const Constraint & C_2)
-	: Polygon_Vertex(_id_plane, _t_init, _M, CGAL_Vector_2(0, 0), NO_SCHEDULE, false)
+	: Polygon_Vertex(_id_plane, _t_init, _M, CGAL_Vector_2(0, 0), 0, NO_SCHEDULE, false)
 {
 	assert(C_1.second != ZERO);
 	assert(C_2.second != ZERO);
@@ -89,7 +100,7 @@ Polygon_Vertex::Polygon_Vertex(const int _id_plane, const FT & _t_init, const CG
 
 
 Polygon_Vertex::Polygon_Vertex(Polygon_Vertex* v_ts, Event_Flags flags)
-	: Polygon_Vertex(v_ts->id_plane, v_ts->t_init, v_ts->M, v_ts->dM, NO_SCHEDULE, v_ts->is_active)
+	: Polygon_Vertex(v_ts->id_plane, v_ts->t_init, v_ts->M, v_ts->dM, v_ts->K, NO_SCHEDULE, v_ts->is_active)
 {
 	// Constructs a vertex v_os which is the same vertex as v_ts,
 	// except that it is on the other side of line I = C_ts.first
@@ -849,4 +860,5 @@ Polygon_Vertex* Polygon_Vertex::get_master_vertex() const
 {
 	return paired_vertex.first;
 }
+
 }

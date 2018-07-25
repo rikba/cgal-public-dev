@@ -5,6 +5,8 @@
 
 namespace JPTD {
 
+#define TEST_DIRECTION_S 0
+
 class Partition
 {
 public:
@@ -15,8 +17,13 @@ public:
 	void build();
 	
 protected:
-	typedef std::pair<double, Partition_HalfEdge> Direction_H;
+	typedef std::pair<CGAL_Direction_2, Partition_HalfEdge> Direction_H;
+
+#if TEST_DIRECTION_S
+	typedef std::pair<CGAL_Direction_2, Partition_Side> Direction_S;
+#else
 	typedef std::pair<double, Partition_Side> Direction_S;
+#endif
 
 	void build_facets_for_support_planes();
 
@@ -37,7 +44,10 @@ protected:
 
 	void build_halfedges(const int F_i, Partition_Edge* e, std::vector<std::vector<Direction_H> > & directions, bool** & queued);
 
-	void add_halfedge(std::vector<std::vector<Direction_H> > & D, int id_v, double theta, Partition_Edge* e, bool v1_v2);
+	void add_halfedge(std::vector<std::vector<Direction_H> > & D, int id_v, const CGAL_Vector_2 & u_theta, Partition_Edge* e, bool v1_v2);
+
+	//void add_halfedge(std::vector<std::vector<Direction_H> > & D, int id_v, double theta, Partition_Edge* e, bool v1_v2);
+	
 
 	void loop_and_build_facets(const int F_i, std::vector<std::vector<Direction_H> > & directions, bool** & queued);
 
@@ -51,9 +61,15 @@ protected:
 
 	void get_local_frame(Partition_Edge* e, Partition_Facet* f, Partition_Vertex* & O, CGAL_Vector_3 & v_i, CGAL_Vector_3 & v_j, CGAL_Vector_3 & v_k);
 
+#if TEST_DIRECTION_S
+	void add_side(std::vector<Direction_S> & D, const CGAL_Direction_2 & u_theta, Partition_Facet* F, bool positive_side_comes_first);
+
+	CGAL_Direction_2 get_angle_of_projected_vertex(const CGAL_Point_3 & A, Partition_Vertex* O, const CGAL_Vector_3 & v_i, const CGAL_Vector_3 & v_j, const CGAL_Vector_3 & v_k);
+#else
 	void add_side(std::vector<Direction_S> & D, double theta, Partition_Facet* f, bool positive_side_comes_first);
 
 	double get_angle_of_projected_vertex(const CGAL_Point_3 & A, Partition_Vertex* O, const CGAL_Vector_3 & v_i, const CGAL_Vector_3 & v_j, const CGAL_Vector_3 & v_k);
+#endif
 
 	void init_table_of_queued_sides(bool** & queued);
 
@@ -98,6 +114,7 @@ public:
 
 private:
 	std::vector<double> dims;
+
 	std::list<Partition_Edge*> edges;
 	std::list<Partition_Polyhedron*> polyhedrons;
 };

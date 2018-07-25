@@ -5,6 +5,7 @@
 #include "polygon.h"
 
 namespace JPTD {
+
 Polygon_Tree::Polygon_Tree()
 {
 	is_node = false;
@@ -50,20 +51,20 @@ Polygon_Tree::~Polygon_Tree()
 
 
 
-bool Polygon_Tree::split(Intersection_Line* I, const FT & t, Event_Flags flags, bool pair_constrained_vertices)
+bool Polygon_Tree::split(Intersection_Line* I, const FT & t, const int K, Event_Flags flags, bool pair_constrained_vertices)
 {
 	std::list<Polygon_Vertex*> V;
-	return split(I, V, t, flags, pair_constrained_vertices);
+	return split(I, V, t, K, flags, pair_constrained_vertices);
 }
 
 
 
-bool Polygon_Tree::split(Intersection_Line* I, std::list<Polygon_Vertex *> & V, const FT & t, Event_Flags flags, bool pair_constrained_vertices)
+bool Polygon_Tree::split(Intersection_Line* I, std::list<Polygon_Vertex *> & V, const FT & t, const int K, Event_Flags flags, bool pair_constrained_vertices)
 {
 	if (is_node) {
 		// If the tree is a node, then we apply the function to its two subtrees
-		bool res_plus = subtree_plus->split(I, V, t, flags, pair_constrained_vertices);
-		bool res_minus = subtree_minus->split(I, V, t, flags, pair_constrained_vertices);
+		bool res_plus = subtree_plus->split(I, V, t, K, flags, pair_constrained_vertices);
+		bool res_minus = subtree_minus->split(I, V, t, K, flags, pair_constrained_vertices);
 		return (res_plus || res_minus);
 
 	} else {
@@ -81,8 +82,8 @@ bool Polygon_Tree::split(Intersection_Line* I, std::list<Polygon_Vertex *> & V, 
 
 			Polygon_Vertex *vp_front, *vp_back, *vn_front, *vn_back;
 
-			vp_front = ep_front->intersection(I, PLUS, t, flags);
-			vp_back = ep_back->intersection(I, PLUS, t, flags);
+			vp_front = ep_front->intersection(I, PLUS, t, K, flags);
+			vp_back = ep_back->intersection(I, PLUS, t, K, flags);
 			const Constraint C_ep_front = ep_front->constraint, C_ep_back = ep_back->constraint;
 			V.push_back(vp_front);
 			V.push_back(vp_back);
@@ -94,23 +95,23 @@ bool Polygon_Tree::split(Intersection_Line* I, std::list<Polygon_Vertex *> & V, 
 			bool matches_vn_back_vp_front = false, matches_vn_back_vp_back = false;
 
 			if (en_front == ep_front) {
-				vn_front = en_front->intersection(I, MINUS, t, vp_front->M, vp_front->dM, flags);
+				vn_front = en_front->intersection(I, MINUS, t, vp_front->M, vp_front->dM, K, flags);
 				matches_vn_front_vp_front = true;
 			} else if (en_front == ep_back) {
-				vn_front = en_front->intersection(I, MINUS, t, vp_back->M, vp_back->dM, flags);
+				vn_front = en_front->intersection(I, MINUS, t, vp_back->M, vp_back->dM, K, flags);
 				matches_vn_front_vp_back = true;
 			} else {
-				vn_front = en_front->intersection(I, MINUS, t, flags);
+				vn_front = en_front->intersection(I, MINUS, t, K, flags);
 			}
 			
 			if (en_back == ep_front) {
-				vn_back = en_back->intersection(I, MINUS, t, vp_front->M, vp_front->dM, flags);
+				vn_back = en_back->intersection(I, MINUS, t, vp_front->M, vp_front->dM, K, flags);
 				matches_vn_back_vp_front = true;
 			} else if (en_back == ep_back) {
-				vn_back = en_back->intersection(I, MINUS, t, vp_back->M, vp_back->dM, flags);
+				vn_back = en_back->intersection(I, MINUS, t, vp_back->M, vp_back->dM, K, flags);
 				matches_vn_back_vp_back = true;
 			} else {
-				vn_back = en_back->intersection(I, MINUS, t, flags);
+				vn_back = en_back->intersection(I, MINUS, t, K, flags);
 			}
 
 			if (pair_constrained_vertices) {
@@ -342,4 +343,5 @@ void Polygon_Tree::remove_reference_to_polygons()
 		polygon = nullptr;
 	}
 }
+
 }

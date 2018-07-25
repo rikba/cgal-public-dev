@@ -3,6 +3,7 @@
 #include "universe.h"
 
 namespace JPTD {
+
 Planar_Segment::Planar_Segment(const int _id_plane, Intersection_Line* _support, CGAL_Point_2 & _A, CGAL_Point_2 & _B)
 	: Segment (_id_plane, _support)
 {
@@ -27,4 +28,5 @@ bool Planar_Segment::checks_if_belongs(const CGAL_Point_2 & V) const
 	CGAL_Segment_2 AB (A, B);
 	return AB.has_on(V);
 }
+
 }

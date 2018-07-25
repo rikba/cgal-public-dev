@@ -4,6 +4,7 @@
 #include <list>
 
 namespace JPTD {
+
 Intersection_Line::Intersection_Line(const int _id_plane, const CGAL_Line_2 & _line, int intersected)
 	: Support_Plane_Object(_id_plane),
 	line (_line),
@@ -274,4 +275,5 @@ const FT & Intersection_Line::c() const
 { 
 	return _c; 
 }
+
 }

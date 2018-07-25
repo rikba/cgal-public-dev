@@ -594,39 +594,32 @@ void Support_Plane::search_lines_in_neighborhood(Polygon_Vertex* v, const FT & t
 
 	const double x_1 = to_double(M_1.x()), x_2 = to_double(M_2.x()), y_1 = to_double(M_1.y()), y_2 = to_double(M_2.y());
 
+
 #if 1
-	// for (int j = 0 ; j < lines_inside.size() ; j++) {
-	// 	Intersection_Line* I_j = lines_inside[j];
-	// 	const double & h_a = I_j->hint_a, & h_b = I_j->hint_b, & h_c = I_j->hint_c;
-	// 	const double dh_1 = h_a * x_1 + h_b * y_1 + h_c;
-	// 	const double dh_2 = h_a * x_2 + h_b * y_2 + h_c;
-
-	// 	if (dh_1 * dh_2 > 0.1) {
-	// 		continue;
-	// 	} else if (dh_1 * dh_2 < -0.1) {
-	// 		L.push_back(std::make_tuple(I_j, false, 0));
-	// 	} else {
-	// 		std::pair<FT, bool> R = v->get_intersection_time(I_j);
-	// 		if (R.second) {
-	// 			if (R.first >= t_1 && R.first < t_2) {
-	// 				L.push_back(std::make_tuple(I_j, true, R.first));
-	// 			}
-	// 		}
-	// 		/*const FT &a = I_j->a(), &b = I_j->b(), &c = I_j->c();
-	// 		const FT d_1 = a * M_1.x() + b * M_1.y() + c;
-	// 		const FT d_2 = a * M_2.x() + b * M_2.y() + c;
-	// 		if (d_1 * d_2 <= 0) {
-	// 			L.push_back(I_j);
-	// 		}*/
-	// 	}
-	// }
-
 	for (int j = 0 ; j < lines_inside.size() ; j++) {
 		Intersection_Line* I_j = lines_inside[j];
-		std::pair<FT, bool> R = v->get_intersection_time(I_j);
+		
+		/*std::pair<FT, bool> R = v->get_intersection_time(I_j);
 		if (R.second) {
 			if (R.first >= t_1 && R.first < t_2) {
 				L.push_back(std::make_tuple(I_j, true, R.first));
+			}
+		}*/
+
+		const double & h_a = I_j->hint_a, & h_b = I_j->hint_b, & h_c = I_j->hint_c;
+		const double dh_1 = h_a * x_1 + h_b * y_1 + h_c;
+		const double dh_2 = h_a * x_2 + h_b * y_2 + h_c;
+
+		if (dh_1 * dh_2 > 0.1) {
+			continue;
+		} else if (dh_1 * dh_2 < -0.1) {
+			L.push_back(std::make_tuple(I_j, false, 0));
+		} else {
+			std::pair<FT, bool> R = v->get_intersection_time(I_j);
+			if (R.second) {
+				if (R.first >= t_1 && R.first < t_2) {
+					L.push_back(std::make_tuple(I_j, true, R.first));
+				}
 			}
 		}
 	}
@@ -781,7 +774,7 @@ Polygon_Tree* Support_Plane::decompose_and_init_segments(const std::vector<CGAL_
 		int i = I->id_object;
 		std::list<Polygon_Vertex *> intersection_pts;
 
-		if (polygon_tree->split(I, intersection_pts, 0, NO_SCHEDULE, true)) {
+		if (polygon_tree->split(I, intersection_pts, 0, Universe::params->K, NO_SCHEDULE, true)) {
 
 			// If the tree had not been divided by another line during the initialization process,
 			// or if only one leaf of the tree is split by the line, then 'intersection' only contains 4 active vertices.
@@ -1099,39 +1092,52 @@ void Support_Plane::process_event(Event_Vertex_Line* e)
 		throw except;
 	}
 
+	if (Universe::params->rt_check) {
+		real_time_check(t_intersectant);
+	}
+
 	clock_t t_end = clock();
 	KP_Stats::process_events_time += (t_end - t_begin);
 	++KP_Stats::process_events_calls;
+}
 
-	/*for (std::map<Signature, Polygon_Cell*, Vector_Bool_Comparator>::iterator it_c = polygon_set->cells_begin() ; it_c != polygon_set->cells_end() ; it_c++) {
+
+
+void Support_Plane::real_time_check(const FT & t) 
+{
+	// For each cell
+	for (std::map<Signature, Polygon_Cell*, Vector_Bool_Comparator>::iterator it_c = polygon_set->cells_begin() ; it_c != polygon_set->cells_end() ; it_c++) {
 		const Signature & S = it_c->first;
 		Polygon_Cell* C = it_c->second;
+
+		// For each polygon contained in the cell
 		for (std::list<Polygon*>::iterator it_p = C->polygons_begin() ; it_p != C->polygons_end() ; it_p++) {
 			Polygon* P = (*it_p);
-			for (std::map<int, Polygon_Vertex*>::iterator it_v = P->vertices.begin() ; it_v != P->vertices.end() ; it_v++) {
-				Polygon_Vertex* v = it_v->second;
+			for (std::list<Polygon_Vertex*>::iterator it_v = P->vertices.begin() ; it_v != P->vertices.end() ; it_v++) {
+				Polygon_Vertex* v = (*it_v);
 				if (!v->is_active) continue;
 
-				CGAL_Point_2 V_t = v->pt(t_intersectant);
+				// Checks that a vertex hasn't silently crossed a line
+				CGAL_Point_2 V_t = v->pt(t);
 				for (std::map<Intersection_Line*, int>::iterator it_l = polygon_set->dictionary.begin() ; it_l != polygon_set->dictionary.end() ; it_l++) {
 					Intersection_Line* I = it_l->first;
 					if (S[it_l->second]) {
 						if (I->a() * V_t.x() + I->b() * V_t.y() + I->c() < 0) {
-							std::cout << "Error with vertex : " << it_v->first << " : missed line at t = " << t_intersectant << std::endl;
-							draw(to_double(t_intersectant), 0.5, 20000, 0.5, 0.5, 10);
+							std::cout << "Error with vertex : " << (*it_v)->id_object << " : missed line at t = " << t << std::endl;
+							draw(to_double(t), 0.5, 20000, 0.5, 0.5, 10);
 							exit(0);
 						}
 					} else {
 						if (I->a() * V_t.x() + I->b() * V_t.y() + I->c() > 0) {
-							std::cout << "Error with vertex : " << it_v->first << " : missed line at t = " << t_intersectant << std::endl;
-							draw(to_double(t_intersectant), 0.5, 20000, 0.5, 0.5, 10);
+							std::cout << "Error with vertex : " << (*it_v)->id_object << " : missed line at t = " << t << std::endl;
+							draw(to_double(t), 0.5, 20000, 0.5, 0.5, 10);
 							exit(0);
 						}
 					}
 				}
 			}
 		}
-	}*/
+	}
 }
 
 
@@ -1157,7 +1163,7 @@ void Support_Plane::get_simultaneous_events(Polygon_Vertex* v, const FT & t, con
 		if (I_p->includes(V_t)) {
 			// If the intersection of I_ref and v is the same as the intersection of I and v,
 			// then e_ref and e occur simultaneously. We remove e from the queue and add it to E.
-			Q->erase(e_p);
+			// Q->erase(e_p);
 			E.push_back(e_p);
 			I.push_back(I_p);
 		}
@@ -1273,4 +1279,5 @@ void Support_Plane::group_final_polygons()
 
 	// std::cout << "id : " << id << ", |G| = " << groups.size() << std::endl;
 }
+
 }

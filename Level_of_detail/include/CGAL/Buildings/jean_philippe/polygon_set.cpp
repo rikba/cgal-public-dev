@@ -2,8 +2,8 @@
 #include "support_plane.h"
 #include "universe.h"
 
-
 namespace JPTD {
+
 Polygon_Set::Polygon_Set(const std::map<int, Intersection_Line*> & L)
 {
 	// Builds a map of correspondances between lines and bits of a signature
@@ -188,4 +188,5 @@ void Polygon_Set::get_polygon_description(std::list<std::list<CGAL_Point_3> > & 
 		}
 	}
 }
+
 }

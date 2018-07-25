@@ -1,7 +1,10 @@
 #include "support_plane_objects.h"
 #include "polygon.h"
+#include "universe.h"
+#include "parameters.h"
 
 namespace JPTD {
+
 Polygon::Polygon(const int _seed, const std::list<Polygon_Vertex*> & _vertices, const std::list<Polygon_Edge*> & _edges)
 {
 	for (std::list<Polygon_Vertex *>::const_iterator it_v = _vertices.begin() ; it_v != _vertices.end() ; it_v++) {
@@ -27,7 +30,7 @@ Polygon::Polygon(const int id_plane, const int _seed, Polygon_Directions* D)
 	
 	for (size_t i = 0 ; i < n ; i++) {
 		const std::pair<CGAL_Point_2, CGAL_Vector_2> & D_i = D->get_vertex(i);
-		Polygon_Vertex* v_i = new Polygon_Vertex(id_plane, 0, D_i.first, D_i.second, NO_SCHEDULE, true);
+		Polygon_Vertex* v_i = new Polygon_Vertex(id_plane, 0, D_i.first, D_i.second, Universe::params->K, NO_SCHEDULE, true);
 
 		vertices.push_back(v_i);
 		v_i->set_as_member_of_polygon(this);
@@ -61,7 +64,7 @@ Polygon::Polygon(const int id_plane, const int _seed, Polygon_Directions* D, con
 
 	for (size_t i = 0 ; i < n; i++) {
 		const std::pair<CGAL_Point_2, CGAL_Vector_2> & D_i = D->get_vertex(i);
-		Polygon_Vertex* v_i = new Polygon_Vertex(id_plane, t, D_i.first + OM, D_i.second, NO_SCHEDULE, true);
+		Polygon_Vertex* v_i = new Polygon_Vertex(id_plane, t, D_i.first + OM, D_i.second, 0, NO_SCHEDULE, true);
 
 		vertices.push_back(v_i);
 		v_i->set_as_member_of_polygon(this);
@@ -226,8 +229,8 @@ void Polygon::split_unconstrained_vertex(Intersection_Line* I, Polygon_Vertex* v
 
 	C = Constraint(I, I->sign(v, 0));
 
-	v1 = new Polygon_Vertex(v->id_plane, t, M_1, dM_1, C, nullptr, SCHEDULE);
-	v2 = new Polygon_Vertex(v->id_plane, t, M_2, dM_2, C, nullptr, SCHEDULE);
+	v1 = new Polygon_Vertex(v->id_plane, t, M_1, dM_1, C, nullptr, 0, SCHEDULE);
+	v2 = new Polygon_Vertex(v->id_plane, t, M_2, dM_2, C, nullptr, 0, SCHEDULE);
 	
 	// Part 2.
 	// Intersection of v1 and v2 into the polygon, removal of v.
@@ -367,7 +370,7 @@ void Polygon::remove_intersectant_edge(Intersection_Line* I, Polygon_Vertex* v1,
 		CGAL_Vector_2 dM;
 		Polygon_Edge::intersection_pt_dir(I, v1, v0, t, V1_t, M, dM);
 		// e1->intersection_pt_dir(I, t, M, dM);
-		v1_ts = new Polygon_Vertex(id, t, M, dM, C_ts, I, SCHEDULE);
+		v1_ts = new Polygon_Vertex(id, t, M, dM, C_ts, I, 0, SCHEDULE);
 	} else {
 		v1_ts = new Polygon_Vertex(id, t, V1_t, C_1, C_ts);
 	}
@@ -377,7 +380,7 @@ void Polygon::remove_intersectant_edge(Intersection_Line* I, Polygon_Vertex* v1,
 		CGAL_Vector_2 dM;
 		Polygon_Edge::intersection_pt_dir(I, v2, v3, t, V2_t, M, dM);
 		// e2->intersection_pt_dir(I, t, M, dM);
-		v2_ts = new Polygon_Vertex(id, t, M, dM, C_ts, I, SCHEDULE);
+		v2_ts = new Polygon_Vertex(id, t, M, dM, C_ts, I, 0, SCHEDULE);
 	} else {
 		v2_ts = new Polygon_Vertex(id, t, V2_t, C_2, C_ts);
 	}
@@ -499,7 +502,7 @@ void Polygon::remove_vertices_colliding_on_intersection_line(Intersection_Line* 
 	// e_a->intersection_pt_dir(I, t, M, dM);
 	
 	const Constraint C = v_c->get_constraint();
-	vc_ts = new Polygon_Vertex(v->id_plane, t, M, dM, C, nullptr, SCHEDULE);
+	vc_ts = new Polygon_Vertex(v->id_plane, t, M, dM, C, nullptr, 0, SCHEDULE);
 	v_c->transfer_segments(vc_ts, t);
 
 	// Deletes and inserts elements
@@ -731,7 +734,7 @@ void Polygon::redirect_constrained_vertex(Intersection_Line* I, Polygon_Vertex* 
 	C_ts = Constraint (I, I->sign(v, 0));
 	
 	v_de = new Polygon_Vertex(v->id_plane, t, V_t, C_v, C_ts);
-	v_ts = new Polygon_Vertex(v->id_plane, t, M, dM, C_ts, I_v, SCHEDULE);
+	v_ts = new Polygon_Vertex(v->id_plane, t, M, dM, C_ts, I_v, 0, SCHEDULE);
 
 	delete_object(v_v0, v_v2, edges, true);
 	delete_object(v, vertices, false);
@@ -778,7 +781,7 @@ void Polygon::redirect_constrained_vertex(Intersection_Line* I, Polygon_Vertex* 
 	const Constraint C_0 = C[0].first, C_1 = C[1].first;
 
 	Polygon_Vertex* v_de = new Polygon_Vertex(v->id_plane, t, V_t, C_0, C_1);
-	v_ts = new Polygon_Vertex(v->id_plane, t, M, dM, C_1, I_discarded, SCHEDULE);
+	v_ts = new Polygon_Vertex(v->id_plane, t, M, dM, C_1, I_discarded, 0, SCHEDULE);
 
 	insert_object(v_de, v_ts, vertices);
 
@@ -843,7 +846,7 @@ Polygon* Polygon::build_as_constrained_vertex_propagates(Polygon_Vertex* v, cons
 
 	const CGAL_Point_2 & M_k = D[k].first;
 	const CGAL_Vector_2 & dM_k = D[k].second;
-	v_k = new Polygon_Vertex(pid, t, M_k, dM_k, C_k, I_discarded, SCHEDULE);
+	v_k = new Polygon_Vertex(pid, t, M_k, dM_k, C_k, I_discarded, 0, SCHEDULE);
 
 	const Constraint C_l = C[(k + 1) % n].first;
 	v_l = nullptr;
@@ -853,7 +856,7 @@ Polygon* Polygon::build_as_constrained_vertex_propagates(Polygon_Vertex* v, cons
 	} else {
 		const CGAL_Point_2 & M_l = D[k + 1].first;
 		const CGAL_Vector_2 & dM_l = D[k + 1].second;
-		v_l = new Polygon_Vertex(pid, t, M_l, dM_l, C_l, I_discarded, SCHEDULE);
+		v_l = new Polygon_Vertex(pid, t, M_l, dM_l, C_l, I_discarded, 0, SCHEDULE);
 	}
 
 	Polygon_Vertex* v_kl = new Polygon_Vertex(pid, t, V_t, C_k, C_l);
@@ -1050,4 +1053,5 @@ void Polygon::shift_remaining_vertices_and_schedule_events(const std::list<Polyg
 		}
 	}	
 }
+
 }

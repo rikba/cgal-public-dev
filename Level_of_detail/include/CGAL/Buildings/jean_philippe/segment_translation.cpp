@@ -1,6 +1,7 @@
 #include "segment_translation.h"
 
 namespace JPTD {
+
 Segment_Translation::Segment_Translation(const FT & t, const CGAL_Point_2 & _A, const CGAL_Point_2 & _B)
 :	type (INSTANTANEOUS),
 	t_int_start (t),
@@ -38,4 +39,5 @@ void Segment_Translation::set_end(const FT & t)
 	t_int_end = t;
 	B = A + (t_int_end - t_int_start) * dA;
 }
+
 }

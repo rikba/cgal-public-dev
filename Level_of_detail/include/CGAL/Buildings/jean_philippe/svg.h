@@ -5,6 +5,7 @@
 #include "support_plane_objects.h"
 
 namespace JPTD {
+
 namespace SVG {
 	
 	inline void markup_header(std::ostream & os, int rows, int cols)
@@ -78,4 +79,5 @@ namespace SVG {
 		os << "    </marker>" << std::endl;	
 	}
 }
+
 }

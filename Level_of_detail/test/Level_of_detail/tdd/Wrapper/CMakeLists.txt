@@ -87,7 +87,6 @@ if (CGAL_FOUND)
 	../../../../include/CGAL/Buildings/jean_philippe/partition.cpp
 	../../../../include/CGAL/Buildings/jean_philippe/planar_segment.cpp
 	../../../../include/CGAL/Buildings/jean_philippe/ply_in.cpp
-	../../../../include/CGAL/Buildings/jean_philippe/ply_out.cpp
 	../../../../include/CGAL/Buildings/jean_philippe/polygon_cell.cpp
 	../../../../include/CGAL/Buildings/jean_philippe/polygon_directions.cpp
 	../../../../include/CGAL/Buildings/jean_philippe/polygon_edge.cpp
@@ -106,6 +105,7 @@ if (CGAL_FOUND)
 	../../../../include/CGAL/Buildings/jean_philippe/support_plane_event_handlers.cpp
 	../../../../include/CGAL/Buildings/jean_philippe/support_plane_object.cpp
 	../../../../include/CGAL/Buildings/jean_philippe/support_plane_segment_initializers.cpp
+	../../../../include/CGAL/Buildings/jean_philippe/support_plane_stopping_condition.cpp
 	../../../../include/CGAL/Buildings/jean_philippe/support_plane.cpp
 	../../../../include/CGAL/Buildings/jean_philippe/universe.cpp
 	../../../../include/CGAL/Buildings/jean_philippe/vars.cpp

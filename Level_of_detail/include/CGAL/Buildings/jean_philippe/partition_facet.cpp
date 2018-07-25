@@ -4,6 +4,7 @@
 #include "support_plane.h"
 
 namespace JPTD {
+
 Partition_Facet::Partition_Facet(const int _P, const std::list<Partition_Edge*> & E)
 	: id (++Counters::id_partition_facet),
 	p (_P),
@@ -231,4 +232,5 @@ Partition_Polyhedron* Partition_Facet::get_polyhedron_2() const
 {
 	return polyhedron_2;
 }
+
 }

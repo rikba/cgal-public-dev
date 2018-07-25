@@ -1,6 +1,7 @@
 #pragma once
-#include <list>
-#include "defs.h"
+#include "defs_cgal.h"
+#include <map>
+
 namespace JPTD {
 
 typedef enum {
@@ -8,7 +9,6 @@ typedef enum {
 	SCHEDULE = 1,
 	SORT = 2,
 } Event_Flags;
-
 
 
 class Event_Vertex_Line
@@ -34,12 +34,15 @@ inline bool compare_events_by_intersectant_object(Event_Vertex_Line* e_i, Event_
 }
 
 
+
 inline bool compare_events_by_intersected_object(Event_Vertex_Line* e_i, Event_Vertex_Line* e_j) {
 	return (e_i->intersected < e_j->intersected);
 }
 
 
+
 inline bool compare_events_by_time(Event_Vertex_Line* e_i, Event_Vertex_Line* e_j) {
 	return (e_i->t_intersectant < e_j->t_intersectant);
 }
+
 }

@@ -3,6 +3,7 @@
 #include <CGAL/convex_hull_2.h>
 
 namespace JPTD {
+
 Polygon_Group::Polygon_Group(Polygon* P)
 {
 	// We assume that this function is called when all vertices have stopped propagating
@@ -285,4 +286,5 @@ void Polygon_Group::get_extended_convex_hull(std::list<std::tuple<int, int, CGAL
 		H.push_back(std::make_tuple(i_1, i_2, M));
 	}
 }
+
 }

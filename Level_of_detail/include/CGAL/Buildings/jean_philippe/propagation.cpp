@@ -26,6 +26,7 @@
 #include <CGAL/Polygon_2_algorithms.h>
 
 namespace JPTD {
+
 using namespace boost::filesystem;
 using CGAL::to_double;
 
@@ -71,6 +72,11 @@ Kinetic_Propagation::Kinetic_Propagation(int argc, char *argv[], Preprocess proc
 			generate_polygons_randomly(N, P, D);
 		}
 
+		const std::string & filename_point_cloud = Universe::params->path_point_cloud;
+		if (!filename_point_cloud.empty()) {
+			init_point_cloud_octree(filename_point_cloud);
+		}
+
 	} catch (std::exception & e) {
 		polygons.clear();
 		std::cout << e.what() << std::endl;
@@ -83,7 +89,7 @@ Kinetic_Propagation::Kinetic_Propagation(int argc, char *argv[], Preprocess proc
 
 
 
-Kinetic_Propagation::Kinetic_Propagation(const std::vector<std::vector<CGAL_EPICK_Point_3> > & primitives, Preprocess process)
+Kinetic_Propagation::Kinetic_Propagation(const std::vector<std::vector<CGAL_Inexact_Point_3> > & primitives, Preprocess process)
 {
 	const size_t n = primitives.size();
 
@@ -96,7 +102,7 @@ Kinetic_Propagation::Kinetic_Propagation(const std::vector<std::vector<CGAL_EPIC
 		P.reserve(p);
 
 		for (size_t j = 0 ; j < p ; j++) {
-			const CGAL_EPICK_Point_3 & p_ij = primitives[i][j];
+			const CGAL_Inexact_Point_3 & p_ij = primitives[i][j];
 			FT x = p_ij.x(), y = p_ij.y(), z = p_ij.z();
 			P.push_back(CGAL_Point_3(x, y, z));
 		}
@@ -187,8 +193,8 @@ void Kinetic_Propagation::run()
 		// Cleans memory
 		// delete_kinetic_data_structure();
 
+		/*
 		{
-			/*
 			std::cout << "** schedule_events() : " << std::endl;
 			std::cout << "calls      : " << KP_Stats::schedule_events_vertices << std::endl;
 			std::cout << "lines      : " << KP_Stats::schedule_events_lines << std::endl;
@@ -203,8 +209,8 @@ void Kinetic_Propagation::run()
 			std::cout << "** process_events() : " << std::endl;
 			std::cout << "time       : " << double(KP_Stats::process_events_time) / CLOCKS_PER_SEC << " s." << std::endl;
 			std::cout << "events     : " << KP_Stats::process_events_calls << std::endl;
-			std::cout << "average    : " << double(KP_Stats::process_events_time) / (CLOCKS_PER_SEC * KP_Stats::process_events_calls) << std::endl; */
-		}
+			std::cout << "average    : " << double(KP_Stats::process_events_time) / (CLOCKS_PER_SEC * KP_Stats::process_events_calls) << std::endl;
+		} */
 
 	} catch (std::exception & except) {
 		throw except;
@@ -521,6 +527,47 @@ void Kinetic_Propagation::generate_polygons_randomly(const int N)
 		}
 
 		stream.close();
+	}
+}
+
+
+
+void Kinetic_Propagation::init_point_cloud_octree(const std::string & filename)
+{
+	// We suppose that filename points to a list of points.
+	// We call our simplified parser to read it.
+	std::vector<CGAL_Point_3> C_points;
+	Ply_In::read(filename, C_points);
+ 
+	// We convert the CGAL_Point_3 objects into MPIR_Point_3 points.
+	// We simultaneously identify the extrema along each axis
+	double _extrema[6] = { FLT_MAX, -FLT_MAX, FLT_MAX, -FLT_MAX, FLT_MAX, -FLT_MAX };
+	std::vector<double> extrema(_extrema, _extrema + sizeof(_extrema) / sizeof(double));
+
+	std::vector<Octree_Base_Vertex<CGAL_Point_3, CGAL_Inexact_Point_3>*> points;
+	points.reserve(C_points.size());
+	for (size_t i = 0 ; i < C_points.size() ; i++) {
+		const CGAL_Point_3 & C = C_points[i];
+
+		double xd = CGAL::to_double(C.x());
+		double yd = CGAL::to_double(C.x());
+		double zd = CGAL::to_double(C.x());
+		CGAL_Inexact_Point_3 hint_C(xd, yd, zd);
+
+		if (xd < extrema[0]) extrema[0] = xd;
+		if (xd > extrema[1]) extrema[1] = xd;
+		if (yd < extrema[2]) extrema[2] = yd;
+		if (yd > extrema[3]) extrema[3] = yd;
+		if (zd < extrema[4]) extrema[4] = zd;
+		if (zd > extrema[5]) extrema[5] = zd;
+
+		points.push_back(new Octree_Base_Vertex<CGAL_Point_3, CGAL_Inexact_Point_3>(C, hint_C));
+	}
+
+	// Initialize the octree
+	Universe::point_cloud_octree = new Octree_Base<CGAL_Point_3, CGAL_Inexact_Point_3>(extrema);
+	for (size_t i = 0 ; i < points.size() ; i++) {
+		Universe::point_cloud_octree->add(points[i]);
 	}
 }
 
@@ -1155,7 +1202,7 @@ void Kinetic_Propagation::unstack()
 			std::cout << "* [" << SP->id << "] " << e_vl->intersectant << " " << e_vl->intersected << " " << e_vl->t_intersectant << std::endl;
 		}
 
-		if (Universe::params->print_drawings) {
+		if (Universe::params->print_drawings && SP->id == 6) {
 			SP->draw(t_intersectant, 0.5, 3000, 0.5, 0.5, 10);
 		}
 
@@ -1164,6 +1211,13 @@ void Kinetic_Propagation::unstack()
 	}
 
 	// std::cout << "** Processed all events" << std::endl;
+
+	if (Universe::params->print_drawings) {
+		write_polygons(FLT_MAX);
+		for (int i = 0; i < Universe::map_of_planes.size(); i++) {
+			Universe::map_of_planes[i]->draw(5000, 0.5, 5000, 0.5, 0.5, 10);
+		}
+	}
 
 	if (Universe::params->check) {
 		clock_t t_check_begin = clock();
@@ -1174,14 +1228,7 @@ void Kinetic_Propagation::unstack()
 			}
 		}
 		clock_t t_check_end = clock();
-		// std::cout << "** Checked data in " << double(t_check_end - t_check_begin) / CLOCKS_PER_SEC << " s." << std::endl;
-	}
-
-	if (Universe::params->print_drawings) {
-		write_polygons(FLT_MAX);
-		for (int i = 6; i < Universe::map_of_planes.size(); i++) {
-			Universe::map_of_planes[i]->draw(5000, 0.5, 5000, 0.5, 0.5, 10);
-		}
+		std::cout << "** Checked data in " << double(t_check_end - t_check_begin) / CLOCKS_PER_SEC << " s." << std::endl;
 	}
 }
 
@@ -1224,7 +1271,7 @@ void Kinetic_Propagation::unstack()
 
 void Kinetic_Propagation::build_partition()
 {
-	const std::string &basename = Universe::params->basename;
+	const std::string & basename = Universe::params->basename;
 
 	partition = new Partition();
 	partition->build();
@@ -1232,18 +1279,13 @@ void Kinetic_Propagation::build_partition()
 	// std::cout << "** Built a partition with " << partition->polyhedrons_size() << " polyhedrons" << std::endl;
 
 	if (Universe::params->output_facets) {
-
-		// std::cout << "here1" << std::endl;
-		const std::string filename = "/Users/danisimo/Documents/pipeline/logs/tmp/lod_2/" + basename + "_facets.ply";
- 		partition->ply_facets(filename);
+		const std::string filename = basename + "_facets.ply";
+		partition->ply_facets(filename);
 	}
 
 	if (Universe::params->output_polyhedrons) {
-
-		// std::cout << "here2" << std::endl;
 		for (std::list<Partition_Polyhedron*>::const_iterator it_p = partition->polyhedrons_begin(); it_p != partition->polyhedrons_end(); it_p++) {
 			int i = (*it_p)->id;
-
 			const std::string filename_poly = basename + "_poly_" + std::to_string(i) + ".ply";
 			partition->ply_individual_polyhedron(filename_poly, i);
 		}
@@ -1276,6 +1318,7 @@ void Kinetic_Propagation::write_polygons(const double t) const
 		Universe::map_of_planes[i]->get_polygon_description(polygons, colors, t);
 	}
 
-	Ply_Out::print_plain_colorful_facets(filename, polygons, colors);
+	Ply_Out::print_plain_colorful_facets(filename, polygons, colors, 25);
 }
+
 }

@@ -1,7 +1,9 @@
 #pragma once
 #include "defs.h"
+#include "defs_cgal.h"
 
 namespace JPTD {
+
 typedef enum {
 	INSTANTANEOUS,
 	PROGRESSIVE
@@ -30,4 +32,5 @@ public:
 	CGAL_Point_2 B;
 	CGAL_Vector_2 dA;
 };
+
 }

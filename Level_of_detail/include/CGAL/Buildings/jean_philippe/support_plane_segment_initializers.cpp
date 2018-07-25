@@ -323,4 +323,5 @@ void Support_Plane::build_n_uplets_of_segments_as_edge_collides_line(Intersectio
 		}
 	}
 }
+
 }

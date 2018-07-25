@@ -38,8 +38,12 @@ void Kinetic_Parameters::reset()
 	output_polyhedrons = false;
 
 	check = false;
+	rt_check = false;
 	print_schedule = false;
 	print_drawings = false;
+
+	stopping_condition = 0;
+	K = 0;
 }
 
 
@@ -68,11 +72,14 @@ void Kinetic_Parameters::set_options(int argc, char *argv[])
 			location = boost::filesystem::path(path).parent_path().string();
 			basename = boost::filesystem::path(path).stem().string();
 			r += 2;
+		} else if (!strcmp(argv[r], "--points") && r + 1 < argc) {
+			path_point_cloud = argv[r + 1];
+			r += 2;
 		} else if (!strcmp(argv[r], "--box") && r + 1 < argc) {
 			boxes = atoi(argv[r + 1]);
 			r += 2;
 		} else if (!strcmp(argv[r], "--tau") && r + 1 < argc) {
-			D = read_quotient(std::string(argv[r + 1]));
+			D = FT(std::string(argv[r + 1]));
 			FT D_inf = FT(99) * D / FT(100), D_sup = FT(99) * D / FT(100);
 			D_inf_2 = D_inf * D_inf;
 			D_sup_2 = D_sup * D_sup;
@@ -86,12 +93,25 @@ void Kinetic_Parameters::set_options(int argc, char *argv[])
 		} else if (!strcmp(argv[r], "--check")) {
 			check = true;
 			r += 1;
-		} else if (!strcmp(argv[r], "--print_schedule")) {
+		} else if (!strcmp(argv[r], "--rt-check")) {
+			rt_check = true;
+			r += 1;
+		} else if (!strcmp(argv[r], "--print-schedule")) {
 			print_schedule = true;
 			r += 1;
 		} else if (!strcmp(argv[r], "--print-drawings")) {
 			print_drawings = true;
 			r += 1;
+		} else if (!strcmp(argv[r], "--K") && r + 1 < argc) {
+			stopping_condition = 0;
+			K = atoi(argv[r + 1]) - 1;
+			r += 2;
+		} else if (!strcmp(argv[r], "--density-based") && r + 4 < argc) {
+			stopping_condition = 1;
+			density_box_length = FT(std::string(argv[r + 1]));
+			density_box_width = FT(std::string(argv[r + 2]));
+			density_box_height = FT(std::string(argv[r + 3]));
+			density_pts = atoi(argv[r + 4]);
 		} else {
 			reset();
 			message();
@@ -137,25 +157,4 @@ void Kinetic_Parameters::set_option(const std::string & option, const std::strin
 	free(args[2]);
 }
 
-
-
-FT Kinetic_Parameters::read_quotient(const std::string & frac)
-{	
-	FT Q;
-	int n = 1, d = 1;
-	for (size_t s = 0 ; s < frac.size() ; s++) {
-		if (frac[s] == '/') {
-			std::string num = frac.substr(0, s);
-			std::string den = frac.substr(s + 1, frac.size() - s - 1);
-			n = atoi(num.c_str());
-			d = atoi(den.c_str());
-			Q = FT(n) / FT(d);
-			return Q;
-		}
-	}
-
-	n = atoi(frac.c_str());
-	Q = FT(n);
-	return Q;
-}
 }

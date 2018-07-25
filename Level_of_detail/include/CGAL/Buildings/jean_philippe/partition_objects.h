@@ -3,6 +3,7 @@
 #include "support_plane_objects.h"
 
 namespace JPTD {
+
 class Partition_Vertex;
 class Partition_Edge;
 class Partition_Facet;
@@ -62,7 +63,7 @@ public:
 public:
 	int id;
 	const CGAL_Point_3 M;
-	const CGAL_EPICK_Point_3 hint_M;
+	const CGAL_Inexact_Point_3 hint_M;
 
 private:
 	std::map<int, int> local_ids;
@@ -238,4 +239,5 @@ inline bool sort_by_vertex_id(Partition_Vertex* v1, Partition_Vertex* v2) { retu
 inline bool sort_by_x_coordinate(Partition_Vertex* v1, Partition_Vertex* v2) { return (v1->M.x() < v2->M.x()); }
 inline bool sort_by_y_coordinate(Partition_Vertex* v1, Partition_Vertex* v2) { return (v1->M.y() < v2->M.y()); }
 inline bool sort_by_z_coordinate(Partition_Vertex* v1, Partition_Vertex* v2) { return (v1->M.z() < v2->M.z()); }
+
 }

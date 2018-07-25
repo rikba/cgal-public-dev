@@ -6,6 +6,7 @@
 #include "polygon_set.h"
 
 namespace JPTD {
+
 typedef std::tuple<int, int, int> Triplet;
 
 class Support_Plane
@@ -157,6 +158,8 @@ public:
 
 	void append(Event_Vertex_Line* e_vl, std::string type);
 
+	void real_time_check(const FT & t);
+
 protected:
 	void get_simultaneous_events(Polygon_Vertex* v, const FT & t, const CGAL_Point_2 & V_t, std::list<Event_Vertex_Line*> & E, Event_Vertex_Line* e, std::list<Intersection_Line*> & I);
 
@@ -198,23 +201,32 @@ protected:
 	void edge_intersects_line(const std::list<Event_Vertex_Line*> & E_1, Polygon_Vertex* v1, Polygon_Vertex* v2, const CGAL_Point_2 & V1_t);
 
 	// Helpers case D
-	void edge_propagates_frontally(Intersection_Line* I, Polygon_Vertex* v1, Polygon_Vertex* v2, const FT t,
+	void edge_propagates_frontally(Intersection_Line* I, Polygon_Vertex* v1, Polygon_Vertex* v2, const FT & t,
 		const CGAL_Point_2 & V_1, const CGAL_Point_3 & W_1, const CGAL_Point_2 & V_2, const CGAL_Point_3 & W_2, const bool propagate_frontally);
 
-	void edge_propagates_laterally(Intersection_Line* I, Polygon_Vertex* v, const FT t, const CGAL_Point_2 & V_t, const CGAL_Point_3 & W_t);
+	void edge_propagates_laterally(Intersection_Line* I, Polygon_Vertex* v, const FT & t, const CGAL_Point_2 & V_t, const CGAL_Point_3 & W_t);
 
-	bool edge_is_propagating_frontally(Intersection_Line* I, Polygon_Vertex* v1, Polygon_Vertex* v2, const FT t, const CGAL_Point_2 & V_1, const CGAL_Point_2 & V_2);
+	bool edge_is_propagating_frontally(Intersection_Line* I, Polygon_Vertex* v1, Polygon_Vertex* v2, const FT & t, const CGAL_Point_2 & V_1, const CGAL_Point_3 & W_1, const CGAL_Point_2 & V_2, const CGAL_Point_3 & W_2);
 
-	bool edge_is_propagating_laterally(Intersection_Line* I, Intersection_Line* I_l, Polygon_Vertex* v, const FT t, const CGAL_Point_2 & V_t);
+	bool edge_is_propagating_laterally(Intersection_Line* I, Intersection_Line* I_l, Polygon_Vertex* v, const FT & t, const CGAL_Point_2 & V_t, const CGAL_Point_3 & W_t);
 
 
 	// Evaluate stop conditions
 
-	bool propagation_continues_outside_intersections(Intersection_Line* I, const CGAL_Point_2 & V_t, const FT & t, const std::vector<bool> & S, const int seed) const;
+	bool propagation_continues_outside_intersections(Intersection_Line* I, Polygon_Vertex* v, const CGAL_Point_2 & V_t,
+		const CGAL_Point_3 & W_t, const FT & t, const std::vector<bool> & S, const int seed) const;
 
-	bool propagation_continues_at_intersection(Intersection_Line* I, const CGAL_Point_2 & V_t, const Constraint & C, const FT & t, const std::vector<bool> & S, const int seed) const;
+	bool propagation_continues_at_intersection(Intersection_Line* I, Polygon_Vertex* v, const CGAL_Point_2 & V_t,
+		const CGAL_Point_3 & W_t, const Constraint & C, const FT & t, const std::vector<bool> & S, const int seed) const;
 
-	bool propagation_continues_at_intersection(Intersection_Line* I, const CGAL_Point_2 & V_t, const std::list<Constraint> & C_limits, const FT & t, const std::vector<bool> & S, const int seed) const;
+	bool propagation_continues_at_intersection(Intersection_Line* I, Polygon_Vertex* v, const CGAL_Point_2 & V_t,
+		const CGAL_Point_3 & W_t, const std::list<Constraint> & C_limits, const FT & t, const std::vector<bool> & S, const int seed) const;
+
+	bool K_based_stopping_condition(bool exist_segments, Polygon_Vertex* v) const;
+
+	bool density_based_stopping_condition(const CGAL_Point_2 & V_t, const CGAL_Point_3 & W_t, const CGAL_Vector_2 & dM) const;
+
+	FT project_to_parallel_plane(const FT & D, const CGAL_Vector_3 & n) const;
 
 	// bool propagation_continues(Intersection_Line* I, const CGAL_Point_2 & V_t, const std::list<Constraint> & C_limits, const FT t, const std::vector<bool> & S, const int seed);
 

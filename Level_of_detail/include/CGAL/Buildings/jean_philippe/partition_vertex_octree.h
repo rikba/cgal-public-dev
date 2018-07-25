@@ -4,6 +4,7 @@
 #include "partition_objects.h"
 
 namespace JPTD {
+
 class Partition_Vertex_Octree
 {
 public:
@@ -37,7 +38,7 @@ public:
 private:
 	Partition_Vertex_Octree* assign(Partition_Vertex* v) const;
 
-	void search(const CGAL_Point_3 & M, const CGAL_EPICK_Point_3 & hint_M, std::list<Partition_Vertex *> & R) const;
+	void search(const CGAL_Point_3 & M, const CGAL_Inexact_Point_3 & hint_M, std::list<Partition_Vertex *> & R) const;
 
 	void search(const std::vector<double> & dims, std::list<Partition_Vertex *> & R) const;
 
@@ -64,4 +65,5 @@ public:
 
 	std::list<Partition_Vertex*> vertices;
 };
+
 }

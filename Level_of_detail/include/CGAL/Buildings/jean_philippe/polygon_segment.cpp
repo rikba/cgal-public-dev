@@ -391,13 +391,7 @@ bool Polygon_Segment::includes_point_on_support_line(const CGAL_Point_2 & M, con
 	CGAL_Point_2 A = origin();
 	CGAL_Point_2 B = (stopped() ? end() : pt(t));
 	
-	FT x_a = A.x(), x_b = B.x(), x = M.x();
-	if (x_a != x_b) {
-		return ((x_a <= x && x <= x_b) || (x_b <= x && x <= x_a));
-	} else {
-		FT y_a = A.y(), y_b = B.y(), y = M.y();
-		return ((y_a <= y && y <= y_b) || (y_b <= y && y <= y_a));
-	}
+	return closed_segment_includes(M, A, B);
 }
 
 
@@ -411,10 +405,12 @@ bool Polygon_Segment::includes_point_at_intersection(const CGAL_Point_2 & M, con
 	Intersection_Line* J = C.first;
 	Sign J_eps = C.second;
 
+	// Test (1).
 	// If J is crossed by the segment, then M belongs to it
 	std::list<Intersection_Line*>::const_iterator it_l = std::find(C_crossed.cbegin(), C_crossed.cend(), J);
 	if (it_l != C_crossed.cend()) return true;
 
+	// Test (2).
 	// Compares J to the lines that delimit the segment.
 	// If they are not nullptr, then the segment includes M 
 	// iff the initial or stop constraint have the same sign as C
@@ -426,15 +422,44 @@ bool Polygon_Segment::includes_point_at_intersection(const CGAL_Point_2 & M, con
 		return (C_stop.second == J_eps);
 	}
 
-	if (I_init != nullptr && I_stop != nullptr) {
-		// M is necessarily located outside the point because J is not I_init, I_stop or in C_crossed
-		return false;
+	// Test (3).
+	// If the initial and stop conditions of the segment are determined,
+	// then M is necessarily located outside the point because J is not I_init, I_stop or in C_crossed
+	if (I_init != nullptr && I_stop != nullptr) return false;
+
+	// // Unfortunately we have to perform a numerical computation
+	// // M belongs to the line, so if A and B represent the segments' ends,
+	// // we should have A.x <= M.x <= B.x (or A.y <= M.y <= B.y)
+	// return includes_point_on_support_line(M, t);
+
+	// Test (4).
+	// All the remaining cases imply numerical computations.
+
+	// If s has stopped :
+	// (4.1) We return the result of the test (M in s).
+	// Else :
+	// (4.2) We consider A = origin(), B = pt(t).
+	//       If M is in [AB[, then the segment includes M : we return true.
+	//       Else, if M = B, then determine on which side of the line J is pt(t).
+	//       Else, we return false (M is outside [AB]).
+
+	CGAL_Point_2 A = origin(), B;
+
+	if (stopped()) {
+		// Test (4.1)
+		B = end();
+		return closed_segment_includes(M, A, B);
 
 	} else {
-		// Unfortunately we have to perform a numerical computation
-		// M belongs to the line, so if A and B represent the segments' ends,
-		// we should have A.x <= M.x <= B.x (or A.y <= M.y <= B.y)
-		return includes_point_on_support_line(M, t);
+		// Test (4.2)
+		B = pt(t);
+		if (half_closed_segment_includes(M, A, B)) {
+			return true;
+		} else if (M == B) {
+			return (J_eps == J->sign(A));
+		} else {
+			return false;
+		}
 	}
 }
 
@@ -634,6 +659,80 @@ void Polygon_Segment::check() const
 		}
 		assert(test_5);
 	}
+
+	// Test 4
+	// The head and the tail of a segment are touching another segment
+
+	bool touch = false;
+
+test_4a:
+	for (std::list<Segment*>::const_iterator it_s = I_stop->segments.begin() ; it_s != I_stop->segments.end() ; ++it_s) {
+		if (Planar_Segment* pl_s = dynamic_cast<Planar_Segment*>(*it_s)) {
+			CGAL_Segment_2 PLS (pl_s->A, pl_s->B);
+			if (PLS.has_on(B)) {
+				touch = true;
+				goto test_4b;
+			}
+
+		} else if (Polygon_Segment* po_s = dynamic_cast<Polygon_Segment*>(*it_s)) {
+			CGAL_Segment_2 POS(po_s->origin(), po_s->end());
+			if (POS.has_on(B)) {
+				touch = true;
+				goto test_4b;
+			}
+		}
+	}
+
+	if (!touch) {
+
+		for (std::list<Segment*>::const_iterator it_s = I_supp->segments.begin() ; it_s != I_supp->segments.end() ; ++it_s) {
+			if (Polygon_Segment* po_s = dynamic_cast<Polygon_Segment*>(*it_s)) {
+				if (po_s != this) {
+					CGAL_Segment_2 POS(po_s->origin(), po_s->end());
+					if (POS.has_on(B)) {
+						touch = true;
+						goto test_4b;
+					}
+				}
+			}
+		}
+	}
+
+	if (!touch) {
+		who_is();
+		assert(touch);
+	}
+
+	touch = false;
+
+test_4b:
+
+	if (opposite == nullptr) {
+		for (std::list<Segment*>::const_iterator it_s = I_init->segments.begin(); it_s != I_init->segments.end(); ++it_s) {
+			if (Planar_Segment* pl_s = dynamic_cast<Planar_Segment*>(*it_s)) {
+				CGAL_Segment_2 PLS(pl_s->A, pl_s->B);
+				if (PLS.has_on(A)) {
+					touch = true;
+					goto test_5;
+				}
+
+			} else if (Polygon_Segment* po_s = dynamic_cast<Polygon_Segment*>(*it_s)) {
+				CGAL_Segment_2 POS(po_s->origin(), po_s->end());
+				if (POS.has_on(A)) {
+					touch = true;
+					goto test_5;
+				}
+			}
+		}
+	}
+
+	if (!touch) {
+		who_is();
+		assert(touch);
+	}
+
+test_5:
+	return;
 }
 
 
@@ -661,4 +760,5 @@ void Polygon_Segment::who_is() const
 	std::cout << "|C_crossed| = " << C_crossed.size() << std::endl;
 	std::cout << "|Tr| = " << Tr_previous.size() << std::endl;
 }
+
 }

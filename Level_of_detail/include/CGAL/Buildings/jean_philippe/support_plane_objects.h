@@ -8,6 +8,7 @@
 #include <vector>
 
 namespace JPTD {
+
 class Intersection_Line;
 class Polygon_Vertex;
 class Polygon_Edge;
@@ -81,11 +82,11 @@ public:
 
 class Polygon_Vertex : public Support_Plane_Object {
 public:
-	Polygon_Vertex(const int _id_plane, const FT & _t_init, const CGAL_Point_2 & _M, const CGAL_Vector_2 & _dM, Event_Flags flags, bool is_moving);
+	Polygon_Vertex(const int _id_plane, const FT & _t_init, const CGAL_Point_2 & _M, const CGAL_Vector_2 & _dM, const int _K, Event_Flags flags, bool is_moving);
 
-	Polygon_Vertex(const int _id_plane, const FT & _t_init, const CGAL_Point_2 & _M, const CGAL_Vector_2 & _dM, const Constraint & C, Intersection_Line* I_discarded, Event_Flags flags);
+	Polygon_Vertex(const int _id_plane, const FT & _t_init, const CGAL_Point_2 & _M, const CGAL_Vector_2 & _dM, const Constraint & C, Intersection_Line* I_discarded, const int _K, Event_Flags flags);
 
-	Polygon_Vertex(const int _id_plane, const FT & _t_init, const CGAL_Point_2 & _M, const CGAL_Vector_2 & _dM, const Constraint & C, const std::list<Intersection_Line*> & I_discarded, Event_Flags flags);
+	Polygon_Vertex(const int _id_plane, const FT & _t_init, const CGAL_Point_2 & _M, const CGAL_Vector_2 & _dM, const Constraint & C, const std::list<Intersection_Line*> & I_discarded, const int _K, Event_Flags flags);
 
 	Polygon_Vertex(const int _id_plane, const FT & _t_init, const CGAL_Point_2 & _M, const Constraint & C_1, const Constraint & C_2);
 
@@ -194,6 +195,7 @@ public:
 	CGAL_Vector_2 dM;
 	FT t_init;
 	FT t_stop;
+	int K;
 
 protected:
 	std::map<int, Event_Vertex_Line*> lines_to_events;
@@ -239,9 +241,9 @@ public:
 	// - we know that v1 intersects I in V1_t.
 	static void intersection_pt_dir(Intersection_Line* I, Polygon_Vertex* v1, Polygon_Vertex* v2, const FT & t, const CGAL_Point_2 & V1_t, CGAL_Point_2 & M, CGAL_Vector_2 & dM);
 
-	Polygon_Vertex* intersection(Intersection_Line* I, Sign s, const FT & t, Event_Flags flags) const;
+	Polygon_Vertex* intersection(Intersection_Line* I, Sign s, const FT & t, const int K, Event_Flags flags) const;
 
-	Polygon_Vertex* intersection(Intersection_Line* I, Sign s, const FT & t, const CGAL_Point_2 & M, const CGAL_Vector_2 & dM, Event_Flags flags) const;
+	Polygon_Vertex* intersection(Intersection_Line* I, Sign s, const FT & t, const CGAL_Point_2 & M, const CGAL_Vector_2 & dM, const int K, Event_Flags flags) const;
 
 	bool is_adjacent_to_segment() const;
 
@@ -260,6 +262,10 @@ protected:
 
 public:
 	virtual ~Segment();
+
+	static bool closed_segment_includes(const CGAL_Point_2 & M, const CGAL_Point_2 & A, const CGAL_Point_2 & B);
+
+	static bool half_closed_segment_includes(const CGAL_Point_2 & M, const CGAL_Point_2 & A, const CGAL_Point_2 & B);
 
 public:
 	Intersection_Line* support;	
@@ -371,4 +377,5 @@ protected:
 	std::list<Intersection_Line*> C_crossed;
 	Polygon_Segment* opposite;
 };
+
 }

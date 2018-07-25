@@ -11,10 +11,11 @@
 // CGAL includes.
 #include <CGAL/utils.h>
 #include <CGAL/number_utils.h>
+#include <CGAL/Simple_cartesian.h>
 #include <CGAL/point_generators_2.h>
 
 // Jean Philippe includes.
-#include <CGAL/Buildings/jean_philippe/defs.h>
+#include <CGAL/Buildings/jean_philippe/defs_cgal.h>
 
 // New CGAL includes.
 #include <CGAL/Region_growing/Level_of_detail_linear_region_growing.h>
@@ -64,8 +65,6 @@ namespace CGAL {
             typename Kernel::Compute_scalar_product_3 		  dot_product_3;
 			typename Kernel::Construct_cross_product_vector_3 cross_product_3;
 
-            using Point_creator_2 = Creator_uniform_2<FT, Point_2>;
-
             using Initial_roofs_estimator = CGAL::LOD::Level_of_detail_building_roofs_estimator<Kernel, Input, Building, Buildings>;
 
             using Segment_region_growing = CGAL::LOD::Level_of_detail_linear_region_growing<Kernel>;
@@ -76,6 +75,13 @@ namespace CGAL {
 
             using Index   = int;
 			using Indices = std::vector<Index>;
+
+            using Local_kernel = CGAL::Simple_cartesian<double>;
+			using Local_ft     = Local_kernel::FT;
+            using Point_2ft    = Local_kernel::Point_2;
+
+            using Point_creator_2ft = Creator_uniform_2<Local_ft, Point_2ft>;
+            using Points_2ft = std::vector<Point_2ft>;
 
             Level_of_detail_building_kinetic_partition_input_creator(const Input &input, const FT ground_height, Buildings &buildings) :
             m_input(input),
@@ -547,16 +553,19 @@ namespace CGAL {
 
             void perturb_point_inside_disc(const FT disc_radius, Point_3 &p) const {
 
-                Points_2 points_2;
-                points_2.reserve(m_num_points_in_disc);
+                Points_2ft points_2ft;
+                points_2ft.reserve(m_num_points_in_disc);
 
-                Random_points_in_disc_2<Point_2, Point_creator_2> random_points(disc_radius);
-                CGAL::cpp11::copy_n(random_points, m_num_points_in_disc, std::back_inserter(points_2));
+                Random_points_in_disc_2<Point_2ft, Point_creator_2ft> random_points_2ft(CGAL::to_double(disc_radius));
+                CGAL::cpp11::copy_n(random_points_2ft, m_num_points_in_disc, std::back_inserter(points_2ft));
 
                 const size_t rand_index = size_t_rand(m_num_points_in_disc - 1);
-                const Point_2 &q = points_2[rand_index];
+                const Point_2ft &q = points_2ft[rand_index];
 
-                p = Point_3(p.x() + q.x(), p.y() + q.y(), p.z());
+                const FT qx = static_cast<FT>(q.x());
+                const FT qy = static_cast<FT>(q.y());
+
+                p = Point_3(p.x() + qx, p.y() + qy, p.z());
             }
 
             size_t size_t_rand(const size_t maxv) const {

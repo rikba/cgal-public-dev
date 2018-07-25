@@ -6,7 +6,11 @@
 #include <vector>
 #include <random>
 
+#include "defs_cgal.h"
+#include "octree_base.h"
+
 namespace JPTD {
+
 class Kinetic_Parameters;
 
 class Polygon_Vertex;
@@ -31,5 +35,8 @@ namespace Universe
 	extern int moving_objects;
 
 	extern Event_Queue* event_queue;
+
+	extern Octree_Base<CGAL_Point_3, CGAL_Inexact_Point_3>* point_cloud_octree;
 };
+
 }

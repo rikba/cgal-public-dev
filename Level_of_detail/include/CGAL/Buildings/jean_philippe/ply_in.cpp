@@ -3,8 +3,8 @@
 #include <iostream>
 #include <fstream>
 
-
 namespace JPTD {
+
 void Ply_In::read(const std::string & filename, std::vector<std::vector<CGAL_Point_3> > & polygons)
 {
 	// Opens file
@@ -33,6 +33,36 @@ void Ply_In::read(const std::string & filename, std::vector<std::vector<CGAL_Poi
 	// Closes file
 	file.close();
 }
+
+
+
+void Ply_In::read(const std::string & filename, std::vector<CGAL_Point_3> & points)
+{
+	// Same as before, but we suppose that we read a file that contains points.
+
+	std::ifstream file(filename);
+	if (!file.is_open()) {
+		throw std::ios_base::failure("Error : input file cannot be opened.");
+	}
+
+	// Declares the data we're interested in
+	int V = -1, F = -1;
+
+	// Sequentially reads elements
+	try {
+		get_number_of_vertices_and_facets(file, V, F);
+		get_vertices(file, V, points);
+
+	} catch (std::exception & except) {
+		points.clear();
+		file.close();
+		throw except;
+	}
+
+	// Closes file
+	file.close();
+}
+
 
 
 bool Ply_In::get_words(std::ifstream & file, std::vector<std::string> & words)
@@ -130,4 +160,5 @@ void Ply_In::get_facets(std::ifstream & file, const int n, const std::vector<CGA
 		polygons.push_back(polygon);
 	}
 }
+
 }

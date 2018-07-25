@@ -7,6 +7,7 @@
 #include <CGAL/convex_hull_2.h>
 
 namespace JPTD {
+
 using CGAL::to_double;
 
 
@@ -359,4 +360,5 @@ void Support_Plane::draw(FT t, double dt, int size, double x_step, double y_step
 	SVG::markup_footer(os);
 	fb.close();
 }
+
 }

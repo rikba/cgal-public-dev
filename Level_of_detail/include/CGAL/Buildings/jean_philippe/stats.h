@@ -2,6 +2,7 @@
 #include <ctime>
 
 namespace JPTD {
+
 namespace KP_Stats 
 {
 	extern int insert_temporally_calls;
@@ -21,4 +22,5 @@ namespace KP_Stats
 	extern clock_t process_events_time;
 	extern int process_events_calls;
 }
+
 }

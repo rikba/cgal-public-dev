@@ -2,6 +2,7 @@
 #include "polygon.h"
 
 namespace JPTD {
+
 typedef std::vector<bool> Signature;
 
 
@@ -52,4 +53,5 @@ struct Vector_Bool_Comparator
 		return false;
 	}
 };
+
 }
