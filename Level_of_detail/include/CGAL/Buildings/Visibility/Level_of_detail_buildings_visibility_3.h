@@ -4,6 +4,7 @@
 // CGAL includes.
 #include <CGAL/utils.h>
 #include <CGAL/number_utils.h>
+#include <CGAL/Polygon_2_algorithms.h>
 #include <CGAL/Barycentric_coordinates_2/Mean_value_2.h>
 #include <CGAL/Barycentric_coordinates_2/Segment_coordinates_2.h>
 #include <CGAL/Barycentric_coordinates_2/Generalized_barycentric_coordinates_2.h>
@@ -25,7 +26,6 @@ namespace CGAL {
             using Point_2    = typename Kernel::Point_2;
             using Point_3    = typename Kernel::Point_3;
             using Triangle_2 = typename Kernel::Triangle_2;
-            using Triangle_3 = typename Kernel::Triangle_3;
             using Line_2     = typename Kernel::Line_2;
             using Line_3     = typename Kernel::Line_3;
             using Vector_3   = typename Kernel::Vector_3;
@@ -60,14 +60,18 @@ namespace CGAL {
             using Mean_value = CGAL::Barycentric_coordinates::Mean_value_2<Kernel>;
             using Mean_value_coordinates = CGAL::Barycentric_coordinates::Generalized_barycentric_coordinates_2<Mean_value, Kernel>;
 
+            using Intersect = typename Kernel::Intersect_3;
+
             Level_of_detail_buildings_visibility_3(const Input &input, const FT ground_height, Buildings &buildings) :
             m_input(input),
             m_buildings(buildings),
             m_ground_height(ground_height),
             m_big_value(FT(100000000000000)),
-            m_distance_tolerance(FT(1)),
-            m_angle_threshold(FT(5)),
-            m_height_offset(FT(1) / FT(10))
+            m_distance_tolerance(FT(2)),
+            m_angle_threshold(FT(10)),
+            m_height_offset(FT(1) / FT(8)),
+            m_bc_tolerance_top(FT(6) / FT(5)),
+            m_bc_tolerance_bottom(-FT(1) / FT(5))
             { }
 
             void apply() {
@@ -95,6 +99,8 @@ namespace CGAL {
             const FT m_distance_tolerance;
             const FT m_angle_threshold;
             const FT m_height_offset;
+            const FT m_bc_tolerance_top;
+            const FT m_bc_tolerance_bottom;
 
             void compute_building_maximum_height(Building &building) const {
 
@@ -133,7 +139,7 @@ namespace CGAL {
                 if (is_below_ground(barycentre, m_ground_height))                  return false;
                 if (is_out_of_building(barycentre, building))                      return false;
                 if (has_vertices_outside(polyhedron, building))                    return false;
-                // if (is_statistically_invalid(polyhedron, building))                return false;
+                if (is_statistically_invalid(polyhedron, building))                return false;
 
                 return true;
             }
@@ -196,25 +202,34 @@ namespace CGAL {
                     const Point_2 &p1 = triangle.vertex(i);
                     const Point_2 &p2 = triangle.vertex(ip);
 
-                    const Pair pair   = BC::compute_segment_coordinates_2(p1, p2, query, Kernel());
                     const Line_2 line = Line_2(p1, p2);
 
                     const Point_2 projected = line.projection(query);
                     const FT squared_distance = squared_distance_2(query, projected);
 
+                    const Pair pair = BC::compute_segment_coordinates_2(p1, p2, projected, Kernel());
+
                     const FT squared_tolerance = m_distance_tolerance * m_distance_tolerance;
-                    if (pair[0] >= FT(0) && pair[1] >= FT(0) && pair[0] <= FT(1) && pair[1] <= FT(1) && squared_distance < squared_tolerance) return true;
+                    
+                    const FT epst = m_bc_tolerance_top;
+                    const FT epsb = m_bc_tolerance_bottom;
+
+                    if (pair[0] > epsb && pair[1] > epsb && pair[0] < epst && pair[1] < epst && squared_distance < squared_tolerance) return true;
                 }
                 return false;
             }
 
             bool has_vertices_outside(const Polyhedron &polyhedron, const Building &building) const {
 
+                size_t count = 0;
                 const Vertices &vertices = polyhedron.vertices;
                 for (size_t i = 0; i < vertices.size(); ++i) {
 
                     const Point_3 &vertex = vertices[i];
-                    if (is_out_of_building(vertex, building)) return true;
+                    const bool is_out = is_out_of_building(vertex, building);
+
+                    if (is_out) ++count;
+                    if (is_out && count > 0) return true;
                 }
                 return false;
             }
@@ -225,14 +240,16 @@ namespace CGAL {
                 const Facets   &facets   = polyhedron.facets;
 
                 size_t in = 0, out = 0;
+                Indices tmp_indices;
 
                 for (size_t i = 0; i < facets.size(); ++i) {    
                     const Facet &facet = facets[i];
 
                     if (is_vertical_facet(vertices, facet)) continue;
-                    process_facet(vertices, facet, building, in, out);
+                    process_facet(vertices, facet, building, tmp_indices, in, out);
                 }
 
+                process_middle_plane(polyhedron, tmp_indices, in, out);
                 return out >= in;
             }
 
@@ -285,7 +302,7 @@ namespace CGAL {
                 v /= static_cast<FT>(CGAL::sqrt(CGAL::to_double(v.squared_length())));
             }
 
-            void process_facet(const Vertices &vertices, const Facet &facet, const Building &building, size_t &in, size_t &out) const {
+            void process_facet(const Vertices &vertices, const Facet &facet, const Building &building, Indices &tmp_indices, size_t &in, size_t &out) const {
 
                 const Indices &interior_indices = building.interior_indices;
                 for (size_t i = 0; i < interior_indices.size(); ++i) {
@@ -294,7 +311,30 @@ namespace CGAL {
                     const Point_3 &p = m_input.point(point_index);
 
                     const FT height = intersect_facet(vertices, facet, p);
+                    if (height == m_big_value) continue;
                     
+                    tmp_indices.push_back(point_index);
+                    if (is_inside_building(height, p.z())) ++in;
+                    else ++out;
+                }
+            }
+
+            void process_middle_plane(const Polyhedron &polyhedron, const Indices &indices, size_t &in, size_t &out) const {
+
+                Point_3 barycentre;
+                compute_polyhedron_barycentre(polyhedron, barycentre);
+
+                Plane_3 middle_plane(barycentre, Vector_3(FT(0), FT(0), FT(1)));
+
+                Line_3 line;
+                for (size_t i = 0; i < indices.size(); ++i) {
+                    
+                    const Index point_index = indices[i];
+                    const Point_3 &p = m_input.point(point_index);
+
+                    create_line(p, line);
+                    const FT height = intersect(line, middle_plane);
+
                     if (is_inside_building(height, p.z())) ++in;
                     else ++out;
                 }
@@ -304,6 +344,7 @@ namespace CGAL {
 
                 Polygon polygon;
                 create_polygon(vertices, facet, polygon);
+                if (!CGAL::is_simple_2(polygon.begin(), polygon.end())) return m_big_value;
 
                 const Point_2 p = Point_2(query.x(), query.y());
 
@@ -327,7 +368,7 @@ namespace CGAL {
             }
 
             void compute_barycentric_coordinates(const Polygon &polygon, const Point_2 &query, Coordinates &coordinates) const {
-                
+
                 coordinates.clear();
                 Mean_value_coordinates mean_value_coordinates(polygon.begin(), polygon.end());
                 mean_value_coordinates(query, std::back_inserter(coordinates));
@@ -339,6 +380,8 @@ namespace CGAL {
 
             bool is_inside_polygon(const Coordinates &coordinates) const {
 
+                CGAL_precondition(coordinates.size() >= 3);
+
                 for (size_t i = 0 ; i < coordinates.size(); ++i)
                     if (coordinates[i] <= FT(0) || coordinates[i] >= FT(1)) return false;
                 return true;
@@ -349,20 +392,43 @@ namespace CGAL {
                 Line_3 line;
                 create_line(query, line);
 
-                Triangle_3 triangle;
-                create_triangle(vertices, facet, query, triangle);
+                Plane_3 plane;
+                create_plane(vertices, facet, plane);
+
+                return intersect(line, plane);
             }
 
             void create_line(const Point_3 &query, Line_3 &line) const {
                 
-                const Point_3 p1 = Point_3(query.x(), query.y(), m_ground_height);
+                const Point_3 p1 = Point_3(query.x(), query.y(), m_ground_height - FT(10));
                 const Point_3 p2 = Point_3(query.x(), query.y(), m_ground_height + FT(10));
 
                 line = Line_3(p1, p2);
             }
 
-            void create_triangle(const Vertices &vertices, const Facet &facet, const Point_3 &query, Triangle_3 &triangle) const {
+            void create_plane(const Vertices &vertices, const Facet &facet, Plane_3 &plane) const {
 
+                CGAL_precondition(facet.size() >= 3);
+                const Point_3 &p1 = vertices[facet[0]];
+                const Point_3 &p2 = vertices[facet[1]];
+                const Point_3 &p3 = vertices[facet[2]];
+
+                plane = Plane_3(p1, p2, p3);
+            }
+
+            FT intersect(const Line_3 &line, const Plane_3 &plane) const {
+
+				typename CGAL::cpp11::result_of<Intersect(Line_3, Plane_3)>::type result = intersection(line, plane);
+                
+                if (result) {
+
+                    if (const Line_3 *tmp = boost::get<Line_3>(&*result)) return m_big_value;
+                    else {
+                        const Point_3 *point = boost::get<Point_3>(&*result);
+				        return (*point).z();
+                    }
+                }
+                return m_big_value;
             }
         };
 
