@@ -90,6 +90,8 @@ namespace CGAL {
 
             void create() const {
                 
+                debug_buildings();
+
                 if (m_buildings.size() == 0) 
                     return; 
                     
@@ -124,32 +126,70 @@ namespace CGAL {
             Buildings &m_buildings;
 
             void process_building(Building &building) const {
-                
+
                 const JP_polygons &jp_polygons = building.jp_polygons;
                 JP_kinetic_propagation kinetic(jp_polygons);
-             
-                /*
-                const std::string path = "/Users/danisimo/Documents/pipeline/logs/tmp/buildings/debug_building_" + std::to_string(building.index) + ".ply";
-                std::cout << "input file: " << path << std::endl << std::endl;
- 
-                const std::string str1 = "./kinetic";
-                const std::string str2 = "--input";
-
-                char *val1 = strdup(str1.c_str());
-                char *val2 = strdup(str2.c_str());
-                char *val3 = strdup(path.c_str());
-
-                int argc = 3;
-                char *n_argv[] = { val1, val2, val3 };
-                char **argv = n_argv;
-
-                JP_kinetic_propagation kinetic(argc, argv); */
 
 	            if (!kinetic.data()) return;
                 kinetic.run();
 
                 set_output(kinetic, building);
                 kinetic.delete_kinetic_data_structure();
+            }
+
+            void debug_buildings() const {
+                
+                // bad buildings are 82, 117, 148, 375
+
+                // debug_building(10);
+                
+                debug_building(82);
+                // frame #1: 0x00000001005cd2da lod`JPTD::Partition::remove_bivalent_vertices(this=0x0000000117e5f380) at partition.cpp:775
+                // 775                                  V.erase(V_map[v->id]);
+
+                // debug_building(117);
+                // frame #1: 0x00000001005cd2da lod`JPTD::Partition::remove_bivalent_vertices(this=0x0000000117e5f380) at partition.cpp:775
+                // 775                                  V.erase(V_map[v->id]);
+
+                // debug_building(148);
+                // frame #1: 0x00000001005cd2da lod`JPTD::Partition::remove_bivalent_vertices(this=0x0000000117e5f380) at partition.cpp:775
+                // 775                                  V.erase(V_map[v->id]);
+
+                // debug_building(375);
+                // frame #1: 0x00000001005cd2da lod`JPTD::Partition::remove_bivalent_vertices(this=0x0000000117e5f380) at partition.cpp:775
+                // 775                                  V.erase(V_map[v->id]);
+
+                exit(1);
+            }
+
+            void debug_building(const size_t building_index) const {
+
+                const std::string path = "/Users/danisimo/Documents/pipeline/logs/tmp/bad_input/debug_building_" + std::to_string(building_index) + ".ply";
+                std::cout << "input file: " << path << std::endl;
+ 
+                const std::string str1 = "./kinetic";
+                const std::string str2 = "--input";
+                const std::string str3 = "--check";
+                const std::string str4 = "--print-drawings";
+
+                char *val1 = strdup(str1.c_str());
+                char *val2 = strdup(str2.c_str());
+                char *val3 = strdup(path.c_str());
+                char *val4 = strdup(str3.c_str());
+                char *val5 = strdup(str4.c_str());
+
+                int argc = 5;
+                char *n_argv[] = { val1, val2, val3, val4, val5 };
+                char **argv = n_argv;
+
+                JP_kinetic_propagation kinetic(argc, argv);
+
+	            if (!kinetic.data()) return;
+                
+                kinetic.run();
+                kinetic.delete_kinetic_data_structure();
+
+                std::cout << "finished building " << building_index << std::endl << std::endl;
             }
 
             void set_output(const JP_kinetic_propagation &kinetic, Building &building) const {

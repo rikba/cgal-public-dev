@@ -35,6 +35,8 @@ public:
 
 	void get_all_vertices_sorted_by_identifier(std::vector<Partition_Vertex*> & V) const;
 
+	void get_all_vertices_sorted_by_identifier(std::list<Partition_Vertex*> & V) const;
+
 private:
 	Partition_Vertex_Octree* assign(Partition_Vertex* v) const;
 

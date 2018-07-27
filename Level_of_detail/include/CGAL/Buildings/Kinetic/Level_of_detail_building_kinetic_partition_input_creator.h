@@ -98,7 +98,8 @@ namespace CGAL {
             m_perturb_polygon_vertices(true), 
             m_perturb_polygon_support_plane(true),
             m_merge_walls(true),
-            m_tolerance(FT(1) / FT(100000)) {
+            m_area_tolerance(FT(1) / FT(100000)),
+            m_distance_tolerance(FT(1) / FT(100000)) {
 
                 srand(time(NULL));
                 estimate_initial_roofs();
@@ -120,8 +121,8 @@ namespace CGAL {
                 m_merge_walls = new_state;
             }
 
-            void set_tolerance(const FT new_value) {
-                m_tolerance = new_value;
+            void set_area_tolerance(const FT new_value) {
+                m_area_tolerance = new_value;
             }
 
             void create() const {
@@ -156,7 +157,8 @@ namespace CGAL {
             bool m_perturb_polygon_support_plane;
             bool m_merge_walls;
 
-            FT m_tolerance;
+            FT m_area_tolerance;
+            FT m_distance_tolerance;
 
             void estimate_initial_roofs() {
                 
@@ -285,7 +287,9 @@ namespace CGAL {
                 // Find segment groups.
                 Segment_region_growing segment_region_growing;
 
-                segment_region_growing.set_tolerance(m_tolerance);
+                segment_region_growing.set_area_tolerance(m_area_tolerance);
+                segment_region_growing.set_distance_tolerance(m_distance_tolerance);
+
                 segment_region_growing.find_connected_segments(segments, states, result);
 
                 // Merge segments.
@@ -349,7 +353,7 @@ namespace CGAL {
 
             bool are_equal(const Point_2 &p, const Point_2 &q) const {
 
-                const FT eps = m_tolerance;
+                const FT eps = m_distance_tolerance;
                 if (CGAL::abs(p.x() - q.x()) < eps && CGAL::abs(p.y() - q.y()) < eps) return true;
                 return false;
             }

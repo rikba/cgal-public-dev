@@ -400,4 +400,17 @@ void Partition_Vertex_Octree::get_all_vertices_sorted_by_identifier(std::vector<
 	std::sort(V.begin(), V.end(), sort_by_vertex_id);
 }
 
+void Partition_Vertex_Octree::get_all_vertices_sorted_by_identifier(std::list<Partition_Vertex*> & V) const
+{
+	std::list<Partition_Vertex*> l_V;
+	get_all_vertices(l_V);
+
+	V.clear();
+	std::vector<Partition_Vertex *> tmp;
+	
+	std::copy(l_V.begin(), l_V.end(), std::back_inserter(tmp));
+	std::sort(tmp.begin(), tmp.end(), sort_by_vertex_id);
+	std::copy(tmp.begin(), tmp.end(), std::back_inserter(V));
+}
+
 }

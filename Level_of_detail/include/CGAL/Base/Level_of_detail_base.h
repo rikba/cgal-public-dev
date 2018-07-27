@@ -1297,7 +1297,7 @@ namespace CGAL {
 				m_kinetic_partition_input_creator->perturb_vertices(m_kinetic_3d_perturb_vertices);
 				m_kinetic_partition_input_creator->perturb_support_plane(m_kinetic_3d_perturb_support_plane);
 				m_kinetic_partition_input_creator->merge_walls(m_kinetic_3d_merge_walls);
-				m_kinetic_partition_input_creator->set_tolerance(m_kinetic_3d_tolerance);
+				m_kinetic_partition_input_creator->set_area_tolerance(m_kinetic_3d_tolerance);
 
 				m_kinetic_partition_input_creator->create();
 				if (!m_silent) {

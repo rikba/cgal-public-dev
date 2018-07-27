@@ -75,8 +75,9 @@ void Partition::build()
 	build_facets_for_bounding_box();
 
 	// Part 3 : cleans the partition
+	debug();
 	remove_bivalent_vertices();
-	//debug();
+	
 
 	// Part 4 : get final polyhedrons
 	build_polyhedrons();
@@ -91,7 +92,7 @@ void Partition::debug()
 
 	FILE* file;
 	
-	file = fopen("vertices.txt", "w");
+	file = fopen("/Users/danisimo/Documents/pipeline/logs/tmp/bad_input/txt/vertices.txt", "w");
 	if (file != NULL) {
 		for (int i = 0 ; i < V.size() ; i++) {
 			Partition_Vertex* v = V[i];
@@ -105,7 +106,7 @@ void Partition::debug()
 		fclose(file);
 	}
 
-	file = fopen("edges.txt", "w");
+	file = fopen("/Users/danisimo/Documents/pipeline/logs/tmp/bad_input/txt/edges.txt", "w");
 	if (file != NULL) {
 		for (std::list<Partition_Edge*>::iterator it_e = edges.begin() ; it_e != edges.end() ; it_e++) {
 			Partition_Edge* e = (*it_e);
@@ -118,7 +119,7 @@ void Partition::debug()
 		fclose(file);
 	}
 
-	file = fopen("facets.txt", "w");
+	file = fopen("/Users/danisimo/Documents/pipeline/logs/tmp/bad_input/txt/facets.txt", "w");
 	if (file != NULL) {
 		for (int i = 0; i < facets.size(); i++) {
 			const std::list<Partition_Facet*> & L = facets[i];
@@ -689,7 +690,7 @@ void Partition::remove_bivalent_vertices()
 {
 	// Gets all vertices of the partition
 	std::list<Partition_Vertex*> V;
-	octree->get_all_vertices(V);
+	octree->get_all_vertices_sorted_by_identifier(V);
 
 	for (std::list<Partition_Vertex*>::iterator it_v = V.begin() ; it_v != V.end() ; it_v++) {
 		assert((*it_v)->connectivity() >= 2);
@@ -699,8 +700,11 @@ void Partition::remove_bivalent_vertices()
 	std::map<int, std::list<Partition_Vertex*>::iterator> V_map;
 	std::map<int, std::list<Partition_Edge*>::iterator> E_map;
 
-	for (std::list<Partition_Vertex*>::iterator it_v = V.begin(); it_v != V.end(); it_v++) V_map[(*it_v)->id] = it_v;
-	for (std::list<Partition_Edge*>::iterator it_e = edges.begin(); it_e != edges.end(); it_e++) E_map[(*it_e)->id] = it_e;
+	for (typename std::list<Partition_Vertex*>::iterator it_v = V.begin(); it_v != V.end(); ++it_v) {
+		V_map[(*it_v)->id] = it_v;
+		std::cout << (*it_v)->id << std::endl;
+	}
+	for (typename std::list<Partition_Edge*>::iterator it_e = edges.begin(); it_e != edges.end(); ++it_e) E_map[(*it_e)->id] = it_e;
 
 	// Loops on every vertex
 	std::list<Partition_Vertex*>::iterator it_v_main = V.begin();
@@ -772,7 +776,12 @@ void Partition::remove_bivalent_vertices()
 
 			for (std::list<Partition_Vertex*>::iterator it_v = vertices_to_delete.begin() ; it_v != vertices_to_delete.end() ; it_v++) {
 				Partition_Vertex* v = (*it_v);
-				V.erase(V_map[v->id]);
+
+				// std::cout << v->id << std::endl;
+
+				// if (std::find(V_map.at(v->id) == V_map.end()) continue;
+
+				V.erase(V_map.at(v->id));
 				V_map.erase(v->id);
 				octree->remove(v, true);
 			}

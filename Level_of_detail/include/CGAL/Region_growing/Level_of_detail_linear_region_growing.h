@@ -34,11 +34,16 @@ namespace CGAL {
 			using Output   = std::vector<Indices>;
 
 			Level_of_detail_linear_region_growing() : 
-			m_tolerance(FT(1) / FT(100000)) 
+			m_area_tolerance(FT(1) / FT(100000)),
+			m_distance_tolerance(FT(1) / FT(100000))
 			{ }
 
-			void set_tolerance(const FT new_value) {
-				m_tolerance = new_value;
+			void set_area_tolerance(const FT new_value) {
+				m_area_tolerance = new_value;
+			}
+
+			void set_distance_tolerance(const FT new_value) {
+				m_distance_tolerance = new_value;
 			}
 
 			void find_connected_segments(const Segments &segments, const States &to_be_used, Output &output) const {
@@ -62,7 +67,8 @@ namespace CGAL {
 			}
 
 		private:
-			FT m_tolerance;
+			FT m_area_tolerance;
+			FT m_distance_tolerance;
 
 			void grow_region(const Segments &segments, const States &to_be_used, const size_t segment_index, States &was_used, Indices &indices) const {
 				
@@ -105,7 +111,7 @@ namespace CGAL {
 
 			bool is_close_by(const Point_2 &p, const Point_2 &q) const {
 
-				const FT eps = m_tolerance;
+				const FT eps = m_distance_tolerance;
 				if (CGAL::abs(p.x() - q.x()) < eps && CGAL::abs(p.y() - q.y()) < eps) return true;
 				return false;
 			}
@@ -125,7 +131,7 @@ namespace CGAL {
 			bool are_quasi_collinear(const Point_2 &p, const Point_2 &q, const Point_2 &r) const {
 				if (is_close_by(p, r) || is_close_by(q, r)) return true;
 
-				const FT eps = m_tolerance;
+				const FT eps = m_area_tolerance;
 				const Triangle_2 triangle = Triangle_2(p, q, r);
 
 				if (CGAL::abs(triangle.area()) < eps) return true;

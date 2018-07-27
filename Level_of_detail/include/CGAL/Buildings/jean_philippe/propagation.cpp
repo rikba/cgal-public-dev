@@ -213,6 +213,7 @@ void Kinetic_Propagation::run()
 		} */
 
 	} catch (std::exception & except) {
+		std::cout << except.what() << std::endl;
 		throw except;
 	}
 }
@@ -1298,7 +1299,7 @@ void Kinetic_Propagation::write_polygons(const double t) const
 {
 	const std::string & basename = Universe::params->basename;
 
-	std::string filename = basename;
+	std::string filename = "/Users/danisimo/Documents/pipeline/logs/tmp/bad_input/ply/" + basename;
 	if (t == 0) {
 		filename += "_in.ply";
 	} else if (t == FLT_MAX) {

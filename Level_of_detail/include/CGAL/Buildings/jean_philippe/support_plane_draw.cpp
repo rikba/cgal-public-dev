@@ -320,7 +320,7 @@ void Support_Plane::draw(FT t, double dt, int size, double x_step, double y_step
 
 	// Opens a SVG file
 	int int_t = int(1000000 * to_double(t));
-	std::string filename = "T_" + std::to_string(int_t) + "_P_" + std::to_string(id) + ".svg";
+	std::string filename =  "/Users/danisimo/Documents/pipeline/logs/tmp/bad_input/tmp/T_" + std::to_string(int_t) + "_P_" + std::to_string(id) + ".svg";
 
 	// Don't override existing files
 	FILE* existing_file = fopen(filename.c_str(), "r");
