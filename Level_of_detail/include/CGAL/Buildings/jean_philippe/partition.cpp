@@ -702,7 +702,7 @@ void Partition::remove_bivalent_vertices()
 
 	for (typename std::list<Partition_Vertex*>::iterator it_v = V.begin(); it_v != V.end(); ++it_v) {
 		V_map[(*it_v)->id] = it_v;
-		std::cout << (*it_v)->id << std::endl;
+		// std::cout << (*it_v)->id << std::endl;
 	}
 	for (typename std::list<Partition_Edge*>::iterator it_e = edges.begin(); it_e != edges.end(); ++it_e) E_map[(*it_e)->id] = it_e;
 

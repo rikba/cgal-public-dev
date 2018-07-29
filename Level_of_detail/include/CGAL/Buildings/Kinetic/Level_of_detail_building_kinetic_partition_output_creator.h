@@ -143,7 +143,7 @@ namespace CGAL {
 
                 // debug_building(10);
                 
-                debug_building(82);
+                // debug_building(82);
                 // frame #1: 0x00000001005cd2da lod`JPTD::Partition::remove_bivalent_vertices(this=0x0000000117e5f380) at partition.cpp:775
                 // 775                                  V.erase(V_map[v->id]);
 
@@ -159,7 +159,7 @@ namespace CGAL {
                 // frame #1: 0x00000001005cd2da lod`JPTD::Partition::remove_bivalent_vertices(this=0x0000000117e5f380) at partition.cpp:775
                 // 775                                  V.erase(V_map[v->id]);
 
-                exit(1);
+                // exit(1);
             }
 
             void debug_building(const size_t building_index) const {
