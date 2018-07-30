@@ -219,7 +219,7 @@ namespace Ply_Out
 			stream << std::setprecision(precision);
 			for (it_p = polygons.begin(), it_c = colors.begin(); it_p != polygons.end() && it_c != colors.end(); it_p++, it_c++) {
 				for (typename std::list<Point_3>::const_iterator it_v = it_p->begin(); it_v != it_p->end(); it_v++) {
-					stream << it_v->x() << " " << it_v->y() << " " << it_v->z() << " " /*<< int(it_c->red()) << " " << int(it_c->green()) << " " << int(it_c->blue())*/ << std::endl;
+					stream << it_v->x() << " " << it_v->y() << " " << it_v->z() << " " /* << int(it_c->red()) << " " << int(it_c->green()) << " " << int(it_c->blue()) */ << std::endl;
 				}
 			}
 

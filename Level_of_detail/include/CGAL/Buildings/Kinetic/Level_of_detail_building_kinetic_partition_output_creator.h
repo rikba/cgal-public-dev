@@ -90,7 +90,7 @@ namespace CGAL {
 
             void create() const {
                 
-                debug_buildings();
+                // debug_buildings();
 
                 if (m_buildings.size() == 0) 
                     return; 

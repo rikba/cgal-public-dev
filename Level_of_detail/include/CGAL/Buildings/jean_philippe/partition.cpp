@@ -75,7 +75,7 @@ void Partition::build()
 	build_facets_for_bounding_box();
 
 	// Part 3 : cleans the partition
-	debug();
+	// debug();
 	remove_bivalent_vertices();
 	
 
@@ -701,6 +701,7 @@ void Partition::remove_bivalent_vertices()
 	std::map<int, std::list<Partition_Edge*>::iterator> E_map;
 
 	for (typename std::list<Partition_Vertex*>::iterator it_v = V.begin(); it_v != V.end(); ++it_v) {
+		
 		V_map[(*it_v)->id] = it_v;
 		// std::cout << (*it_v)->id << std::endl;
 	}
@@ -778,9 +779,7 @@ void Partition::remove_bivalent_vertices()
 				Partition_Vertex* v = (*it_v);
 
 				// std::cout << v->id << std::endl;
-
-				// if (std::find(V_map.at(v->id) == V_map.end()) continue;
-
+				
 				V.erase(V_map.at(v->id));
 				V_map.erase(v->id);
 				octree->remove(v, true);
