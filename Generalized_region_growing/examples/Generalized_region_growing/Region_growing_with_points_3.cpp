@@ -5,6 +5,7 @@
 #include <CGAL/property_map.h>
 #include <CGAL/Iterator_range.h>
 #include <CGAL/IO/write_ply_points.h>
+#include <CGAL/random_simplify_point_set.h>
 
 using Kernel            = CGAL::Exact_predicates_inexact_constructions_kernel;
 using Point_3           = Kernel::Point_3;
@@ -46,22 +47,23 @@ namespace CGAL {
 }
 
 int main(int argc, char *argv[]) {
-    std::ifstream in(argc > 1 ? argv[1] : "../data/cube.xyz");
+    std::ifstream in(argc > 1 ? argv[1] : "../data/city_135.ply");
     CGAL::set_ascii_mode(in);
 
-    Point_3 point;
-    Vector_3 normal;
-
-    std::vector<Point_with_normal> pwn;
-    while (in >> point >> normal) {
-        pwn.push_back(std::make_pair(point, normal));
+    int i = 0;
+    std::vector<Point_with_normal> data;
+    double inp[11];
+    while (in >> inp[0]) {
+        for (int j = 1; j < 11; ++j) in >> inp[j];
+        data.push_back(std::make_pair(Point_3(inp[0], inp[1], inp[2]), Vector_3(inp[3], inp[4], inp[5])));
+        ++i;
     }
 
-    Input_range input_range(pwn.begin(), pwn.end());
+    Input_range input_range(data.begin(), data.end());
 
-    Connectivity connectivity(input_range, 15);
+    Connectivity connectivity(input_range, 100);
 
-    Conditions conditions(0.1, 0.1, 300);
+    Conditions conditions(input_range, 0.5, 0.9, 1);
 
     Region_growing region_growing(input_range, connectivity, conditions);
 
@@ -69,37 +71,28 @@ int main(int argc, char *argv[]) {
 
     Region_range regions = region_growing.regions();
 
-    std::cerr << "Time elapsed: " << 1.0 * clock() / CLOCKS_PER_SEC << " s.\n";
+    std::cerr << "comment Time elapsed: " << 1.0 * clock() / CLOCKS_PER_SEC << " s.\n";
+    std::cerr << "comment " << region_growing.number_of_regions() << " regions found." << '\n';
 
-    std::cout << regions.end() - regions.begin() << std::endl;
+    std::vector<Point_with_color> pwc;
 
-    if (regions.end() - regions.begin() > 100) return 0;
-
+    srand(time(NULL));
     for (Region_range::const_iterator it = regions.begin(); it != regions.end(); ++it) {
-
-        conditions.fit_to_plane(*it);
-        std::cout << conditions.plane_of_best_fit() << std::endl;
-        std::cout << (*it).size() << std::endl;
+        Color c = CGAL::make_array(static_cast<unsigned char>(rand() % 256),
+                                   static_cast<unsigned char>(rand() % 256),
+                                   static_cast<unsigned char>(rand() % 256));
+        const std::list<size_t> &region = *it;
+        for (size_t i : region) {
+            Point_3 tmp = get(Point_map(), *(input_range.begin() + i));
+            pwc.push_back(std::make_pair(tmp, c));
+        }
     }
 
-//    std::vector<Point_with_color> pwc;
-
-//    srand(time(NULL));
-//    for (Region_range::const_iterator it = regions.begin(); it != regions.end(); ++it) {
-//        Color c = CGAL::make_array(static_cast<unsigned char>(rand() % 256),
-//                                   static_cast<unsigned char>(rand() % 256),
-//                                   static_cast<unsigned char>(rand() % 256));
-//        const std::vector<Point_with_normal> &region = *it;
-//        for (Point_with_normal p : region) {
-//            pwc.push_back(std::make_pair(p.first, c));
-//        }
-//    }
-
-//    CGAL::set_ascii_mode(std::cout);
-//    CGAL::write_ply_points_with_properties(std::cout, pwc,
-//                                           CGAL::make_ply_point_writer(PLY_Point_map()),
-//                                           std::make_tuple(PLY_Color_map(), CGAL::PLY_property<unsigned char>("red"),
-//                                                           CGAL::PLY_property<unsigned char>("green"),
-//                                                           CGAL::PLY_property<unsigned char>("blue")));
+    CGAL::set_ascii_mode(std::cout);
+    CGAL::write_ply_points_with_properties(std::cout, pwc,
+                                           CGAL::make_ply_point_writer(PLY_Point_map()),
+                                           std::make_tuple(PLY_Color_map(), CGAL::PLY_property<unsigned char>("red"),
+                                                           CGAL::PLY_property<unsigned char>("green"),
+                                                           CGAL::PLY_property<unsigned char>("blue")));
 
 }

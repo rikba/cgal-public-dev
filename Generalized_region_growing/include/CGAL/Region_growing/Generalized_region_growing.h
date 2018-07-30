@@ -26,16 +26,21 @@ namespace CGAL {
             using Region_range  = CGAL::Iterator_range<typename Regions::const_iterator>;
 
             Generalized_region_growing(const Input_range &input_range, Connectivity &connectivity, Conditions &conditions) :
-                m_input_range(input_range),
-                m_connectivity(connectivity),
-                m_conditions(conditions),
-                m_visited(std::vector<bool>(m_input_range.end() - m_input_range.begin(), false)) { }
+            m_input_range(input_range),
+            m_connectivity(connectivity),
+            m_conditions(conditions) {
+                m_input_size = 0;
+                for (typename Input_range::iterator it = input_range.begin(); it != input_range.end(); ++it) {
+                    m_visited.push_back(false);
+                    ++m_input_size;
+                }
+            }
 
             void find_regions() {
                 m_regions.clear();
                 Region region;
 
-                for (Element_index i = 0; i < m_input_range.end() - m_input_range.begin(); ++i) {
+                for (Element_index i = 0; i < m_input_size; ++i) {
 
                     if (!m_visited[i]) { // Available element
                         region.clear();
@@ -124,6 +129,7 @@ namespace CGAL {
             Conditions &m_conditions;
             std::vector<bool> m_visited;
             Region_range m_output = Region_range(m_regions.begin(), m_regions.end());
+            size_t m_input_size;
         };
     }
 }

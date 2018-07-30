@@ -9,8 +9,8 @@
 #include <CGAL/Region_growing/Region_growing_with_points/Points_conditions_2.h>
 #include <CGAL/Region_growing/Region_growing_with_points/Points_conditions_3.h>
 
-//#include <CGAL/Region_growing/Region_growing_with_mesh/Mesh_traits.h>
-//#include <CGAL/Region_growing/Region_growing_with_mesh/Mesh_connectivity.h>
-//#include <CGAL/Region_growing/Region_growing_with_mesh/Mesh_conditions.h>
+#include <CGAL/Region_growing/Region_growing_with_mesh/Mesh_traits.h>
+#include <CGAL/Region_growing/Region_growing_with_mesh/Mesh_connectivity.h>
+#include <CGAL/Region_growing/Region_growing_with_mesh/Mesh_conditions.h>
 
 #endif

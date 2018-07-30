@@ -1,8 +1,8 @@
 #ifndef CGAL_REGION_GROWING_MESH_CONDITIONS_H
 #define CGAL_REGION_GROWING_MESH_CONDITIONS_H
 
-#include <Surface_mesh.h>
-#include <Iterator_range.h>
+#include <CGAL/Surface_mesh.h>
+#include <CGAL/Iterator_range.h>
 #include <CGAL/Cartesian_converter.h>
 
 
@@ -32,28 +32,42 @@ namespace CGAL {
                 class Get_sqrt<Kernel, void_t<typename Kernel::Sqrt> > : Kernel::Sqrt { };
 
             public:
-                using Kernel = typename Traits::Kernel;
-                using Face_index = typename Mesh::Face_index;
-                using Vertex_index = typename Mesh::Vertex_index;
-                using Vertex_range = typename Mesh::Vertex_range;
-                using Plane_3 = typename Kernel::Plane_3;
-                using Point_3 = typename Kernel::Point_3;
-                using Element_map = typename Traits::Element_map;
-                using FT = typename Kernel::FT;
+                using Input_range             = typename Traits::Input_range;
+                using Kernel                  = typename Traits::Kernel;
+                using Face_index              = typename Mesh::Face_index;
+                using Vertex_index            = typename Mesh::Vertex_index;
+                using Vertex_range            = Iterator_range<Vertex_around_face_iterator<Mesh> >;
+                using Plane_3                 = typename Kernel::Plane_3;
+                using Point_3                 = typename Kernel::Point_3;
+                using Vector_3                = typename Kernel::Vector_3;
+                using Element_map             = typename Traits::Element_map;
+                using FT                      = typename Kernel::FT;
                 using Sqrt                    = Get_sqrt<Kernel>;
 
-                Meshes_conditions(const Mesh& mesh, const FT& epsilon, const FT& normal_threshold) :
+                using Local_kernel            = Exact_predicates_inexact_constructions_kernel;
+                using To_local_converter      = Cartesian_converter<Kernel, Local_kernel>;
+                using Local_point_3           = Local_kernel::Point_3;
+                using Local_plane_3           = Local_kernel::Plane_3;
+                using Local_vector_3          = Local_kernel::Vector_3;
+                using Local_FT                = Local_kernel::FT;
+
+                using Element_index           = size_t;
+
+                Mesh_conditions(const Input_range& input_range, const Mesh& mesh, const FT& epsilon, const FT& normal_threshold) :
+                m_input_range(input_range),
                 m_mesh(mesh),
                 m_epsilon(epsilon),
                 m_normal_threshold(normal_threshold) { }
                 
-                template <class Region, class ElementWithProperties>
-                bool is_in_same_region(const ElementWithProperties& assigned_element, const ElementWithProperties& unassigned_element, const Region& region) {
+                template < class Region_ >
+                bool is_in_same_region(Element_index assigned_element, Element_index unassigned_element, const Region_& region) {
 
-                    Face_index face = get(m_elem_map, unassigned_element);
+                    Face_index face = get(m_elem_map, *(m_input_range.begin() + unassigned_element));
 
-                    const Point_3 face_centroid = get_centroid(face);
-                    const Vector_3 face_normal = get_normal(face);
+                    Point_3 face_centroid;
+                    get_centroid(face, face_centroid);
+                    Vector_3 face_normal;
+                    get_normal(face, face_normal);
 
                     const Local_FT distance_to_fit_plane = CGAL::sqrt(CGAL::squared_distance(m_to_local_converter(face_centroid), m_plane_of_best_fit));
                     const Local_FT cos_angle = CGAL::abs(m_to_local_converter(face_normal) * m_normal_of_best_fit);
@@ -62,17 +76,19 @@ namespace CGAL {
 
                 }
 
-                template <class Region>
-                bool update_shape(const Region& region) {
+                template < class Region_ >
+                void update_shape(const Region_& region) {
 
-                    CGAL_precondition(region.end() - region.begin() != 0);
+                    CGAL_precondition(region.size() != 0);
 
-                    if (region.end() - region.begin() == 1) {
+                    if (region.size() == 1) {
                         
-                        Face_index face = get(m_elem_map, *region.begin());
+                        Face_index face = get(m_elem_map, *(m_input_range.begin() + (*region.begin())));
 
-                        const Point_3 face_centroid = get_centroid(face);
-                        const Vector_3 face_normal = get_normal(face);
+                        Point_3 face_centroid;
+                        get_centroid(face, face_centroid);
+                        Vector_3 face_normal;
+                        get_normal(face, face_normal);
 
                         const FT normal_length = m_sqrt(face_normal.squared_length());
 
@@ -84,17 +100,24 @@ namespace CGAL {
                         // Extract the points of the region (Point_3)
                         std::vector<Local_point_3> points;
                         // The region is formed by face indices
-                        for (typename Region::const_iterator it = region.begin(); it != region.end(); ++it) {
+                        for (typename Region_::const_iterator it = region.begin(); it != region.end(); ++it) {
+
+                            Face_index face = get(m_elem_map, *(m_input_range.begin() + (*it)));
                             
                             // Get vertices of each face and push them to `points`
-                            Vertex_range vr = vertices_around_face(m_mesh.halfedge(*it), m_mesh);
+                            Vertex_range vr = vertices_around_face(m_mesh.halfedge(face), m_mesh);
                             for (typename Vertex_range::const_iterator vit = vr.begin(); vit != vr.end(); ++vit)
-                                points.push_back(m_to_local_converter(get(m_elem_map, *it)));
+                                points.push_back(m_to_local_converter(m_mesh.point(*vit)));
 
                         }
-
+                        
+                        Point_3 centroid; // unused
                         // Fit the region to a plane
-                        linear_least_squares_fitting_3(points.begin(), points.end(), m_plane_of_best_fit, CGAL::Dimension_tag<0>());
+                        #ifndef CGAL_EIGEN3_ENABLED
+                            linear_least_squares_fitting_3(points.begin(), points.end(), m_plane_of_best_fit, centroid, CGAL::Dimension_tag<0>(), Kernel(), Default_diagonalize_traits<typename Kernel::FT, 3>());
+                        #else 
+                            linear_least_squares_fitting_3(points.begin(), points.end(), m_plane_of_best_fit, centroid, CGAL::Dimension_tag<0>(), Kernel(), Eigen_diagonalize_traits<typename Kernel::FT, 3>());
+                        #endif
 
                         Local_vector_3 normal = m_plane_of_best_fit.orthogonal_vector();
                         const Local_FT normal_length = CGAL::sqrt(normal.squared_length());
@@ -103,34 +126,42 @@ namespace CGAL {
                     }
                 }
 
+                template < class Region_ >
+                inline bool is_valid(const Region_& region) {
+                    return true;
+                }
+
             private:
 
-                Point_3 get_centroid(const Face_index& face) {
+                void get_centroid(const Face_index& face, Point_3& centroid) {
                     Vertex_range vr = vertices_around_face(m_mesh.halfedge(face), m_mesh);
 
                     // Calculate centroid
-                    Point_3 centroid = Point_3(0, 0, 0);
+                    Vector_3 centr = Vector_3(0, 0, 0); // temporarily set as a vector to perform + and / operators
                     int n = 0;
-                    for (Vertex_range::iterator it = vr.begin(); it != vr.end(); ++it, ++n)
-                        centroid += point(*it);
+                    for (typename Vertex_range::iterator it = vr.begin(); it != vr.end(); ++it, ++n) {
+                        Point_3 tmp = m_mesh.point(*it);
+                        centr += Vector_3(tmp.x(), tmp.y(), tmp.z());
+                    }
                     CGAL_precondition(n > 2);
-                    centroid /= n;
+                    centr /= n;
 
-                    return centroid;
+                    centroid = Point_3(centr.x(), centr.y(), centr.z()); // convert back to point
                 }
 
-                Vector_3 get_normal(const Face_index& face) {
+                void get_normal(const Face_index& face, Vector_3& normal) {
                     Vertex_range vr = vertices_around_face(m_mesh.halfedge(face), m_mesh);
-                    return CGAL::normal(point(*vr.begin()), point(*(vr.begin()+1)), point(*(vr.begin()+2)));
+                    typename Vertex_range::iterator it = vr.begin();
+                    normal = CGAL::normal(m_mesh.point(*it++), m_mesh.point(*it++), m_mesh.point(*it++));
                 }
 
+                const Input_range& m_input_range;
                 const Mesh& m_mesh;
                 const Element_map m_elem_map = Element_map();
                 const FT& m_epsilon;
                 const FT& m_normal_threshold;
                 const Sqrt                    m_sqrt;
                 const To_local_converter      m_to_local_converter;
-                const To_input_converter      m_to_input_converter;
                 Local_plane_3                 m_plane_of_best_fit;
                 Local_vector_3                m_normal_of_best_fit;
             };

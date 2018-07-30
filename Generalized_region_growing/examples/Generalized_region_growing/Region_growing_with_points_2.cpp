@@ -5,6 +5,7 @@
 #include <CGAL/property_map.h>
 #include <CGAL/Iterator_range.h>
 #include <CGAL/IO/write_ply_points.h>
+#include <CGAL/Timer.h>
 
 using Kernel            = CGAL::Exact_predicates_inexact_constructions_kernel;
 using Point_2           = Kernel::Point_2;
@@ -16,7 +17,7 @@ using Input_range       = CGAL::Iterator_range<std::vector<Point_with_normal>::i
 
 using Traits            = CGAL::Region_growing::Region_growing_with_points::Points_traits<Input_range, Point_map, Kernel>;
 using Conditions        = CGAL::Region_growing::Region_growing_with_points::Points_conditions_2<Traits, Normal_map>;
-using Connectivity      = CGAL::Region_growing::Region_growing_with_points::Points_connectivity_circular_query<Traits>;
+using Connectivity      = CGAL::Region_growing::Region_growing_with_points::Points_connectivity_nearest_neighbors<Traits>;
 using Region_growing    = CGAL::Region_growing::Generalized_region_growing<Traits, Connectivity, Conditions>;
 
 using Region_range      = Region_growing::Region_range;
@@ -60,23 +61,23 @@ int main(int argc, char *argv[]) {
 
     Input_range input_range(pwn.begin(), pwn.end());
 
-    Connectivity connectivity(input_range, 2.9);
+    Connectivity connectivity(input_range, 20);
 
     Conditions conditions(input_range, 4.5, 0.7, 5);
 
     Region_growing region_growing(input_range, connectivity, conditions);
 
-    clock_t start = clock();
+    CGAL::Timer t;
+    t.start();
 
     region_growing.find_regions();
 
-    clock_t end = clock();
+    t.stop();
 
     Region_range regions = region_growing.regions();
 
-    std::cerr << "Time elapsed: " << 1.0 * (end-start) / CLOCKS_PER_SEC << std::endl;
-
-//    return 0;
+    std::cerr << "comment Time elapsed: " << 1.0 * clock() / CLOCKS_PER_SEC << " s.\n";
+    std::cerr << "comment " << region_growing.number_of_regions() << " regions found." << '\n';
 
     std::cout << std::setprecision(20);
     std::vector<Point_with_color> pwc;
@@ -86,7 +87,7 @@ int main(int argc, char *argv[]) {
         Color c = CGAL::make_array(static_cast<unsigned char>(rand() % 256),
                                    static_cast<unsigned char>(rand() % 256),
                                    static_cast<unsigned char>(rand() % 256));
-        const std::vector<int> &region = *it;
+        const std::list<size_t> &region = *it;
         for (int i : region) {
             Point_2 tmp = get(Point_map(), *(input_range.begin() + i));
             pwc.push_back(std::make_pair(Point_3(tmp.x(), tmp.y(), 0), c));
