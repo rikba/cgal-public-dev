@@ -23,6 +23,7 @@ if (CGAL_FOUND)
     create_single_source_cgal_program("Simple_example.cpp")
     create_single_source_cgal_program("Region_growing_with_points_2.cpp")
     create_single_source_cgal_program("Region_growing_with_points_3.cpp")
+    create_single_source_cgal_program("Region_growing_with_mesh_cube.cpp")
     create_single_source_cgal_program("Region_growing_with_mesh_big_test.cpp")
 
 else ()
