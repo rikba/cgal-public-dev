@@ -13,35 +13,28 @@ namespace CGAL {
             class Mesh_connectivity {
 
             public:
-                using Face                  = typename Mesh::Face_index;
-                using Input_range           = typename Traits::Input_range;
-                using Face_range            = CGAL::Iterator_range<CGAL::Face_around_face_iterator<Mesh> >;
-                using Element_index         = size_t;
+                using Face                    = typename Traits::Element; // Mesh::Face_index
+                using Input_range             = typename Traits::Input_range;
+                using Face_range              = CGAL::Iterator_range<CGAL::Face_around_face_iterator<Mesh> >;
+                using Element_map             = typename Traits::Element_map;
+                using Element_with_properties = typename Element_map::key_type;
 
-                Mesh_connectivity(const Input_range& input_range, const Mesh& mesh) :
-                m_mesh(mesh),
-                m_input_range(input_range) { }
+                Mesh_connectivity(const Mesh& mesh) :
+                m_mesh(mesh) { }
 
                 template < class Neighbors_ >
-                void get_neighbors(Element_index element_index, Neighbors_& neighbors) {
-                    Face face = *(m_input_range.begin() + element_index);
+                void get_neighbors(const Element_with_properties& ewp, Neighbors_& neighbors) {
+                    Face face = get(m_elem_map, ewp);
                     neighbors.clear();
                     const Face_range& tmp = faces_around_face(m_mesh.halfedge(face), m_mesh);
                     for (typename Face_range::iterator it = tmp.begin(); it != tmp.end(); ++it) {
-                        std::stringstream stream;
-                        stream.clear();
-                        stream.str("");
-                        stream << (*it);
-                        char ch;
-                        size_t nb;
-                        stream >> ch >> nb;
-                        if (nb != 4294967295) neighbors.push_back(nb);
+                        neighbors.push_back(*it);
                     }
                 }
 
             private:
                 const Mesh& m_mesh;
-                const Input_range& m_input_range;
+                const Element_map m_elem_map = Element_map();
             };
 
         }

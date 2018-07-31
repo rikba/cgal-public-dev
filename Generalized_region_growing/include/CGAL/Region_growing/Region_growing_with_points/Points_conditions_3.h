@@ -1,5 +1,5 @@
-#ifndef CGAL_REGION_GROWING_POINTS_CONDITIONS_3_H
-#define CGAL_REGION_GROWING_POINTS_CONDITIONS_3_H
+#ifndef GENERALIZED_REGION_GROWING_POINTS_CONDITIONS_3_H
+#define GENERALIZED_REGION_GROWING_POINTS_CONDITIONS_3_H
 
 #include <CGAL/linear_least_squares_fitting_3.h>
 #include <CGAL/squared_distance_3.h>
@@ -20,7 +20,9 @@ namespace CGAL {
 
                 template<class Kernel, class = void>
                 class Get_sqrt {
+
                     typedef typename Kernel::FT FT;
+
                 public:
                     FT operator()(const FT &value) const {
                         return static_cast<FT>(CGAL::sqrt(CGAL::to_double(value)));
@@ -31,11 +33,9 @@ namespace CGAL {
                 class Get_sqrt<Kernel, void_t<typename Kernel::Sqrt> > : Kernel::Sqrt { };
 
             public:
-                using Input_range             = typename Traits::Input_range;
                 using Kernel                  = typename Traits::Kernel;
                 using Element_map             = typename Traits::Element_map;
                 using Normal_map              = NormalMap;
-                using Element_index           = size_t;
 
                 using Element_with_properties = typename Element_map::key_type;
                 using Point_3                 = typename Kernel::Point_3;
@@ -52,22 +52,22 @@ namespace CGAL {
                 using Local_vector_3          = Local_kernel::Vector_3;
                 using Local_FT                = Local_kernel::FT;
 
-
-                Points_conditions_3(const Input_range& input_range, const FT &epsilon, const FT &normal_threshold, const size_t min_region_size) :
-                    m_input_range(input_range),
+                Points_conditions_3(const FT &epsilon, const FT &normal_threshold, const size_t min_region_size) :
                     m_epsilon(epsilon),
                     m_normal_threshold(normal_threshold),
                     m_min_region_size(min_region_size),
-                    m_sqrt_object(Sqrt()) {}
+                    m_sqrt(Sqrt()) {}
 
                 // Local condition
                 template < class Region_ >
-                bool is_in_same_region(const Element_index assigned_element, const Element_index unassigned_element, const Region_ &region) {
+                bool is_in_same_region(const Element_with_properties &assigned_element,
+                                       const Element_with_properties &unassigned_element,
+                                       const Region_ &region) {
 
-                    const Point_3& point_unassigned = get(m_elem_map, get_data_from_index(unassigned_element));
-                    const Vector_3& normal = get(m_normal_map, get_data_from_index(unassigned_element));
+                    const Point_3& point_unassigned = get(m_elem_map, unassigned_element);
+                    const Vector_3& normal = get(m_normal_map, unassigned_element);
 
-                    const FT normal_length = m_sqrt_object(normal.squared_length());
+                    const FT normal_length = m_sqrt(normal.squared_length());
                     Vector_3 normal_unassigned = normal / normal_length;
 
                     // Must use Local_FT because the fit plane is of local kernel
@@ -92,9 +92,9 @@ namespace CGAL {
                     if (region.size() == 1) {
                         // The best fit plane will be a plane through this point with its normal being the point's normal
 
-                        const Point_3& point = get(m_elem_map, get_data_from_index(*region.begin()));
-                        const Vector_3& normal = get(m_normal_map, get_data_from_index(*region.begin()));
-                        const FT normal_length = m_sqrt_object(normal.squared_length());
+                        const Point_3& point = get(m_elem_map, *region.begin());
+                        const Vector_3& normal = get(m_normal_map, *region.begin());
+                        const FT normal_length = m_sqrt(normal.squared_length());
 
                         m_plane_of_best_fit = m_to_local_converter(Plane_3(point, normal));
                         m_normal_of_best_fit = m_to_local_converter(normal / normal_length);
@@ -105,7 +105,7 @@ namespace CGAL {
                         int i = 0;
                         std::vector<Local_point_3> points(region.size());
                         for (typename Region_::const_iterator it = region.begin(); it != region.end(); ++it, ++i)
-                            points[i] = m_to_local_converter(get(m_elem_map, get_data_from_index(*it)));
+                            points[i] = m_to_local_converter(get(m_elem_map, *it));
 
                         // Fit the region to a plane
                         Local_point_3 centroid; // unused
@@ -123,18 +123,13 @@ namespace CGAL {
                     }
                 }
 
-                inline Element_with_properties get_data_from_index(const Element_index i) const {
-                    return *(m_input_range.begin() + i);
-                }
-
             private:
-                const Input_range&            m_input_range;
                 const Normal_map              m_normal_map = Normal_map();
                 const Element_map             m_elem_map = Element_map();
                 const FT &                    m_epsilon;
                 const FT &                    m_normal_threshold;
                 const size_t                  m_min_region_size;
-                const Sqrt                    m_sqrt_object;
+                const Sqrt                    m_sqrt;
                 const To_local_converter      m_to_local_converter;
                 Local_plane_3                 m_plane_of_best_fit;
                 Local_vector_3                m_normal_of_best_fit;

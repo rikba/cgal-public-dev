@@ -15,7 +15,7 @@ using Point_map         = CGAL::First_of_pair_property_map<Point_with_normal>;
 using Normal_map        = CGAL::Second_of_pair_property_map<Point_with_normal>;
 using Input_range       = CGAL::Iterator_range<std::vector<Point_with_normal>::iterator>;
 
-using Traits            = CGAL::Region_growing::Region_growing_with_points::Points_traits<Input_range, Point_map, Kernel>;
+using Traits            = CGAL::Region_growing::Traits<Input_range, Point_map, Kernel>;
 using Conditions        = CGAL::Region_growing::Region_growing_with_points::Points_conditions_3<Traits, Normal_map>;
 using Connectivity      = CGAL::Region_growing::Region_growing_with_points::Points_connectivity_nearest_neighbors<Traits>;
 using Region_growing    = CGAL::Region_growing::Generalized_region_growing<Traits, Connectivity, Conditions>;
@@ -47,23 +47,21 @@ namespace CGAL {
 }
 
 int main(int argc, char *argv[]) {
-    std::ifstream in(argc > 1 ? argv[1] : "../data/city_135.ply");
+    std::ifstream in(argc > 1 ? argv[1] : "../data/city_135.xyz");
     CGAL::set_ascii_mode(in);
 
-    int i = 0;
     std::vector<Point_with_normal> data;
-    double inp[11];
-    while (in >> inp[0]) {
-        for (int j = 1; j < 11; ++j) in >> inp[j];
-        data.push_back(std::make_pair(Point_3(inp[0], inp[1], inp[2]), Vector_3(inp[3], inp[4], inp[5])));
-        ++i;
+    Point_3 point;
+    Vector_3 normal;
+    while (in >> point >> normal) {
+        data.push_back(std::make_pair(point, normal));
     }
 
     Input_range input_range(data.begin(), data.end());
 
     Connectivity connectivity(input_range, 100);
 
-    Conditions conditions(input_range, 0.5, 0.9, 1);
+    Conditions conditions(0.5, 0.9, 1);
 
     Region_growing region_growing(input_range, connectivity, conditions);
 
@@ -81,9 +79,9 @@ int main(int argc, char *argv[]) {
         Color c = CGAL::make_array(static_cast<unsigned char>(rand() % 256),
                                    static_cast<unsigned char>(rand() % 256),
                                    static_cast<unsigned char>(rand() % 256));
-        const std::list<size_t> &region = *it;
-        for (size_t i : region) {
-            Point_3 tmp = get(Point_map(), *(input_range.begin() + i));
+        const Region_growing::Region &region = *it;
+        for (Region_growing::Element_with_properties ewp : region) {
+            Point_3 tmp = get(Point_map(), ewp);
             pwc.push_back(std::make_pair(tmp, c));
         }
     }

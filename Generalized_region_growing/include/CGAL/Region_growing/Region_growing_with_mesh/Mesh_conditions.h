@@ -32,7 +32,6 @@ namespace CGAL {
                 class Get_sqrt<Kernel, void_t<typename Kernel::Sqrt> > : Kernel::Sqrt { };
 
             public:
-                using Input_range             = typename Traits::Input_range;
                 using Kernel                  = typename Traits::Kernel;
                 using Face_index              = typename Mesh::Face_index;
                 using Vertex_index            = typename Mesh::Vertex_index;
@@ -50,19 +49,19 @@ namespace CGAL {
                 using Local_plane_3           = Local_kernel::Plane_3;
                 using Local_vector_3          = Local_kernel::Vector_3;
                 using Local_FT                = Local_kernel::FT;
+                using Element_with_properties = typename Element_map::key_type;
 
-                using Element_index           = size_t;
-
-                Mesh_conditions(const Input_range& input_range, const Mesh& mesh, const FT& epsilon, const FT& normal_threshold) :
-                m_input_range(input_range),
+                Mesh_conditions(const Mesh& mesh, const FT& epsilon, const FT& normal_threshold) :
                 m_mesh(mesh),
                 m_epsilon(epsilon),
                 m_normal_threshold(normal_threshold) { }
                 
                 template < class Region_ >
-                bool is_in_same_region(Element_index assigned_element, Element_index unassigned_element, const Region_& region) {
+                bool is_in_same_region(const Element_with_properties &assigned_element,
+                                       const Element_with_properties &unassigned_element,
+                                       const Region_ &region) {
 
-                    Face_index face = get(m_elem_map, *(m_input_range.begin() + unassigned_element));
+                    const Face_index& face = get(m_elem_map, unassigned_element);
 
                     Point_3 face_centroid;
                     get_centroid(face, face_centroid);
@@ -83,7 +82,7 @@ namespace CGAL {
 
                     if (region.size() == 1) {
                         
-                        Face_index face = get(m_elem_map, *(m_input_range.begin() + (*region.begin())));
+                        const Face_index& face = get(m_elem_map, *region.begin());
 
                         Point_3 face_centroid;
                         get_centroid(face, face_centroid);
@@ -102,7 +101,7 @@ namespace CGAL {
                         // The region is formed by face indices
                         for (typename Region_::const_iterator it = region.begin(); it != region.end(); ++it) {
 
-                            Face_index face = get(m_elem_map, *(m_input_range.begin() + (*it)));
+                            const Face_index& face = get(m_elem_map, *it);
                             
                             // Get vertices of each face and push them to `points`
                             Vertex_range vr = vertices_around_face(m_mesh.halfedge(face), m_mesh);
@@ -155,11 +154,10 @@ namespace CGAL {
                     normal = CGAL::normal(m_mesh.point(*it++), m_mesh.point(*it++), m_mesh.point(*it++));
                 }
 
-                const Input_range& m_input_range;
-                const Mesh& m_mesh;
-                const Element_map m_elem_map = Element_map();
-                const FT& m_epsilon;
-                const FT& m_normal_threshold;
+                const Mesh&                   m_mesh;
+                const Element_map             m_elem_map = Element_map();
+                const FT&                     m_epsilon;
+                const FT&                     m_normal_threshold;
                 const Sqrt                    m_sqrt;
                 const To_local_converter      m_to_local_converter;
                 Local_plane_3                 m_plane_of_best_fit;

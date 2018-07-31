@@ -15,9 +15,9 @@ using Point_map         = CGAL::First_of_pair_property_map<Point_with_normal>;
 using Normal_map        = CGAL::Second_of_pair_property_map<Point_with_normal>;
 using Input_range       = CGAL::Iterator_range<std::vector<Point_with_normal>::iterator>;
 
-using Traits            = CGAL::Region_growing::Region_growing_with_points::Points_traits<Input_range, Point_map, Kernel>;
+using Traits            = CGAL::Region_growing::Traits<Input_range, Point_map, Kernel>;
 using Conditions        = CGAL::Region_growing::Region_growing_with_points::Points_conditions_2<Traits, Normal_map>;
-using Connectivity      = CGAL::Region_growing::Region_growing_with_points::Points_connectivity_nearest_neighbors<Traits>;
+using Connectivity      = CGAL::Region_growing::Region_growing_with_points::Points_connectivity_circular_query<Traits>;
 using Region_growing    = CGAL::Region_growing::Generalized_region_growing<Traits, Connectivity, Conditions>;
 
 using Region_range      = Region_growing::Region_range;
@@ -61,9 +61,9 @@ int main(int argc, char *argv[]) {
 
     Input_range input_range(pwn.begin(), pwn.end());
 
-    Connectivity connectivity(input_range, 20);
+    Connectivity connectivity(input_range, 5);
 
-    Conditions conditions(input_range, 4.5, 0.7, 5);
+    Conditions conditions(4.5, 0.7, 5);
 
     Region_growing region_growing(input_range, connectivity, conditions);
 
@@ -87,9 +87,9 @@ int main(int argc, char *argv[]) {
         Color c = CGAL::make_array(static_cast<unsigned char>(rand() % 256),
                                    static_cast<unsigned char>(rand() % 256),
                                    static_cast<unsigned char>(rand() % 256));
-        const std::list<size_t> &region = *it;
-        for (int i : region) {
-            Point_2 tmp = get(Point_map(), *(input_range.begin() + i));
+        const Region_growing::Region &region = *it;
+        for (Region_growing::Element_with_properties ewp : region) {
+            Point_2 tmp = get(Point_map(), ewp);
             pwc.push_back(std::make_pair(Point_3(tmp.x(), tmp.y(), 0), c));
         }
     }
