@@ -52,7 +52,7 @@ namespace CGAL {
                 using Local_vector_3          = Local_kernel::Vector_3;
                 using Local_FT                = Local_kernel::FT;
 
-                Points_conditions_3(const FT &epsilon, const FT &normal_threshold, const size_t min_region_size) :
+                Points_conditions_3(const FT epsilon, const FT normal_threshold, const size_t min_region_size) :
                     m_epsilon(epsilon),
                     m_normal_threshold(normal_threshold),
                     m_min_region_size(min_region_size),
@@ -126,8 +126,8 @@ namespace CGAL {
             private:
                 const Normal_map              m_normal_map = Normal_map();
                 const Element_map             m_elem_map = Element_map();
-                const FT &                    m_epsilon;
-                const FT &                    m_normal_threshold;
+                const FT                      m_epsilon;
+                const FT                      m_normal_threshold;
                 const size_t                  m_min_region_size;
                 const Sqrt                    m_sqrt;
                 const To_local_converter      m_to_local_converter;

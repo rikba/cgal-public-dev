@@ -27,12 +27,14 @@ namespace CGAL {
                 m_conditions(conditions) { }
 
             void find_regions() {
+
                 m_regions.clear();
                 Region region;
 
                 for (typename Input_range::const_iterator iter = m_input_range.begin(); iter != m_input_range.end(); ++iter) {
 
                     if (!m_visited[get(m_elem_map, *iter)]) { // Available element
+
                         region.clear();
                         // Grow a region from that element
                         grow_region(*iter, region);
@@ -42,6 +44,7 @@ namespace CGAL {
                         } else {
                             m_regions.push_back(region);
                         }
+
                     }
                 }
 
@@ -58,6 +61,7 @@ namespace CGAL {
 
         private:
             void grow_region(const Element_with_properties &seed, Region &region) {
+
                 region.clear();
                 // Use two queues, while running on this queue, push to the other queue;
                 // When the queue is done, update the shape of the current region and swap to the other queue;
