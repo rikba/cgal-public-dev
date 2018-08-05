@@ -1,0 +1,62 @@
+/*!
+\defgroup PkgGeneralizedRegionGrowing Generalized Region Growing Reference
+
+\defgroup PkgGeneralizedRegionGrowingConcepts Concepts
+\ingroup PkgGeneralizedRegionGrowing
+
+\defgroup PkgGeneralizedRegionGrowingPoints Points
+\ingroup PkgGeneralizedRegionGrowing
+
+\defgroup PkgGeneralizedRegionGrowingMesh Mesh
+\ingroup PkgGeneralizedRegionGrowing
+
+\addtogroup PkgGeneralizedRegionGrowing
+
+\cgalPkgDescriptionBegin{Generalized Region Growing, PkgGeneralizedRegionGrowingSummary}
+\cgalPkgPicture{package_summary.png}
+
+\cgalPkgSummaryBegin
+\cgalPkgAuthors{Thien Hoang, Dmitry Anisimov}
+\cgalPkgDesc{This component implements the region growing algorithm that can be applied to any geometry elements, based on user-defined conditions and neighbor searching methods. The package comes with classes that work on a 3D point cloud or a mesh to detect planes, as well as detect lines in a 2D point set.}
+\cgalPkgManuals{Chapter_Generalized_Region_Growing, PkgGeneralizedRegionGrowing}
+\cgalPkgSummaryEnd
+
+\cgalPkgShortInfoBegin
+\cgalPkgSince{4.13}
+\cgalPkgBib{cgal:ovja-pssd}
+\cgalPkgLicense{\ref licensesGPL "GPL"}
+<!-- \cgalPkgDemo{Polyhedron demo,polyhedron_3.zip} -->
+\cgalPkgShortInfoEnd
+
+\cgalPkgDescriptionEnd
+
+\cgalClassifedRefPages
+
+## Concept ##
+- `Conditions`
+- `Connectivity`
+
+## Main Classes ##
+- `CGAL::Shape_detection_3::Shape_detection_traits`
+- `CGAL::Shape_detection_3::Efficient_RANSAC<Traits>`
+- `CGAL::Shape_detection_3::Region_growing<Traits>`
+
+## Shape Interface ##
+- `CGAL::Shape_detection_3::Shape_base<Traits>`
+
+## Shape Classes ##
+- `CGAL::Shape_detection_3::Plane<Traits>`
+- `CGAL::Shape_detection_3::Sphere<Traits>`
+- `CGAL::Shape_detection_3::Cylinder<Traits>`
+- `CGAL::Shape_detection_3::Cone<Traits>`
+- `CGAL::Shape_detection_3::Torus<Traits>`
+
+## Functions ##
+- `CGAL::regularize_planes()`
+
+## Property Maps ##
+- `CGAL::Shape_detection_3::Plane_map<Traits>`
+- `CGAL::Shape_detection_3::Point_to_shape_index_map<Traits>`
+
+*/
+

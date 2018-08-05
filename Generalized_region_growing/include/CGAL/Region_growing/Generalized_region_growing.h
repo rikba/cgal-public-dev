@@ -7,25 +7,53 @@
 namespace CGAL {
     namespace Region_growing {
 
-        template<class Traits, class Connectivity, class Conditions>
+        /*!
+            \ingroup PkgGeneralizedRegionGrowing
+            \brief Region growing algorithm
+            \tparam Traits_ `CGAL::Region_growing::Region_growing_traits`
+            \tparam Connectivity_ Model of `RegionGrowingConnectivity`
+            \tparam Conditions_ Model of `RegionGrowingConditions`
+        */
+
+        template<class Traits_, class Connectivity_, class Conditions_>
         class Generalized_region_growing {
 
         public:
-            using Input_range             = typename Traits::Input_range;
-            using Element                 = typename Traits::Element;
-            using Element_map             = typename Traits::Element_map;
+            using Input_range             = typename Traits_::Input_range;
+
+            using Element                 = typename Traits_::Element;
+            ///< The primary geometric element on which the region growing algorithm will run
+            ///< The operator '<' must be defined for Element so that `std::map<Element>` can be used
+            
+            using Element_map             = typename Traits_::Element_map;
+            ///< An `LvaluePropertyMap` that maps to type `CGAL::Region_growing::Generalized_region_growing::Element`
+            
             using Element_with_properties = typename Element_map::key_type;
+            ///< Value type of the iterator in the input range
 
             using Neighbors               = std::list<Element_with_properties>;
-            using Region                  = std::list<Element_with_properties>;
-            using Regions                 = std::list<Region>;
-            using Region_range            = CGAL::Iterator_range<typename Regions::const_iterator>;
+            ///< Type storing items, used in `RegionGrowingConnectivity::get_neighbors()`
 
-            Generalized_region_growing(const Input_range &input_range, Connectivity &connectivity, Conditions &conditions) :
+            using Region                  = std::list<Element_with_properties>;
+            ///< Type storing items that represent a region
+
+            using Regions                 = std::list<Region>;
+            ///< Type storing regions
+
+            using Region_range            = CGAL::Iterator_range<typename Regions::const_iterator>;
+            ///< An `Iterator_range` of iterators in `CGAL::Region_growing::Generalized_region_growing::Regions`
+
+            /*!
+                The constructor requires an input range and instances of the Connectivity_ class and Conditions_ class.
+            */
+            Generalized_region_growing(const Input_range &input_range, Connectivity_ &connectivity, Conditions_ &conditions) :
                 m_input_range(input_range),
                 m_connectivity(connectivity),
                 m_conditions(conditions) { }
 
+            /*!
+                Perform the region growing algorithm over the input range, using the Connectivity class to find neighbors and the Conditions class to validate elements and regions
+            */
             void find_regions() {
 
                 m_regions.clear();
@@ -51,11 +79,17 @@ namespace CGAL {
                 m_output = Region_range(m_regions.begin(), m_regions.end());
             }
 
+            /*!
+                Return a pair of begin iterator and pass-the-end iterator of the list of regions found. If `CGAL::Region_growing::Generalized_region_growing::find_regions()` has not been called, the first and second of the pair will be the same, which implies an empty list.
+            */
             const Region_range& regions() {
                 return m_output;
             }
 
-            const size_t number_of_regions() {
+            /*!
+                Return the number of regions found.
+            */
+            size_t number_of_regions() {
                 return m_regions.size();
             }
 
@@ -117,8 +151,8 @@ namespace CGAL {
             const Input_range &m_input_range;
             Element_map m_elem_map;
             Regions m_regions;
-            Connectivity &m_connectivity;
-            Conditions &m_conditions;
+            Connectivity_ &m_connectivity;
+            Conditions_ &m_conditions;
             std::map<Element, bool> m_visited;
             Region_range m_output = Region_range(m_regions.begin(), m_regions.end());
         };

@@ -1,5 +1,5 @@
-#ifndef GENERALIZED_REGION_GROWING_POINTS_CONDITIONS_3_H
-#define GENERALIZED_REGION_GROWING_POINTS_CONDITIONS_3_H
+#ifndef CGAL_GENERALIZED_REGION_GROWING_POINTS_CONDITIONS_3_H
+#define CGAL_GENERALIZED_REGION_GROWING_POINTS_CONDITIONS_3_H
 
 #include <CGAL/linear_least_squares_fitting_3.h>
 #include <CGAL/squared_distance_3.h>
@@ -12,7 +12,15 @@ namespace CGAL {
 
         namespace Region_growing_with_points {
 
-            template<class Traits, class NormalMap>
+            /*! 
+                \ingroup PkgGeneralizedRegionGrowingPoints
+                \brief Local and global conditions for the region growing algorithm on 3D point cloud.
+                \tparam Traits_ CGAL::Region_growing::Region_growing_traits.
+                \tparam NormalMap An `LvaluePropertyMap` that maps to a vector, representing the normal associated with the point.
+                \cgalModels `RegionGrowingConditions`
+            */
+
+            template<class Traits_, class NormalMap>
             class Points_conditions_3 {
 
                 template<class ...>
@@ -33,32 +41,42 @@ namespace CGAL {
                 class Get_sqrt<Kernel, void_t<typename Kernel::Sqrt> > : Kernel::Sqrt { };
 
             public:
-                using Kernel                  = typename Traits::Kernel;
-                using Element_map             = typename Traits::Element_map;
+                using Kernel                  = typename Traits_::Kernel;
+                using Element_map             = typename Traits_::Element_map;
                 using Normal_map              = NormalMap;
 
-                using Element_with_properties = typename Element_map::key_type;
-                using Point_3                 = typename Kernel::Point_3;
-                using Plane_3                 = typename Kernel::Plane_3;
-                using Vector_3                = typename Kernel::Vector_3;
-                using FT                      = typename Kernel::FT;
+                using Element_with_properties = typename Element_map::key_type; 
+                ///< Value type of the iterator in the input range
 
-                using Sqrt                    = Get_sqrt<Kernel>;
+                using Point_3                 = typename Kernel::Point_3; ///< Point type
+                using Plane_3                 = typename Kernel::Plane_3; ///< Plane type
+                using Vector_3                = typename Kernel::Vector_3; ///< Vector type
+                using FT                      = typename Kernel::FT; 
+                ///< Number type
 
-                using Local_kernel            = Exact_predicates_inexact_constructions_kernel;
-                using To_local_converter      = Cartesian_converter<Kernel, Local_kernel>;
-                using Local_point_3           = Local_kernel::Point_3;
-                using Local_plane_3           = Local_kernel::Plane_3;
-                using Local_vector_3          = Local_kernel::Vector_3;
-                using Local_FT                = Local_kernel::FT;
+                #ifndef DOXYGEN_RUNNING
+                    using Sqrt                    = Get_sqrt<Kernel>;
+                    using Local_kernel            = Exact_predicates_inexact_constructions_kernel;
+                    using To_local_converter      = Cartesian_converter<Kernel, Local_kernel>;
+                    using Local_point_3           = Local_kernel::Point_3;
+                    using Local_plane_3           = Local_kernel::Plane_3;
+                    using Local_vector_3          = Local_kernel::Vector_3;
+                    using Local_FT                = Local_kernel::FT;
+                #endif
 
+                /*!
+                    Each region is represented by a plane. The constructor requires three parameters, in order: the maximum distance from a point to the region, the minimum dot product between the normal associated with the point and the normal of the region, and the minimum number of points a region must have.
+                */
                 Points_conditions_3(const FT epsilon, const FT normal_threshold, const size_t min_region_size) :
-                    m_epsilon(epsilon),
-                    m_normal_threshold(normal_threshold),
-                    m_min_region_size(min_region_size),
-                    m_sqrt(Sqrt()) {}
+                m_epsilon(epsilon),
+                m_normal_threshold(normal_threshold),
+                m_min_region_size(min_region_size),
+                m_sqrt(Sqrt()) {}
 
-                // Local condition
+                /*!
+                    Local condition that checks if a new point in `unassigned_element` is similar to the point `assigned_element` and its enclosing region `region`.
+                    \tparam Region_ CGAL::Region_growing::Generalized_region_growing::Region
+                */
                 template < class Region_ >
                 bool is_in_same_region(const Element_with_properties &assigned_element,
                                        const Element_with_properties &unassigned_element,
@@ -77,13 +95,19 @@ namespace CGAL {
                     return (distance_to_fit_plane <= m_epsilon && cos_angle >= m_normal_threshold);
                 }
 
-                // Global condition
+                /*!
+                    Global condition that checks if a region size is large enough to be accepted.
+                    \tparam Region_ CGAL::Region_growing::Generalized_region_growing::Region
+                */
                 template < class Region_ >
                 inline bool is_valid(const Region_ &region) const {
                     return (region.size() >= m_min_region_size);
                 }
 
-                // Update the plane of best fit
+                /*!
+                    Update the class' best fit plane that will be used later by the local condition.
+                    \tparam Region_ CGAL::Region_growing::Generalized_region_growing::Region
+                */
                 template < class Region_ >
                 void update_shape(const Region_ &region) {
 

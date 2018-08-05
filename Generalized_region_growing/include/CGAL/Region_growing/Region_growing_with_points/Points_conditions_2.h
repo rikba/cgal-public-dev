@@ -12,7 +12,15 @@ namespace CGAL {
 
         namespace Region_growing_with_points {
 
-            template<class Traits, class NormalMap>
+            /*! 
+                \ingroup PkgGeneralizedRegionGrowingPoints
+                \brief Local and global conditions for the region growing algorithm on 3D point cloud.
+                \tparam Traits_ CGAL::Region_growing::Region_growing_traits.
+                \tparam NormalMap An `LvaluePropertyMap` that maps to a vector, representing the normal associated with the point.
+                \cgalModels `RegionGrowingConditions`
+            */
+
+            template<class Traits_, class NormalMap>
             class Points_conditions_2 {
 
                 template<class ...>
@@ -31,33 +39,41 @@ namespace CGAL {
                 class Get_sqrt<Kernel, void_t<typename Kernel::Sqrt> > : Kernel::Sqrt { };
 
             public:
-                using Kernel                  = typename Traits::Kernel;
-                using Element_map             = typename Traits::Element_map;
+                using Kernel                  = typename Traits_::Kernel;
+                using Element_map             = typename Traits_::Element_map;
                 using Normal_map              = NormalMap;
 
                 using Element_with_properties = typename Element_map::key_type;
-                using Point_2                 = typename Kernel::Point_2;
-                using Line_2                  = typename Kernel::Line_2;
-                using Vector_2                = typename Kernel::Vector_2;
-                using FT                      = typename Kernel::FT;
+                ///< Value type of the iterator in the input range
 
+                using Point_2                 = typename Kernel::Point_2; ///< Point type
+                using Line_2                  = typename Kernel::Line_2; ///< Line type
+                using Vector_2                = typename Kernel::Vector_2; ///< Vector type
+                using FT                      = typename Kernel::FT; ///< Number type
+
+                ///< \cond SKIP_IN_MANUAL
                 using Sqrt                    = Get_sqrt<Kernel>;
-
                 using Local_kernel            = Exact_predicates_inexact_constructions_kernel;
                 using To_local_converter      = Cartesian_converter<Kernel, Local_kernel>;
                 using Local_point_2           = Local_kernel::Point_2;
                 using Local_line_2            = Local_kernel::Line_2;
                 using Local_vector_2          = Local_kernel::Vector_2;
                 using Local_FT                = Local_kernel::FT;
+                ///< \endcond
 
-
+                /*!
+                    Each region is represented by a line. The constructor requires three parameters, in order: the maximum distance from a point to the region, the minimum dot product between the normal associated with the point and the normal of the region, and the minimum number of points a region must have.
+                */
                 Points_conditions_2(const FT epsilon, const FT normal_threshold, const size_t min_region_size) :
-                    m_epsilon(epsilon),
-                    m_normal_threshold(normal_threshold),
-                    m_min_region_size(min_region_size),
-                    m_sqrt(Sqrt()) {}
+                m_epsilon(epsilon),
+                m_normal_threshold(normal_threshold),
+                m_min_region_size(min_region_size),
+                m_sqrt(Sqrt()) {}
 
-                // Local condition
+                /*!
+                    Local condition that checks if a new point in `unassigned_element` is similar to the point `assigned_element` and its enclosing region. Each item in `Region_` has the same structure as in the input range, i.e. has the type `Element_with_properties`.
+                    \tparam Region_ CGAL::Region_growing::Generalized_region_growing::Region
+                */
                 template < class Region_ >
                 bool is_in_same_region(const Element_with_properties &assigned_element,
                                        const Element_with_properties &unassigned_element,
@@ -76,13 +92,19 @@ namespace CGAL {
                     return (distance_to_fit_line <= m_epsilon && cos_angle >= m_normal_threshold);
                 }
 
-                // Global condition
+                /*!
+                    Global condition that checks if a region size is large enough to be accepted
+                    \tparam Region_ CGAL::Region_growing::Generalized_region_growing::Region
+                */
                 template < class Region_ >
                 inline bool is_valid(const Region_ &region) const {
                     return (region.size() >= m_min_region_size);
                 }
 
-                // Update the line of best fit
+                /*!
+                    Update the class' best fit plane that will be used later by the local condition.
+                    \tparam Region_ CGAL::Region_growing::Generalized_region_growing::Region
+                */
                 template < class Region_ >
                 void update_shape(const Region_ &region) {
 

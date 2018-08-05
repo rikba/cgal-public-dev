@@ -1,0 +1,5 @@
+/*!
+\example Generalized_region_growing/Region_growing_with_mesh_cube.cpp
+\example Generalized_region_growing/Region_growing_with_points_2.cpp
+\example Generalized_region_growing/Region_growing_with_points_3.cpp
+*/

@@ -17,14 +17,13 @@ using Faces = std::vector<Face_index>;
 using Input_range = CGAL::Iterator_range<Faces::iterator>;
 using Element_map = CGAL::Identity_property_map<Face_index>;
 
-using Traits = CGAL::Region_growing::Traits<Input_range, Element_map, Kernel>;
+using Traits = CGAL::Region_growing::Region_growing_traits<Input_range, Element_map, Kernel>;
 using Conditions = CGAL::Region_growing::Region_growing_with_mesh::Mesh_conditions<Traits, Mesh>;
 using Connectivity = CGAL::Region_growing::Region_growing_with_mesh::Mesh_connectivity<Traits, Mesh>;
 using Region_growing = CGAL::Region_growing::Generalized_region_growing<Traits, Connectivity, Conditions>;
 
 
 int main(int argc, char *argv[]) {
-    freopen("output_car.ply", "w", stdout);
     Mesh m;
     std::ifstream in(argc > 1 ? argv[1] : "../data/car_mesh.inp");
 

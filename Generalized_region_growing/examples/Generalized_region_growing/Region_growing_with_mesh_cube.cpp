@@ -6,6 +6,8 @@
 #include <CGAL/Iterator_range.h>
 #include <CGAL/Surface_mesh.h>
 
+// Type declarations
+
 using Kernel            = CGAL::Exact_predicates_inexact_constructions_kernel;
 using Point_3           = Kernel::Point_3;
 using Vector_3          = Kernel::Vector_3;
@@ -17,13 +19,14 @@ using Faces = std::vector<Face_index>;
 using Input_range = CGAL::Iterator_range<Faces::iterator>;
 using Element_map = CGAL::Identity_property_map<Face_index>;
 
-using Traits = CGAL::Region_growing::Traits<Input_range, Element_map, Kernel>;
+using Traits = CGAL::Region_growing::Region_growing_traits<Input_range, Element_map, Kernel>;
 using Conditions = CGAL::Region_growing::Region_growing_with_mesh::Mesh_conditions<Traits, Mesh>;
 using Connectivity = CGAL::Region_growing::Region_growing_with_mesh::Mesh_connectivity<Traits, Mesh>;
 using Region_growing = CGAL::Region_growing::Generalized_region_growing<Traits, Connectivity, Conditions>;
 
 
 int main(int argc, char *argv[]) {
+    // Create a mesh of a cube
     Mesh m;
     Vertex_index v0 = m.add_vertex(Point_3(0, 0, 0));
     Vertex_index v1 = m.add_vertex(Point_3(0, 1, 0));
@@ -46,20 +49,24 @@ int main(int argc, char *argv[]) {
     m.add_face(v7, v4, v5);
     m.add_face(v7, v4, v6);
 
+    // Set up a list of faces as the input range
     Mesh::Face_range all_faces = m.faces();
     Faces faces;
     for (Mesh::Face_range::iterator it = all_faces.begin(); it != all_faces.end(); ++it)
         faces.push_back(*it);
     Input_range input_range(faces.begin(), faces.end());
 
+    // Create instances of Connectivity class and Conditions class
     Connectivity connectivity(m);
-
     Conditions conditions(m, 0.1, 0.9);
 
+    // Create an instance of the region growing class
     Region_growing rg(input_range, connectivity, conditions);
 
+    // Run the algoritm
     rg.find_regions();
 
+    // Print the result -- the number of regions found
     std::cout << rg.number_of_regions() << std::endl;
 
 }
