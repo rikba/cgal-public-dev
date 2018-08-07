@@ -779,7 +779,8 @@ void Partition::remove_bivalent_vertices()
 				Partition_Vertex* v = (*it_v);
 
 				// std::cout << v->id << std::endl;
-				
+				assert(V_map.find(v->id) != V_map.end());
+
 				V.erase(V_map.at(v->id));
 				V_map.erase(v->id);
 				octree->remove(v, true);

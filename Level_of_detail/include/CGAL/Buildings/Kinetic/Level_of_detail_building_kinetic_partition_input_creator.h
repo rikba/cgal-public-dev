@@ -133,7 +133,7 @@ namespace CGAL {
 				for (Buildings_iterator b_it = m_buildings.begin(); b_it != m_buildings.end(); ++b_it) {
                     Building &building = b_it->second;
                     
-					if (building.is_valid) 
+					if (building.is_valid && building.shapes.size() != 0) 
                         process_building(building);
                 } 
             }

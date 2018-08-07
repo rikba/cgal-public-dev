@@ -95,11 +95,11 @@ namespace CGAL {
                 if (m_buildings.size() == 0) 
                     return; 
                     
-                int count = 0; std::cout << std::endl;
+                int count = 0; std::cout << std::endl; bool is_valid_building = true;
 				for (Buildings_iterator b_it = m_buildings.begin(); b_it != m_buildings.end(); ++b_it, ++count) {
                     
-                    Building &building = b_it->second; 
-                    if (building.jp_polygons.size() == 0) building.is_valid = false;
+                    Building &building = b_it->second; is_valid_building = building.is_valid;
+                    if (building.jp_polygons.size() == 0) is_valid_building = false;
 
                     building.index = count;
                     // std::cout << "index: " << building.index << " ";
@@ -109,7 +109,7 @@ namespace CGAL {
                     // Log log; 
                     // log.save_only_convex_polygons(building.jp_polygons, "tmp/buildings/debug_building_" + std::to_string(building.index));
 
-					if ( building.is_valid /* && 
+					if ( is_valid_building /* && 
                     building.index != 112 && 
                     building.index != 113 && 
                     building.index != 114 && 

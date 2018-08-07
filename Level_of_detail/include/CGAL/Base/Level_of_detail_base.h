@@ -127,7 +127,8 @@ namespace CGAL {
 
 			typedef typename Traits::Roof_estimator Roof_estimator;
 			
-			typedef typename Traits::LOD2_reconstruction LOD2_reconstruction;
+			typedef typename Traits::LOD2_reconstruction 		 LOD2_reconstruction;
+			typedef typename Traits::Kinetic_LOD2_reconstruction Kinetic_LOD2_reconstruction;
 			
 			typedef typename Traits::Cdt_creator Cdt_creator;
 			typedef typename Traits::Cdt_cleaner Cdt_cleaner;
@@ -256,7 +257,11 @@ namespace CGAL {
 			m_kinetic_3d_perturb_vertices(false),
 			m_kinetic_3d_perturb_support_plane(false),
 			m_kinetic_3d_merge_walls(false),
-			m_kinetic_3d_tolerance(FT(1) / FT(100000))
+			m_kinetic_3d_tolerance(FT(1) / FT(100000)),
+			m_roof_cleaner_use_size_criteria(false),
+			m_roof_cleaner_use_height_criteria(false),
+			m_roof_cleaner_use_vertical_criteria(false),
+			m_roof_cleaner_use_scale_based_criteria(false)
 			{ }
 
 
@@ -475,6 +480,11 @@ namespace CGAL {
 				m_kinetic_3d_merge_walls		   = false;
 
 				m_kinetic_3d_tolerance = FT(1) / FT(100000);
+
+				m_roof_cleaner_use_size_criteria 		= false; // roof cleaner parameters
+				m_roof_cleaner_use_height_criteria 	    = false;
+				m_roof_cleaner_use_vertical_criteria    = false;
+				m_roof_cleaner_use_scale_based_criteria = false;
 			}
 
 			void set_the_most_important_options() {
@@ -550,7 +560,11 @@ namespace CGAL {
 				add_bool_parameter("-kin_pert_vert", m_kinetic_3d_perturb_vertices	   , m_parameters);
 				add_bool_parameter("-kin_pert_sp"  , m_kinetic_3d_perturb_support_plane, m_parameters);
 				add_bool_parameter("-kin_merge"    , m_kinetic_3d_merge_walls		   , m_parameters);
-				
+
+				add_bool_parameter("-rc_use_size"    , m_roof_cleaner_use_size_criteria       , m_parameters);
+				add_bool_parameter("-rc_use_height"  , m_roof_cleaner_use_height_criteria     , m_parameters);
+				add_bool_parameter("-rc_use_vertical", m_roof_cleaner_use_vertical_criteria   , m_parameters);
+				add_bool_parameter("-rc_use_scale"   , m_roof_cleaner_use_scale_based_criteria, m_parameters);
 
 				// Important.
 				add_val_parameter("-eps"  , m_imp_eps  , m_parameters);
@@ -1283,6 +1297,11 @@ namespace CGAL {
 				m_roof_cleaner->set_scale_upper_bound(m_roof_cleaner_scale);
 				m_roof_cleaner->set_max_percentage(m_roof_cleaner_max_percentage);
 				
+				m_roof_cleaner->use_size_criteria(m_roof_cleaner_use_size_criteria);
+				m_roof_cleaner->use_height_criteria(m_roof_cleaner_use_height_criteria);
+				m_roof_cleaner->use_vertical_criteria(m_roof_cleaner_use_vertical_criteria);
+				m_roof_cleaner->use_scale_based_criteria(m_roof_cleaner_use_scale_based_criteria);
+
 				m_roof_cleaner->make_silent(m_silent);
 				m_roof_cleaner->clean_shapes(buildings);
 			}
@@ -1331,7 +1350,18 @@ namespace CGAL {
 
 				Log exporter;
 				if (!m_silent) exporter.save_polyhedrons(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "5_kinetic_polyhedrons_clean");
-				exporter.save_polyhedrons(buildings, "LOD2", true);
+			}
+
+			void reconstructing_lod2_from_kinetic_results(const CDT &cdt, const Buildings &buildings, const Ground &ground_bbox, const FT ground_height, Mesh &mesh, Mesh_facet_colors &mesh_facet_colors, const size_t exec_step) {
+
+				// LOD2 reconstruction.
+				std::cout << "(" << exec_step << ") reconstructing lod2;" << std::endl;
+				
+				Kinetic_LOD2_reconstruction lod2 = Kinetic_LOD2_reconstruction(cdt, buildings, ground_bbox, ground_height, mesh_facet_colors);
+				lod2.reconstruct(mesh);
+
+				Log lod2_saver;
+				lod2_saver.save_mesh_as_ply(mesh, mesh_facet_colors, "LOD2");
 			}
 
 			void finishing_execution() {
@@ -1557,38 +1587,42 @@ namespace CGAL {
 					// (07) ----------------------------------
 					applying_3d_visibility(input, ground_height, buildings, ++exec_step);
 					
+
+					// (08) ----------------------------------
+					reconstructing_lod2_from_kinetic_results(cdt, buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
+
 					return;
 				}
 
 
-				// (08) ----------------------------------
+				// (09) ----------------------------------
 				creating_2d_partition_input(input, buildings, ++exec_step);
 
 
-				// (09) ----------------------------------
+				// (10) ----------------------------------
 				applying_2d_partitioning(input, ground_height, buildings, ++exec_step);
 
 				
 				if (m_use_cdt) {
 					
-					// (10) ----------------------------------
+					// (11) ----------------------------------
 					creating_cdt_per_each_building(buildings, ++exec_step);
 
 
-					// (11) ----------------------------------
+					// (12) ----------------------------------
 					cleaning_cdt_per_each_building(input, ground_height, buildings, ++exec_step);
  				
 
-					// (12) ----------------------------------
+					// (13) ----------------------------------
 					estimating_cdt_based_roofs_per_each_building(ground_height, buildings, ++exec_step);
 
 				 } else {
 
-					// (13) ----------------------------------
+					// (14) ----------------------------------
 					estimating_initial_roofs(ground_height, buildings, ++exec_step);
 				}
 
-				// (14) ----------------------------------
+				// (15) ----------------------------------
 				reconstructing_lod2(buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
 			}
 
@@ -1821,6 +1855,10 @@ namespace CGAL {
 
 			FT m_kinetic_3d_tolerance;
 
+			bool m_roof_cleaner_use_size_criteria;
+			bool m_roof_cleaner_use_height_criteria;
+			bool m_roof_cleaner_use_vertical_criteria;
+			bool m_roof_cleaner_use_scale_based_criteria;
 
 			// Assert default values of all global parameters.
 			void assert_global_parameters() {

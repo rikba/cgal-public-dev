@@ -26,6 +26,7 @@
 #include <CGAL/Preprocessor/Level_of_detail_preprocessor.h>
 #include <CGAL/Selector/Level_of_detail_selection_strategy.h>
 #include <CGAL/Reconstruction/Level_of_detail_reconstruction.h>
+#include <CGAL/Reconstruction/Level_of_detail_lod2_from_kinetic.h>
 #include <CGAL/Regularizer/Level_of_detail_vertical_regularizer.h>
 #include <CGAL/Selector/Level_of_detail_inside_buildings_selector.h>
 #include <CGAL/Regularizer/Level_of_detail_line_regularizer_jean_philippe.h>
@@ -164,7 +165,8 @@ namespace CGAL {
 
 			typedef CGAL::LOD::Level_of_detail_building_roof_estimator<Kernel, Building, Buildings> Roof_estimator;
 
-			typedef CGAL::LOD::Level_of_detail_lod2<Kernel, Building, Buildings, Mesh> LOD2_reconstruction;
+			typedef CGAL::LOD::Level_of_detail_lod2<Kernel, Building, Buildings, Mesh> 		     		 LOD2_reconstruction;
+			typedef CGAL::LOD::Level_of_detail_lod2_from_kinetic<Kernel, CDT, Building, Buildings, Mesh> Kinetic_LOD2_reconstruction;
 
 			typedef CGAL::LOD::Level_of_detail_building_cdt_creator<Kernel, Building, Buildings> 			   Cdt_creator;
 			typedef CGAL::LOD::Level_of_detail_building_cdt_cleaner<Kernel, Container_3D, Building, Buildings> Cdt_cleaner;

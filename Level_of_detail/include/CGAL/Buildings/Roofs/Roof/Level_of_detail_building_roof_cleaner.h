@@ -77,6 +77,22 @@ namespace CGAL {
             m_apply_vertical_criteria(true),
             m_apply_scale_based_criteria(true) { }
 
+            void use_size_criteria(const bool new_state) {
+                m_apply_size_criteria = new_state;
+            }
+
+            void use_height_criteria(const bool new_state) {
+                m_apply_height_criteria = new_state;
+            }
+
+            void use_vertical_criteria(const bool new_state) {
+                m_apply_vertical_criteria = new_state;
+            }
+
+            void use_scale_based_criteria(const bool new_state) {
+                m_apply_scale_based_criteria = new_state;
+            }
+
             void clean_shapes(Buildings &buildings) const {
                 
                 if (buildings.size() == 0) return;
@@ -118,10 +134,10 @@ namespace CGAL {
 
             const FT m_angle_threshold;
             
-            const bool m_apply_size_criteria;
-            const bool m_apply_height_criteria;
-            const bool m_apply_vertical_criteria;
-            const bool m_apply_scale_based_criteria;
+            bool m_apply_size_criteria;
+            bool m_apply_height_criteria;
+            bool m_apply_vertical_criteria;
+            bool m_apply_scale_based_criteria;
 
             class Size_comparator {
                 
@@ -168,7 +184,7 @@ namespace CGAL {
                 
 
                 update_shapes(indices, shapes);
-                if (shapes.size() == 0) building.is_valid = false;
+                // if (shapes.size() == 0) building.is_valid = false;
             }
 
             void set_default_indices(Indices &indices, const size_t num_indices) const {
@@ -181,7 +197,7 @@ namespace CGAL {
             }
 
             void apply_size_criteria(const Shapes &shapes, Indices &indices) const {
-                
+
                 assert(m_max_percentage >= FT(0) && m_max_percentage <= FT(100));
 
                 sort_indices_by_size(shapes, indices);
@@ -287,7 +303,7 @@ namespace CGAL {
 				set_ground_normal(ground_normal);
 
                 const FT angle      = compute_angle(shape_normal, ground_normal);
-                const FT angle_diff = FT(90) - CGAL::abs(angle);
+                const FT angle_diff = CGAL::abs(FT(90) - CGAL::abs(angle));
 
                 if (angle_diff < m_angle_threshold) return true;
                 return false;

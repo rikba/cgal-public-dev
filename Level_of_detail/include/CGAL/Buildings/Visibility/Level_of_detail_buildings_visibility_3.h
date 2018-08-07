@@ -82,7 +82,7 @@ namespace CGAL {
 				for (Buildings_iterator b_it = m_buildings.begin(); b_it != m_buildings.end(); ++b_it) {
                     Building &building = b_it->second;
 
-					if (building.is_valid) {
+					if (building.is_valid && building.shapes.size() != 0 && building.jp_polygons.size() != 0) {
 
                         compute_building_maximum_height(building);
                         process_building(building);
@@ -262,7 +262,7 @@ namespace CGAL {
 				set_ground_normal(ground_normal);
 
                 const FT angle      = compute_angle(facet_normal, ground_normal);
-                const FT angle_diff = FT(90) - CGAL::abs(angle);
+                const FT angle_diff = CGAL::abs(FT(90) - CGAL::abs(angle));
 
                 if (angle_diff < m_angle_threshold) return true;
                 return false;

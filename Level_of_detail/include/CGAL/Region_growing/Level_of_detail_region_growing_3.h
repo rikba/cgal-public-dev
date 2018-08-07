@@ -89,8 +89,8 @@ namespace CGAL {
                     Building &building = (*bit).second;
                     grow_regions(building);
 
-                    if (building.shapes.size() == 0)
-                        building.is_valid = false;
+                    // if (building.shapes.size() == 0)
+                    //     building.is_valid = false;
                 }
 
                 if (!m_silent) {
