@@ -253,7 +253,7 @@ namespace CGAL {
                     const JP_sequence &sequence = *s_it;
 
                     Polyhedron_facet facet;
-                    for (JP_sequence_iterator v_it = sequence.begin(); v_it != sequence.end(); ++v_it) facet.push_back(conversions.at(*v_it));
+                    for (JP_sequence_iterator v_it = sequence.begin(); v_it != sequence.end(); ++v_it) facet.indices.push_back(conversions.at(*v_it));
                     facets.push_back(facet);
                 }
             }
@@ -295,7 +295,7 @@ namespace CGAL {
                         f->get_circular_sequence_of_vertices(facet_vertices, true);
 
                         Polyhedron_facet facet;
-                        for (JP_sequence_iterator v_it = facet_vertices.begin(); v_it != facet_vertices.end(); ++v_it) facet.push_back((*v_it)->id);
+                        for (JP_sequence_iterator v_it = facet_vertices.begin(); v_it != facet_vertices.end(); ++v_it) facet.indices.push_back((*v_it)->id);
                         facets.push_back(facet);
                     }
                 }

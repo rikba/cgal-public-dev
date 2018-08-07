@@ -31,4 +31,6 @@
 #include <CGAL/Buildings/Cdt/Level_of_detail_building_cdt.h>
 #include <CGAL/Buildings/Visibility/Level_of_detail_buildings_visibility_3.h>
 
+#include <CGAL/Buildings/Utils/Level_of_detail_buildings_facets_cleaner_3.h>
+
 #endif // CGAL_LEVEL_OF_DETAIL_BUILDINGS_H

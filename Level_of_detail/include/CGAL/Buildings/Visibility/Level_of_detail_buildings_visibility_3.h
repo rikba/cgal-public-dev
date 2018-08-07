@@ -270,10 +270,10 @@ namespace CGAL {
 
             void set_facet_normal(const Vertices &vertices, const Facet &facet, Vector_3 &facet_normal) const {
 
-                CGAL_precondition(facet.size() >= 3);
-                const Point_3 &p1 = vertices[facet[0]];
-                const Point_3 &p2 = vertices[facet[1]];
-                const Point_3 &p3 = vertices[facet[2]];
+                CGAL_precondition(facet.indices.size() >= 3);
+                const Point_3 &p1 = vertices[facet.indices[0]];
+                const Point_3 &p2 = vertices[facet.indices[1]];
+                const Point_3 &p3 = vertices[facet.indices[2]];
 
                 const Vector_3 v1 = Vector_3(p1, p2);
                 const Vector_3 v2 = Vector_3(p1, p3);
@@ -358,11 +358,11 @@ namespace CGAL {
             void create_polygon(const Vertices &vertices, const Facet &facet, Polygon &polygon) const {
 
                 polygon.clear();
-                polygon.resize(facet.size());
+                polygon.resize(facet.indices.size());
 
-                for (size_t i = 0; i < facet.size(); ++i) {
+                for (size_t i = 0; i < facet.indices.size(); ++i) {
                     
-                    const Point_3 &p = vertices[facet[i]];
+                    const Point_3 &p = vertices[facet.indices[i]];
                     polygon[i] = Point_2(p.x(), p.y());
                 }
             }
@@ -408,10 +408,10 @@ namespace CGAL {
 
             void create_plane(const Vertices &vertices, const Facet &facet, Plane_3 &plane) const {
 
-                CGAL_precondition(facet.size() >= 3);
-                const Point_3 &p1 = vertices[facet[0]];
-                const Point_3 &p2 = vertices[facet[1]];
-                const Point_3 &p3 = vertices[facet[2]];
+                CGAL_precondition(facet.indices.size() >= 3);
+                const Point_3 &p1 = vertices[facet.indices[0]];
+                const Point_3 &p2 = vertices[facet.indices[1]];
+                const Point_3 &p3 = vertices[facet.indices[2]];
 
                 plane = Plane_3(p1, p2, p3);
             }

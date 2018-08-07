@@ -1406,8 +1406,8 @@ namespace CGAL {
 						const auto &facets = polyhedron.facets;
 						for (size_t j = 0; j < facets.size(); ++j) {
 							
-							out << facets[j].size() << " ";
-							for (size_t k = 0; k < facets[j].size(); ++k) out << facets[j][k] + count << " ";
+							out << facets[j].indices.size() << " ";
+							for (size_t k = 0; k < facets[j].indices.size(); ++k) out << facets[j].indices[k] + count << " ";
 							out << generate_random_color() << std::endl;
 						}
 						count += polyhedron.vertices.size();
@@ -1490,8 +1490,8 @@ namespace CGAL {
 						const auto &facets = polyhedron.facets;
 						for (size_t j = 0; j < facets.size(); ++j) {
 							
-							out << facets[j].size() << " ";
-							for (size_t k = 0; k < facets[j].size(); ++k) out << facets[j][k] + count << " ";
+							out << facets[j].indices.size() << " ";
+							for (size_t k = 0; k < facets[j].indices.size(); ++k) out << facets[j].indices[k] + count << " ";
 							out << color << std::endl;
 						}
 						count += polyhedron.vertices.size();

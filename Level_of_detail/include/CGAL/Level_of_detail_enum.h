@@ -205,8 +205,15 @@ namespace CGAL {
 			public:
 				using Vertex   = Point_3;
 				using Vertices = std::vector<Vertex>;
-				using Facet    = std::vector<int>;
-				using Facets   = std::vector<Facet>;
+				
+				struct Facet {
+					using Indices = std::vector<int>;
+					
+					Indices indices;
+					bool is_valid = true;
+				};
+
+				using Facets = std::vector<Facet>;
 
 				Vertices vertices;
 				Facets 	 facets;
@@ -224,6 +231,12 @@ namespace CGAL {
             using JP_polygons = std::vector<JP_polygon>;
 
 			JP_polygons jp_polygons;
+
+			bool is_clean = false;
+
+			using Clean_facet  = std::vector<Point_3>;
+			using Clean_facets = std::vector<Clean_facet>;
+			Clean_facets clean_facets;
 
 			void clear_interior_indices() {
 				interior_indices.clear();

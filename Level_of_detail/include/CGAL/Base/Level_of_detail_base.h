@@ -135,7 +135,8 @@ namespace CGAL {
 
 			typedef typename Traits::Cdt_based_roofs_estimator Cdt_based_roofs_estimator;
 
-			typedef typename Traits::Visibility_3 Visibility_3;
+			typedef typename Traits::Visibility_3   Visibility_3;
+			typedef typename Traits::Facets_cleaner Facets_cleaner;
 
 
 			// Extra typedefs.
@@ -1352,7 +1353,16 @@ namespace CGAL {
 				if (!m_silent) exporter.save_polyhedrons(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "5_kinetic_polyhedrons_clean");
 			}
 
-			void reconstructing_lod2_from_kinetic_results(const CDT &cdt, const Buildings &buildings, const Ground &ground_bbox, const FT ground_height, Mesh &mesh, Mesh_facet_colors &mesh_facet_colors, const size_t exec_step) {
+			void creating_clean_facets(Buildings &buildings, const size_t exec_step) {
+
+				// Create clean facets by merging and removing some polyhedron facets.
+				std::cout << "(" << exec_step << ") creating clean facets;" << std::endl;
+				
+				Facets_cleaner facets_cleaner = Facets_cleaner(buildings);
+				facets_cleaner.create_clean_facets();
+			}
+
+			void reconstructing_lod2(const CDT &cdt, const Buildings &buildings, const Ground &ground_bbox, const FT ground_height, Mesh &mesh, Mesh_facet_colors &mesh_facet_colors, const size_t exec_step) {
 
 				// LOD2 reconstruction.
 				std::cout << "(" << exec_step << ") reconstructing lod2;" << std::endl;
@@ -1587,42 +1597,46 @@ namespace CGAL {
 					// (07) ----------------------------------
 					applying_3d_visibility(input, ground_height, buildings, ++exec_step);
 					
-
+					
 					// (08) ----------------------------------
-					reconstructing_lod2_from_kinetic_results(cdt, buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
+					creating_clean_facets(buildings, ++exec_step);
+
+
+					// (09) ----------------------------------
+					reconstructing_lod2(cdt, buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
 
 					return;
 				}
 
 
-				// (09) ----------------------------------
+				// (10) ----------------------------------
 				creating_2d_partition_input(input, buildings, ++exec_step);
 
 
-				// (10) ----------------------------------
+				// (11) ----------------------------------
 				applying_2d_partitioning(input, ground_height, buildings, ++exec_step);
 
 				
 				if (m_use_cdt) {
 					
-					// (11) ----------------------------------
+					// (12) ----------------------------------
 					creating_cdt_per_each_building(buildings, ++exec_step);
 
 
-					// (12) ----------------------------------
+					// (13) ----------------------------------
 					cleaning_cdt_per_each_building(input, ground_height, buildings, ++exec_step);
  				
 
-					// (13) ----------------------------------
+					// (14) ----------------------------------
 					estimating_cdt_based_roofs_per_each_building(ground_height, buildings, ++exec_step);
 
 				 } else {
 
-					// (14) ----------------------------------
+					// (15) ----------------------------------
 					estimating_initial_roofs(ground_height, buildings, ++exec_step);
 				}
 
-				// (15) ----------------------------------
+				// (16) ----------------------------------
 				reconstructing_lod2(buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
 			}
 

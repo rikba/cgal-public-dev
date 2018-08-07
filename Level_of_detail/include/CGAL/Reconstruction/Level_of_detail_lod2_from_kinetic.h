@@ -44,11 +44,13 @@ namespace CGAL {
 			using Floor_face_handle = typename Building::Face_handle;
 			using Vertex_handle		= typename Building::Vertex_handle;
 			using Polyhedron  		= typename Building::Polyhedron;
-			using Polyhedrons 		= typename Building::Polyhedrons;
+			using Polyhedrons 	    = typename Building::Polyhedrons;
+			using Clean_facet       = typename Building::Clean_facet;
+			using Clean_facets      = typename Building::Clean_facets;
 
-			using Polyhedron_facet    = typename Polyhedron::Facet;
-			using Polyhedron_facets   = typename Polyhedron::Facets;
-			using Polyhedron_vertices = typename Polyhedron::Vertices;
+			using Polyhedron_facet    	  = typename Polyhedron::Facet;
+			using Polyhedron_facets   	  = typename Polyhedron::Facets;
+			using Polyhedron_vertices 	  = typename Polyhedron::Vertices;
 
 			using Color 	   = CGAL::Color;
 			using Facet_colors = std::map<Color_facet_handle, Color>;
@@ -211,6 +213,12 @@ namespace CGAL {
 
 			void add_new_lod2_building(const Building &building, Builder &builder) {
 
+				if (building.is_clean) {
+					
+					use_clean_version(building, builder);
+					return;
+				}
+
 				const Color color = building.color;
 				const Polyhedrons &polyhedrons = building.polyhedrons;
 
@@ -223,8 +231,9 @@ namespace CGAL {
 
 			void add_polyhedron(const Polyhedron &polyhedron, const Color &color, Builder &builder) {
 
-				if (!polyhedron.is_valid) return;
-
+				if (!polyhedron.is_valid) 
+					return;
+				
 				const Polyhedron_facets   &facets   = polyhedron.facets;
 				const Polyhedron_vertices &vertices = polyhedron.vertices;
 
@@ -234,16 +243,52 @@ namespace CGAL {
 
 			void add_polyhedron_facet(const Polyhedron_facet &facet, const Polyhedron_vertices &vertices, const Color &color, Builder &builder) {
 				
-				for (size_t i = 0; i < facet.size(); ++i) {
-					const Point_3 &p = vertices[facet[i]];
+				size_t count = 0;
+				for (size_t i = 0; i < facet.indices.size(); ++i) {
+					
+					if (!facet.is_valid) {
 
+						++count;
+						continue;
+					}
+
+					const Point_3 &p = vertices[facet.indices[i]];
 					builder.add_vertex(p);
 				}
 
+				if (count == facet.indices.size()) return;
 				const Color_facet_handle cfh = builder.begin_facet();
-				for (size_t i = 0; i < facet.size(); ++i) builder.add_vertex_to_facet(m_index_counter++);
+				
+				for (size_t i = 0; i < facet.indices.size(); ++i) {
+					if (!facet.is_valid) continue;
+
+					builder.add_vertex_to_facet(m_index_counter++);
+				}
 				builder.end_facet();
 		        		
+				m_facet_colors[cfh] = color;
+			}
+
+			void use_clean_version(const Building &building, Builder &builder) {
+
+				const Color 	   &color 		 = building.color;
+				const Clean_facets &clean_facets = building.clean_facets;
+
+				for (size_t i = 0; i < clean_facets.size(); ++i)
+					add_clean_facet(clean_facets[i], color, builder);
+			}
+
+			void add_clean_facet(const Clean_facet &clean_facet, const Color &color, Builder &builder) {
+
+				if (clean_facet.size() == 0) return;
+
+				for (size_t i = 0; i < clean_facet.size(); ++i) 
+					builder.add_vertex(clean_facet[i]);
+
+				const Color_facet_handle cfh = builder.begin_facet();
+				for (size_t i = 0; i < clean_facet.size(); ++i) builder.add_vertex_to_facet(m_index_counter++);
+				builder.end_facet();
+
 				m_facet_colors[cfh] = color;
 			}
 
