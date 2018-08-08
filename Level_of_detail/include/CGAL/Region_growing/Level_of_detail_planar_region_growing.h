@@ -38,7 +38,11 @@ namespace CGAL {
 			using Facet_map = std::map<Facet_handle, bool>;
 
 			Level_of_detail_planar_region_growing(const Faces &building_faces) : 
-			m_building_faces(building_faces), m_number_of_regions(-1), m_eps(FT(1) / FT(1000000)) { }
+			m_building_faces(building_faces), 
+			m_number_of_regions(-1), 
+			m_eps(FT(1) / FT(1000000)),
+			m_use_global_conditions(false),
+			m_max_elements(2) { }
 
 			void find_regions(Regions &regions) {
 				assert(!m_building_faces.empty());
@@ -55,11 +59,22 @@ namespace CGAL {
 				return m_number_of_regions;
 			}
 
+			void use_global_conditions(const bool state) {
+				m_use_global_conditions = state;
+			}
+
+			void set_max_number_of_elements(const size_t value) {
+				m_max_elements = value;
+			}
+
 		private:
 			const Faces &m_building_faces;
 
-			int m_number_of_regions;
+			int   m_number_of_regions;
 			const FT m_eps;
+			
+			bool   m_use_global_conditions;
+			size_t m_max_elements;
 
 			void grow_regions(Regions &regions) {
 				
@@ -98,7 +113,31 @@ namespace CGAL {
 						
 						Building_region new_region;
 						grow_new_region(fh, faces, new_region, handled_faces);
-						building_regions.push_back(new_region);
+						
+						if (m_use_global_conditions) {
+
+							if (new_region.size() <= m_max_elements) building_regions.push_back(new_region);
+							else {
+								
+								Building_region small_region; size_t count = 0;
+								for (size_t j = 0; j < new_region.size(); ++j) {
+									
+									small_region.push_back(new_region[j]);
+									++count;
+
+									if (count == m_max_elements) {
+									
+										building_regions.push_back(small_region);
+										small_region.clear();
+
+										count = 0;
+									}
+								}
+
+								if (count == 1) building_regions.push_back(small_region);
+							}
+
+						} else building_regions.push_back(new_region);
 					}
 				}
 			}

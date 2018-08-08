@@ -129,7 +129,8 @@ namespace CGAL {
 
             Level_of_detail_buildings_facets_cleaner_3(Buildings &buildings) :
             m_buildings(buildings),
-            m_tolerance(FT(1) / FT(10000))
+            m_tolerance(FT(1) / FT(1000)),
+            m_max_num_iters(50)
             { }
 
             void create_clean_facets() {
@@ -147,7 +148,9 @@ namespace CGAL {
 
         private:
             Buildings &m_buildings;
-            const FT m_tolerance;
+            
+            const FT     m_tolerance;
+            const size_t m_max_num_iters;
             
             void process_building(Building &building) const {
             
@@ -242,6 +245,9 @@ namespace CGAL {
 
                 Planar_region_growing planar_region_growing(facets);
 
+                planar_region_growing.use_global_conditions(true);
+                planar_region_growing.set_max_number_of_elements(1);
+
 				Regions regions;
 				planar_region_growing.find_regions(regions);
 
@@ -249,87 +255,72 @@ namespace CGAL {
             }
 
             void set_merged_facets(const Building_regions &regions, Clean_facets &clean_facets) const {
+                
                 clean_facets.clear();
+                for (size_t i = 0; i < regions.size(); ++i)
+                    create_clean_facet(regions[i], clean_facets);
+            }
+
+            void create_clean_facet(const Building_region &facets, Clean_facets &clean_facets) const {
+                
+                if (facets.size() == 1) {
+                    
+                    fall_back(facets, clean_facets);
+                    return;
+                }
 
                 Clean_facet clean_facet;
-                for (size_t i = 0; i < regions.size(); ++i) {
+                Halfedge_handle curr, end;
+                size_t facet_index = 1000000;
 
-                    create_clean_facet(regions[i], clean_facet);
-                    clean_facets.push_back(clean_facet);
-                }
-            }
+                find_first_halfedge_handle(facets, curr, facet_index);
+                CGAL_precondition(facet_index != 1000000);
 
-            void create_clean_facet(const Building_region &region, Clean_facet &clean_facet) const {
-                clean_facet.clear();
-                
-                if (region.size() == 1) {
-
-                    const Mesh_facet_handle &fh = region[0];
-                    add_clean_facet(fh, clean_facet);
-                }
-
-                Halfedge_handle curr, end; size_t region_index = 1000000;
-                find_first_halfedge_handle(region, curr, region_index);
-
-                // clean_facet.push_back(curr->vertex()->point());
-                // end = curr;
-
-                // curr = curr->next();
-                // while (curr != end) {
-
-                //     find_next_halfedge_handle(region, region_index, curr, clean_facet);
-                // };
-            }
-
-            void add_clean_facet(const Mesh_facet_handle &fh, Clean_facet &clean_facet) const {
-
-                Halfedge_handle curr = fh->halfedge();
-                Halfedge_handle end  = curr;
-
-                Facet_vertex_handle vh = curr->vertex();
-                clean_facet.push_back(vh->point());
+                clean_facet.push_back(curr->vertex()->point());
+                end = curr;
 
                 curr = curr->next();
                 while (curr != end) {
 
-                    vh = curr->vertex();
-                    clean_facet.push_back(vh->point());
-
-                    curr = curr->next();
+                    find_next_halfedge_handle(facets, facet_index, curr, clean_facet);
                 };
+                
+                clean_facets.push_back(clean_facet);
             }
 
-            void find_first_halfedge_handle(const Building_region &region, Halfedge_handle &he, size_t &region_index) const {
+            void find_first_halfedge_handle(const Building_region &facets, Halfedge_handle &he, size_t &facet_index) const {
 
-                for (size_t i = 0; i < region.size(); ++i) {
-                    region_index = i;
+                CGAL_precondition(facets.size() != 0);
 
-                    const Mesh_facet_handle &fh = region[region_index];
+                for (size_t i = 0; i < facets.size(); ++i) {
+                    facet_index = i;
+
+                    const Mesh_facet_handle &fh = facets[facet_index];
                     
                     he = fh->halfedge();
-                    if (is_valid(he, region_index, region)) return;
+                    if (is_unique(he, facet_index, facets)) return;
 
                     Halfedge_handle end = he;
                     he = he->next();
 
                     while (he != end) {
 
-                        if (is_valid(he, region_index, region)) return;
+                        if (is_unique(he, facet_index, facets)) return;
                         he = he->next();
                     }
                 }
             }
 
-            bool is_valid(const Halfedge_handle &he, const size_t region_index, const Building_region &region) const {
+            bool is_unique(const Halfedge_handle &he, const size_t facet_index, const Building_region &facets) const {
 
                 const Facet_vertex_handle &vh = he->vertex();
                 const Point_3 &p = vh->point();
 
                 Halfedge_handle stub;
-                for (size_t i = 0; i < region.size(); ++i) {
-                    if (i == region_index) continue;
+                for (size_t i = 0; i < facets.size(); ++i) {
+                    if (i == facet_index) continue;
                     
-                    const Mesh_facet_handle &fh = region[i];
+                    const Mesh_facet_handle &fh = facets[i];
                     if (contains(p, fh, stub)) return false;
                 }
                 return true;
@@ -362,10 +353,10 @@ namespace CGAL {
                 return false;
             }
 
-            void find_next_halfedge_handle(const Building_region &region, size_t &region_index, Halfedge_handle &curr, Clean_facet &clean_facet) const {
+            void find_next_halfedge_handle(const Building_region &facets, size_t &facet_index, Halfedge_handle &curr, Clean_facet &clean_facet) const {
 
                 const Point_3 &p = curr->vertex()->point();
-                if (is_valid(curr, region_index, region)) {
+                if (is_unique(curr, facet_index, facets)) {
 
                     clean_facet.push_back(p);
                     curr = curr->next();
@@ -374,21 +365,52 @@ namespace CGAL {
                 }
 
                 Halfedge_handle next;
-                for (size_t i = 0; i < region.size(); ++i) {
-                    if (i == region_index) continue;
+                for (size_t i = 0; i < facets.size(); ++i) {
+                    if (i == facet_index) continue;
                     
-                    const Mesh_facet_handle &fh = region[i];
+                    const Mesh_facet_handle &fh = facets[i];
                     if (contains(p, fh, next)) {
 
                         clean_facet.push_back(p);
                         curr = next->next();
 
-                        region_index = i;
+                        facet_index = i;
                         return;
                     }
                 }
+                return;
+            }
+
+            void fall_back(const Building_region &facets, Clean_facets &clean_facets) const {
+
+                Clean_facet clean_facet;
+                for (size_t i = 0; i < facets.size(); ++i) {
+
+                    const Mesh_facet_handle &fh = facets[i];    
+                    create_unique_clean_facet(fh, clean_facet);
+
+                    clean_facets.push_back(clean_facet);
+                }
+            }
+
+            void create_unique_clean_facet(const Mesh_facet_handle &fh, Clean_facet &clean_facet) const {
+
+                clean_facet.clear();
+
+                Halfedge_handle curr = fh->halfedge();
+                Halfedge_handle end  = curr;
+
+                Facet_vertex_handle vh = curr->vertex();
+                clean_facet.push_back(vh->point());
 
                 curr = curr->next();
+                while (curr != end) {
+
+                    vh = curr->vertex();
+                    clean_facet.push_back(vh->point());
+
+                    curr = curr->next();
+                };
             }
         };
 
