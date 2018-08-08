@@ -10,6 +10,7 @@
 #include <CGAL/Buildings/Roofs/Roof/Level_of_detail_building_roof_estimator.h>
 #include <CGAL/Buildings/Roofs/Roof/Level_of_detail_building_roof_face_validator.h>
 
+#include <CGAL/Buildings/Roofs/Level_of_detail_building_roofs_creator.h>
 #include <CGAL/Buildings/Roofs/Level_of_detail_building_roofs_estimator.h>
 
 #include <CGAL/Buildings/Roofs/Estimation/Level_of_detail_building_roof_estimator_box_strategy.h>

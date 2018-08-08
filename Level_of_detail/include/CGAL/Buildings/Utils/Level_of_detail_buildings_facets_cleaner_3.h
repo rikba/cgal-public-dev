@@ -129,7 +129,7 @@ namespace CGAL {
 
             Level_of_detail_buildings_facets_cleaner_3(Buildings &buildings) :
             m_buildings(buildings),
-            m_tolerance(FT(1) / FT(1000)),
+            m_tolerance(FT(1) / FT(100000)),
             m_max_num_iters(50)
             { }
 
@@ -279,12 +279,21 @@ namespace CGAL {
                 clean_facet.push_back(curr->vertex()->point());
                 end = curr;
 
-                curr = curr->next();
+                curr = curr->next(); size_t iters = 0;
                 while (curr != end) {
 
                     find_next_halfedge_handle(facets, facet_index, curr, clean_facet);
+
+                    ++iters;
+                    if (iters == m_max_num_iters) break;
                 };
                 
+                if (iters == m_max_num_iters) {
+                    
+                    fall_back(facets, clean_facets);
+                    return;
+                }
+
                 clean_facets.push_back(clean_facet);
             }
 

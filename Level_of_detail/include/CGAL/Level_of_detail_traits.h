@@ -175,6 +175,7 @@ namespace CGAL {
 
 			typedef CGAL::LOD::Level_of_detail_buildings_visibility_3<Kernel, Container_3D, Building, Buildings> Visibility_3;
 			typedef CGAL::LOD::Level_of_detail_buildings_facets_cleaner_3<Kernel, Building, Buildings> 		     Facets_cleaner;
+			typedef CGAL::LOD::Level_of_detail_building_roofs_creator<Kernel, Container_3D, Building, Buildings> Roofs_creator;
 		};
 	}
 }

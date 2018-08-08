@@ -138,6 +138,8 @@ namespace CGAL {
 			typedef typename Traits::Visibility_3   Visibility_3;
 			typedef typename Traits::Facets_cleaner Facets_cleaner;
 
+			typedef typename Traits::Roofs_creator Roofs_creator;
+
 
 			// Extra typedefs.
 			using Plane_iterator = typename Planes::const_iterator;
@@ -1341,6 +1343,19 @@ namespace CGAL {
 				}
 			}
 
+			void creating_roofs(const Container_3D &input, const FT ground_height, Buildings &buildings, const size_t exec_step) {
+
+				// Fit best polyhedron facets to the original points.
+				std::cout << "(" << exec_step << ") creating roofs;" << std::endl;
+
+				Roofs_creator roofs_creator = Roofs_creator(input, ground_height, buildings);
+				roofs_creator.create_roofs();
+
+				if (!m_silent) {
+					Log exporter; exporter.save_building_roofs_without_faces(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "5_roofs", true);
+				}
+			}
+
 			void applying_3d_visibility(const Container_3D &input, const FT ground_height, Buildings &buildings, const size_t exec_step) {
 
 				// Apply 3D visibility.
@@ -1594,16 +1609,21 @@ namespace CGAL {
 					creating_3d_partitioning_output(buildings, ++exec_step);
 				
 
+					creating_roofs(input, ground_height, buildings, ++exec_step);
+
+					reconstructing_lod2(buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
+
+
 					// (07) ----------------------------------
-					applying_3d_visibility(input, ground_height, buildings, ++exec_step);
+					// applying_3d_visibility(input, ground_height, buildings, ++exec_step);
 					
 					
 					// (08) ----------------------------------
-					creating_clean_facets(buildings, ++exec_step);
+					// creating_clean_facets(buildings, ++exec_step);
 
 
 					// (09) ----------------------------------
-					reconstructing_lod2(cdt, buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
+					// reconstructing_lod2(cdt, buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
 
 					return;
 				}
