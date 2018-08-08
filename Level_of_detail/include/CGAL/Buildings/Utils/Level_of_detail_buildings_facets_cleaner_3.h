@@ -130,7 +130,8 @@ namespace CGAL {
             Level_of_detail_buildings_facets_cleaner_3(Buildings &buildings) :
             m_buildings(buildings),
             m_tolerance(FT(1) / FT(100000)),
-            m_max_num_iters(50)
+            m_max_num_iters(50),
+            m_use_global_conditions(false)
             { }
 
             void create_clean_facets() {
@@ -151,6 +152,8 @@ namespace CGAL {
             
             const FT     m_tolerance;
             const size_t m_max_num_iters;
+
+            const bool m_use_global_conditions;
             
             void process_building(Building &building) const {
             
@@ -245,8 +248,11 @@ namespace CGAL {
 
                 Planar_region_growing planar_region_growing(facets);
 
-                planar_region_growing.use_global_conditions(true);
-                planar_region_growing.set_max_number_of_elements(1);
+                if (m_use_global_conditions) {
+                    
+                    planar_region_growing.use_global_conditions(true);
+                    planar_region_growing.set_max_number_of_elements(1);
+                }
 
 				Regions regions;
 				planar_region_growing.find_regions(regions);
