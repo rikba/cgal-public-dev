@@ -157,7 +157,7 @@ The class `CGAL::Region_growing::Generalized_region_growing` is templated by thr
 The main parameter that affects the region growing algorithm is the neighborhood size (`radius` or `number_of_neighbors`) at each retrieval. Larger neighbor lists are _often_ followed by smaller number of regions, larger coverage (the ratio between the number of points assigned to some region and the total number of points given in the input), and longer running time. On a test of 67768 points, the following table is produced:
 
 <table class="markdownTable">
-<tbody><tr class="markdownTableHead">
+<tr class="markdownTableHead">
 <th class="markdownTableHeadCenter"><code>radius</code>  </th><th class="markdownTableHeadCenter">Time (in seconds)  </th><th class="markdownTableHeadCenter">Number of regions  </th><th class="markdownTableHeadCenter">Number of assigned points   </th></tr>
 <tr class="markdownTableBody">
 <td class="markdownTableBodyCenter">1  </td><td class="markdownTableBodyCenter">0.832657  </td><td class="markdownTableBodyCenter">796  </td><td class="markdownTableBodyCenter">4491   </td></tr>
@@ -167,7 +167,7 @@ The main parameter that affects the region growing algorithm is the neighborhood
 <td class="markdownTableBodyCenter">6  </td><td class="markdownTableBodyCenter">0.95962  </td><td class="markdownTableBodyCenter">2483  </td><td class="markdownTableBodyCenter">64977   </td></tr>
 <tr class="markdownTableBody">
 <td class="markdownTableBodyCenter">9  </td><td class="markdownTableBodyCenter">1.13608  </td><td class="markdownTableBodyCenter">2282  </td><td class="markdownTableBodyCenter">65353   </td></tr>
-</tbody></table>
+</table>
 
 If the neighborhood size is set too low, some points may be isolated and the region size is not large enough, hence will be discarded. This not only causes latency in the program, but also reduces the coverage value, as can be seen when `radius` = 1.
 
