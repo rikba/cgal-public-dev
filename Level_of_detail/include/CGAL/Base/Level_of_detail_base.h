@@ -264,7 +264,10 @@ namespace CGAL {
 			m_roof_cleaner_use_size_criteria(false),
 			m_roof_cleaner_use_height_criteria(false),
 			m_roof_cleaner_use_vertical_criteria(false),
-			m_roof_cleaner_use_scale_based_criteria(false)
+			m_roof_cleaner_use_scale_based_criteria(false),
+			m_quality_based_method(false),
+			m_simple_visibility_method(true),
+			m_advanced_visibility_method(false)
 			{ }
 
 
@@ -1607,28 +1610,44 @@ namespace CGAL {
 
 					// (06) ----------------------------------
 					creating_3d_partitioning_output(buildings, ++exec_step);
+
 				
-					// applying_3d_visibility(input, ground_height, buildings, ++exec_step);
+					if (m_quality_based_method) {
 
-					// creating_roofs(input, ground_height, buildings, ++exec_step);
+						// (07) ----------------------------------
+						applying_3d_visibility(input, ground_height, buildings, ++exec_step);
 
-					// reconstructing_lod2(buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
+						
+						// (08) ----------------------------------
+						creating_roofs(input, ground_height, buildings, ++exec_step);
 
-					// return;
+
+						// (09) ----------------------------------
+						reconstructing_lod2(buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
+
+						return;
+					}
 					
+					if (m_simple_visibility_method) {
 
-					// (07) ----------------------------------
-					applying_3d_visibility(input, ground_height, buildings, ++exec_step);
+						// (07) ----------------------------------
+						applying_3d_visibility(input, ground_height, buildings, ++exec_step);
 					
 					
-					// (08) ----------------------------------
-					creating_clean_facets(buildings, ++exec_step);
+						// (08) ----------------------------------
+						creating_clean_facets(buildings, ++exec_step);
 
 
-					// (09) ----------------------------------
-					reconstructing_lod2(cdt, buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
+						// (09) ----------------------------------
+						reconstructing_lod2(cdt, buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
 
-					return;
+						return;
+					}
+
+					if (m_advanced_visibility_method) {
+
+						return;
+					}
 				}
 
 
@@ -1896,6 +1915,11 @@ namespace CGAL {
 			bool m_roof_cleaner_use_height_criteria;
 			bool m_roof_cleaner_use_vertical_criteria;
 			bool m_roof_cleaner_use_scale_based_criteria;
+
+			bool m_quality_based_method;
+			bool m_simple_visibility_method;
+			bool m_advanced_visibility_method;
+
 
 			// Assert default values of all global parameters.
 			void assert_global_parameters() {
