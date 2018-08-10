@@ -88,6 +88,7 @@ namespace CGAL {
             m_ground_height(ground_height),
             m_buildings(buildings),
             m_big_value(FT(100000000000000)),
+            m_z_scale(FT(3)),
             m_up_scale(FT(3) / FT(2)),
             m_down_scale(FT(1) / FT(2)),
             m_disc_scale(FT(1) / FT(10)),
@@ -144,6 +145,7 @@ namespace CGAL {
             Buildings &m_buildings;
             
             const FT m_big_value;
+            const FT m_z_scale;
             const FT m_up_scale;
             const FT m_down_scale;
             const FT m_disc_scale;
@@ -202,7 +204,7 @@ namespace CGAL {
                 polygon[2] = Point_3(maxx, maxy, m_ground_height);
                 polygon[3] = Point_3(minx, maxy, m_ground_height);
 
-                process_polygon(polygon, jp_polygons, m_up_scale);
+                process_polygon(polygon, jp_polygons, m_up_scale, FT(1));
             }
 
             void set_walls(const Building &building, JP_polygons &jp_polygons) const {
@@ -252,7 +254,7 @@ namespace CGAL {
                 polygon[2] = Point_3(p2.x(), p2.y(), m_ground_height + building_height);
                 polygon[3] = Point_3(p1.x(), p1.y(), m_ground_height + building_height);
 
-                process_polygon(polygon, jp_polygons, m_down_scale);
+                process_polygon(polygon, jp_polygons, m_down_scale, m_z_scale);
             }
 
             void set_roofs(const Building &building, JP_polygons &jp_polygons) const {
@@ -276,7 +278,7 @@ namespace CGAL {
 					polygon[i] = p;
 				}
 
-                process_polygon(polygon, jp_polygons, m_up_scale);
+                process_polygon(polygon, jp_polygons, m_down_scale, FT(1));
             }
 
             void merge_segments(Segments &segments) const {
@@ -358,11 +360,11 @@ namespace CGAL {
                 return false;
             }
 
-            void process_polygon(Polygon &polygon, JP_polygons &jp_polygons, const FT scale) const {
+            void process_polygon(Polygon &polygon, JP_polygons &jp_polygons, const FT scale, const FT z_extender) const {
 
                 if (polygon.size() == 0) return;
 
-                if (m_scale_polygon)                 scale_polygon(scale, polygon);
+                if (m_scale_polygon)                 scale_polygon(scale, z_extender, polygon);
                 if (m_perturb_polygon_vertices)      perturb_polygon_vertices(polygon);
                 if (m_perturb_polygon_support_plane) perturb_polygon_support_plane(polygon);
                 
@@ -376,7 +378,7 @@ namespace CGAL {
                 jp_polygons.push_back(jp_polygon);
             }
 
-            void scale_polygon(const FT scale, Polygon &polygon) const {
+            void scale_polygon(const FT scale, const FT z_extender, Polygon &polygon) const {
 
                 Point_3 b;
                 compute_barycentre(polygon, b);
@@ -386,7 +388,7 @@ namespace CGAL {
 
                     const FT x = (p.x() - b.x()) * scale + b.x();
                     const FT y = (p.y() - b.y()) * scale + b.y();
-                    const FT z = (p.z() - b.z()) * scale + b.z();
+                    const FT z = (p.z() - b.z()) * scale * z_extender + b.z();
 
                     p = Point_3(x, y, z);
                 }
