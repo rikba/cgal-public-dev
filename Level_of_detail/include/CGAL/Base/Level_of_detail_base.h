@@ -1608,12 +1608,13 @@ namespace CGAL {
 					// (06) ----------------------------------
 					creating_3d_partitioning_output(buildings, ++exec_step);
 				
+					// applying_3d_visibility(input, ground_height, buildings, ++exec_step);
 
-					creating_roofs(input, ground_height, buildings, ++exec_step);
+					// creating_roofs(input, ground_height, buildings, ++exec_step);
 
-					reconstructing_lod2(buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
+					// reconstructing_lod2(buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
 
-					return;
+					// return;
 					
 
 					// (07) ----------------------------------

@@ -166,7 +166,7 @@ namespace CGAL {
 				for (size_t i = 0; i < polyhedrons.size(); ++i)
 					process_polyhedron(i, polyhedrons, clean_facets);
 
-                merge_clean_facets(clean_facets);
+                // merge_clean_facets(clean_facets);
             }
 
             void process_polyhedron(const size_t polyhedron_index, const Polyhedrons &polyhedrons, Clean_facets &clean_facets) const {

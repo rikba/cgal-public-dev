@@ -69,10 +69,10 @@ namespace CGAL {
             m_input(input),
             m_buildings(buildings),
             m_ground_height(ground_height),
-            m_distance_threshold(FT(1) / FT(2)),
+            m_distance_threshold(FT(3)),
             m_tolerance(FT(1) / FT(100000)),
-            m_polygon_area_tolerance(FT(1) / FT(10000))
-            { }
+            m_polygon_area_tolerance(FT(1) / FT(10000)),
+            m_min_z(FT(100000000000000)) { }
 
             void create_roofs() {
 
@@ -97,14 +97,17 @@ namespace CGAL {
             const FT m_tolerance;
             const FT m_polygon_area_tolerance;
 
-            void process_building(Building &building) const {
+            FT m_min_z;
+
+            void process_building(Building &building) {
 
                 Roofs &roofs             = building.roofs;
                 Polyhedrons &polyhedrons = building.polyhedrons;
 
                 const Shapes &shapes = building.shapes;
+                compute_min_z(building);
+                
                 preprocess(roofs, polyhedrons);
-
                 for (size_t i = 0; i < shapes.size(); ++i) {
                     
                     const Indices &indices = shapes[i];
@@ -112,8 +115,25 @@ namespace CGAL {
                 }
             }
 
-            void preprocess(Roofs &roofs, Polyhedrons &polyhedrons) const {
+            void compute_min_z(const Building &building) {
+                
+                m_min_z = FT(100000000000000);
 
+                const Shapes &shapes = building.shapes;
+                CGAL_precondition(shapes.size() > 0);
+
+				for (size_t i = 0; i < shapes.size(); ++i) {
+                    const Indices &indices = shapes[i];
+
+                    for (size_t j = 0; j < indices.size(); ++j) {
+                        
+                        const Point_3 &p = m_input.point(indices[j]);
+                        m_min_z = CGAL::min(m_min_z, p.z());
+                    }
+                }
+            }
+
+            void preprocess(Roofs &roofs, Polyhedrons &polyhedrons) const {
                 roofs.clear();
             }
 
@@ -133,7 +153,8 @@ namespace CGAL {
                 for (size_t i = 0; i < polyhedrons.size(); ++i) {
                     const Polyhedron &polyhedron = polyhedrons[i];
 
-                    process_polyhedron(indices, polyhedron, facets);
+                    if (polyhedron.is_valid)
+                        process_polyhedron(indices, polyhedron, facets);
                 }
             }
 
@@ -159,10 +180,10 @@ namespace CGAL {
                 Plane_3 plane;
                 create_plane(poly_facet, poly_vertices, plane);
 
-                const FT average_squared_distance = compute_average_squared_distance_to_plane(indices, plane);
+                const FT average_distance = compute_average_distance_to_plane(indices, plane);
 
-                if (average_squared_distance < FT(0)) return false;
-                return average_squared_distance < m_distance_threshold * m_distance_threshold;
+                if (average_distance < FT(0)) return false;
+                return average_distance < m_distance_threshold;
             }
 
             void create_plane(const Polyhedron_facet &poly_facet, const Polyhedron_vertices &poly_vertices, Plane_3 &plane) const {
@@ -176,22 +197,24 @@ namespace CGAL {
                 plane = Plane_3(p1, p2, p3);
             }
 
-            FT compute_average_squared_distance_to_plane(const Indices &indices, const Plane_3 &plane) const {
+            FT compute_average_distance_to_plane(const Indices &indices, const Plane_3 &plane) const {
 
                 if (indices.size() == 0) return -FT(1);
 
-                FT average_squared_distance = FT(0);
+                FT average_distance = FT(0);
                 for (size_t i = 0; i < indices.size(); ++i) {
                     
                     const Point_3 &p = m_input.point(indices[i]);
                     const Point_3  q = plane.projection(p);
 
                     const FT squared_distance = squared_distance_3(p, q);
-                    average_squared_distance += squared_distance;
+                    const FT distance = static_cast<FT>(sqrt(CGAL::to_double(squared_distance)));
+
+                    average_distance += distance;
                 }
                 
-                average_squared_distance /= static_cast<FT>(indices.size());
-                return average_squared_distance;
+                average_distance /= static_cast<FT>(indices.size());
+                return average_distance;
             }
 
             void create_facet(const Polyhedron_facet &poly_facet, const Polyhedron_vertices &poly_vertices, Facet &facet) const {
@@ -249,9 +272,9 @@ namespace CGAL {
                 compute_convex_hull(indices, hull);
                 
                 create_polygon_pairs(facets, polygon_pairs);
-                compute_polygon_inliners(indices, polygon_pairs);
+                // compute_polygon_inliners(indices, polygon_pairs);
                 
-                sort_polygon_pairs(polygon_pairs);
+                // sort_polygon_pairs(polygon_pairs);
                 pick_best_coverage(polygon_pairs, hull, facets);
             }
 
@@ -368,7 +391,10 @@ namespace CGAL {
 
                     const size_t facet_index = pair.first;
 
-                    if (pair.second != 0 && should_be_included(polygon_pair.first, hull))
+                    // if (pair.second != 0 && should_be_included(polygon_pair.first, hull))
+                        // new_facets.push_back(facets[facet_index]);
+
+                    if (!is_below_roof(facets[facet_index]))
                         new_facets.push_back(facets[facet_index]);
                 }
 
@@ -376,19 +402,27 @@ namespace CGAL {
                 facets = new_facets;
             }
 
+            bool is_below_roof(const Facet &facet) const {
+
+                Point_3 b;
+                compute_barycentre_3(facet.begin(), facet.end(), b);
+
+                return b.z() < m_min_z;
+            }
+
             bool should_be_included(const Polygon &polygon, const Hull &hull) const {
 
                 Point_2 b1;
-                compute_barycentre(polygon.vertices_begin(), polygon.vertices_end(), b1);
+                compute_barycentre_2(polygon.vertices_begin(), polygon.vertices_end(), b1);
 
                 // Point_2 b2;
-                // compute_barycentre(hull.begin(), hull.end(), b2);
+                // compute_barycentre_2(hull.begin(), hull.end(), b2);
 
                 return belongs(b1, hull.begin(), hull.end()); // && belongs(b2, polygon.vertices_begin(), polygon.vertices_end());
             }
 
             template<class Vertices_iterator>
-            void compute_barycentre(const Vertices_iterator &vertices_begin, const Vertices_iterator &vertices_end, Point_2 &b) const {
+            void compute_barycentre_2(const Vertices_iterator &vertices_begin, const Vertices_iterator &vertices_end, Point_2 &b) const {
 
                 FT x = FT(0), y = FT(0), size = FT(0);
                 for (auto v_it = vertices_begin; v_it != vertices_end; ++v_it, size += FT(1)) {
@@ -402,6 +436,25 @@ namespace CGAL {
                 y /= size;
 
                 b = Point_2(x, y);
+            }
+
+            template<class Vertices_iterator>
+            void compute_barycentre_3(const Vertices_iterator &vertices_begin, const Vertices_iterator &vertices_end, Point_3 &b) const {
+
+                FT x = FT(0), y = FT(0), z = FT(0), size = FT(0);
+                for (auto v_it = vertices_begin; v_it != vertices_end; ++v_it, size += FT(1)) {
+                    const Point_3 &p = *v_it;
+
+                    x += p.x();
+                    y += p.y();
+                    z += p.z();
+                }
+
+                x /= size;
+                y /= size;
+                z /= size;
+
+                b = Point_3(x, y, z);
             }
 
             void add_roofs_from_facets(const Facets &facets, Roofs &roofs) const {
