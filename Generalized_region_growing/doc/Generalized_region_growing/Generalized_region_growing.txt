@@ -160,13 +160,13 @@ The main parameter that affects the region growing algorithm is the neighborhood
 <tr class="markdownTableHead">
 <th class="markdownTableHeadCenter"><code>radius</code>  </th><th class="markdownTableHeadCenter">Time (in seconds)  </th><th class="markdownTableHeadCenter">Number of regions  </th><th class="markdownTableHeadCenter">Number of assigned points   </th></tr>
 <tr class="markdownTableBody">
-<td class="markdownTableBodyCenter">1  </td><td class="markdownTableBodyCenter">0.832657  </td><td class="markdownTableBodyCenter">796  </td><td class="markdownTableBodyCenter">4491   </td></tr>
+<td class="markdownTableBodyCenter">1  </td><td class="markdownTableBodyCenter">0.350881  </td><td class="markdownTableBodyCenter">796  </td><td class="markdownTableBodyCenter">4491   </td></tr>
 <tr class="markdownTableBody">
-<td class="markdownTableBodyCenter">3  </td><td class="markdownTableBodyCenter">0.837602  </td><td class="markdownTableBodyCenter">3054  </td><td class="markdownTableBodyCenter">63154   </td></tr>
+<td class="markdownTableBodyCenter">3  </td><td class="markdownTableBodyCenter">0.306144  </td><td class="markdownTableBodyCenter">3054  </td><td class="markdownTableBodyCenter">63154   </td></tr>
 <tr class="markdownTableBody">
-<td class="markdownTableBodyCenter">6  </td><td class="markdownTableBodyCenter">0.95962  </td><td class="markdownTableBodyCenter">2483  </td><td class="markdownTableBodyCenter">64977   </td></tr>
+<td class="markdownTableBodyCenter">6  </td><td class="markdownTableBodyCenter">0.435842  </td><td class="markdownTableBodyCenter">2483  </td><td class="markdownTableBodyCenter">64977   </td></tr>
 <tr class="markdownTableBody">
-<td class="markdownTableBodyCenter">9  </td><td class="markdownTableBodyCenter">1.13608  </td><td class="markdownTableBodyCenter">2282  </td><td class="markdownTableBodyCenter">65353   </td></tr>
+<td class="markdownTableBodyCenter">9  </td><td class="markdownTableBodyCenter">0.650403  </td><td class="markdownTableBodyCenter">2282  </td><td class="markdownTableBodyCenter">65353   </td></tr>
 </table>
 
 If the neighborhood size is set too low, some points may be isolated and the region size is not large enough, hence will be discarded. This not only causes latency in the program, but also reduces the coverage value, as can be seen when `radius` = 1.
