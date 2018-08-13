@@ -8,87 +8,14 @@
 #include <CGAL/utils.h>
 #include <CGAL/number_utils.h>
 #include <CGAL/Polyhedron_3.h>
-#include <CGAL/Polyhedron_incremental_builder_3.h>
 
 // New CGAL includes.
+#include <CGAL/Buildings/Utils/Level_of_detail_local_mesh_builder.h>
 #include <CGAL/Region_growing/Level_of_detail_planar_region_growing.h>
 
 namespace CGAL {
 
 	namespace LOD {
-
-		template<class InputKernel, class InputHDS, class InputBuilding, class FacetHandle>
-		class Local_builder : public Modifier_base<InputHDS> {
-		
-		public:
-			using Kernel   	   = InputKernel;
-    		using HDS      	   = InputHDS;
-            using Building     = InputBuilding;
-            using Facet_handle = FacetHandle;
-
-			using Clean_facet  = typename Building::Clean_facet;
-			using Clean_facets = typename Building::Clean_facets;
-
-			using Builder = CGAL::Polyhedron_incremental_builder_3<HDS>;
-            using Facets  = std::vector< std::vector<Facet_handle> >;
-
-			Local_builder(const Clean_facets &clean_facets) : 
-			m_clean_facets(clean_facets), 
-    		m_index_counter(0) { }
-
-			void operator()(HDS &hds) {
-				
-                m_facets.clear();
-                m_facets.resize(1);
-
-				Builder builder(hds, false);
-
-				const size_t expected_num_vertices = estimate_number_of_vertices();
-				const size_t expected_num_facets   = estimate_number_of_facets();
-
-				m_index_counter = 0;
-				builder.begin_surface(expected_num_vertices, expected_num_facets);
-				add_clean_facets(builder);
-				builder.end_surface();
-			}
-
-            void get_facets(Facets &facets) const {
-                facets = m_facets;
-            }
-
-		private:
-			const Clean_facets &m_clean_facets;
-            Facets m_facets;
-			size_t m_index_counter;
-
-			inline size_t estimate_number_of_vertices() {
-				return m_clean_facets.size() * 4;
-			}
-
-			inline size_t estimate_number_of_facets() {
-				return m_clean_facets.size();
-			}
-
-			void add_clean_facets(Builder &builder) {
-
-				for (size_t i = 0; i < m_clean_facets.size(); ++i)
-					add_clean_facet(m_clean_facets[i], builder);
-			}
-
-			void add_clean_facet(const Clean_facet &clean_facet, Builder &builder) {
-
-				if (clean_facet.size() == 0) return;
-
-				for (size_t i = 0; i < clean_facet.size(); ++i) 
-					builder.add_vertex(clean_facet[i]);
-
-				const Facet_handle fh = builder.begin_facet();
-				for (size_t i = 0; i < clean_facet.size(); ++i) builder.add_vertex_to_facet(m_index_counter++);
-				builder.end_facet();
-
-                m_facets[0].push_back(fh);
-			}
-        };
 
 		template<class InputKernel, class InputBuilding, class InputBuildings>
 		class Level_of_detail_buildings_facets_cleaner_3 {
@@ -120,18 +47,21 @@ namespace CGAL {
             using Halfedge_handle     = typename Mesh::Halfedge_const_handle;
             using Facet_vertex_handle = typename Mesh::Facet::Vertex_const_handle;
 
-            using Local_builder         = Local_builder<Kernel, HDS, Building, Mesh_facet_handle>;
+            using Local_builder         = CGAL::LOD::Local_mesh_builder<Kernel, HDS, Building, Mesh_facet_handle>;
             using Planar_region_growing = CGAL::LOD::Level_of_detail_planar_region_growing<Kernel, Mesh, Mesh_facets>;
 
             using Building_region  = std::vector<Mesh_facet_handle>;
 			using Building_regions = std::vector<Building_region>;
 			using Regions 		   = std::vector<Building_regions>;
 
+            using Planar_region_merger = CGAL::LOD::Level_of_detail_planar_region_merger<Kernel, Building>;
+
             Level_of_detail_buildings_facets_cleaner_3(Buildings &buildings) :
             m_buildings(buildings),
             m_tolerance(FT(1) / FT(100000)),
             m_max_num_iters(50),
-            m_use_global_conditions(true)
+            m_use_global_conditions(true),
+            m_use_triangulation_merging(true)
             { }
 
             void create_clean_facets() {
@@ -154,6 +84,7 @@ namespace CGAL {
             const size_t m_max_num_iters;
 
             const bool m_use_global_conditions;
+            const bool m_use_triangulation_merging;
             
             void process_building(Building &building) const {
             
@@ -184,11 +115,11 @@ namespace CGAL {
 
                     if (!facet.is_valid) continue;
 
-                    clean_facet.clear();
-                    clean_facet.resize(facet.indices.size());
+                    clean_facet.first.clear();
+                    clean_facet.first.resize(facet.indices.size());
 
                     for (size_t j = 0; j < facet.indices.size(); ++j)
-                        clean_facet[j] = vertices[facet.indices[j]];
+                        clean_facet.first[j] = vertices[facet.indices[j]];
 
                     if (!is_interior_facet(clean_facet, polyhedron_index, polyhedrons)) clean_facets.push_back(clean_facet);
                 }
@@ -216,20 +147,20 @@ namespace CGAL {
 
             bool are_equal_facets(const Clean_facet &clean_facet, const Polyhedron_facet &facet, const Polyhedron_vertices &vertices) const {
 
-                if (clean_facet.size() != facet.indices.size()) return false;
+                if (clean_facet.first.size() != facet.indices.size()) return false;
 
                 size_t count = 0;
-                for (size_t i = 0; i < clean_facet.size(); ++i) {
+                for (size_t i = 0; i < clean_facet.first.size(); ++i) {
                     for (size_t j = 0; j < facet.indices.size(); ++j) {
                         
-                        if (are_equal_points(clean_facet[i], vertices[facet.indices[j]])) {
+                        if (are_equal_points(clean_facet.first[i], vertices[facet.indices[j]])) {
                             
                             ++count;
                             break;
                         }
                     }
                 }
-                return count == clean_facet.size();
+                return count == clean_facet.first.size();
             }
 
             bool are_equal_points(const Point_3 &p, const Point_3 &q) const {
@@ -237,6 +168,12 @@ namespace CGAL {
             }
 
             void merge_clean_facets(Clean_facets &clean_facets) const {
+
+                if (m_use_triangulation_merging) {
+                    
+                    merge_clean_facets_using_triangulation(clean_facets);
+                    return;
+                }
 
                 Mesh mesh;
 
@@ -258,6 +195,12 @@ namespace CGAL {
 				planar_region_growing.find_regions(regions);
 
                 set_merged_facets(regions[0], clean_facets);
+            }
+
+            void merge_clean_facets_using_triangulation(Clean_facets &clean_facets) const {
+
+                Planar_region_merger planar_region_merger;
+                planar_region_merger.merge(clean_facets);
             }
 
             void set_merged_facets(const Building_regions &regions, Clean_facets &clean_facets) const {
@@ -282,7 +225,7 @@ namespace CGAL {
                 find_first_halfedge_handle(facets, curr, facet_index);
                 CGAL_precondition(facet_index != 1000000);
 
-                clean_facet.push_back(curr->vertex()->point());
+                clean_facet.first.push_back(curr->vertex()->point());
                 end = curr;
 
                 curr = curr->next(); size_t iters = 0;
@@ -373,7 +316,7 @@ namespace CGAL {
                 const Point_3 &p = curr->vertex()->point();
                 if (is_unique(curr, facet_index, facets)) {
 
-                    clean_facet.push_back(p);
+                    clean_facet.first.push_back(p);
                     curr = curr->next();
                     
                     return;
@@ -386,7 +329,7 @@ namespace CGAL {
                     const Mesh_facet_handle &fh = facets[i];
                     if (contains(p, fh, next)) {
 
-                        clean_facet.push_back(p);
+                        clean_facet.first.push_back(p);
                         curr = next->next();
 
                         facet_index = i;
@@ -410,19 +353,19 @@ namespace CGAL {
 
             void create_unique_clean_facet(const Mesh_facet_handle &fh, Clean_facet &clean_facet) const {
 
-                clean_facet.clear();
+                clean_facet.first.clear();
 
                 Halfedge_handle curr = fh->halfedge();
                 Halfedge_handle end  = curr;
 
                 Facet_vertex_handle vh = curr->vertex();
-                clean_facet.push_back(vh->point());
+                clean_facet.first.push_back(vh->point());
 
                 curr = curr->next();
                 while (curr != end) {
 
                     vh = curr->vertex();
-                    clean_facet.push_back(vh->point());
+                    clean_facet.first.push_back(vh->point());
 
                     curr = curr->next();
                 };

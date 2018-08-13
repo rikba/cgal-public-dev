@@ -280,16 +280,16 @@ namespace CGAL {
 
 			void add_clean_facet(const Clean_facet &clean_facet, const Color &color, Builder &builder) {
 
-				if (clean_facet.size() == 0) return;
+				if (clean_facet.first.size() == 0) return;
 
-				for (size_t i = 0; i < clean_facet.size(); ++i) 
-					builder.add_vertex(clean_facet[i]);
+				for (size_t i = 0; i < clean_facet.first.size(); ++i) 
+					builder.add_vertex(clean_facet.first[i]);
 
 				const Color_facet_handle cfh = builder.begin_facet();
-				for (size_t i = 0; i < clean_facet.size(); ++i) builder.add_vertex_to_facet(m_index_counter++);
+				for (size_t i = 0; i < clean_facet.first.size(); ++i) builder.add_vertex_to_facet(m_index_counter++);
 				builder.end_facet();
 
-				m_facet_colors[cfh] = color;
+				m_facet_colors[cfh] = clean_facet.second;
 			}
 
 			void add_ground(Builder &builder) {

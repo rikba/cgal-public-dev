@@ -40,7 +40,7 @@ namespace CGAL {
 			Level_of_detail_planar_region_growing(const Faces &building_faces) : 
 			m_building_faces(building_faces), 
 			m_number_of_regions(-1), 
-			m_eps(FT(1) / FT(1000000)),
+			m_eps(FT(1) / FT(100000)),
 			m_use_global_conditions(false),
 			m_max_elements(2) { }
 

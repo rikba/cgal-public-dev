@@ -234,7 +234,7 @@ namespace CGAL {
 
 			bool is_clean = false;
 
-			using Clean_facet  = std::vector<Point_3>;
+			using Clean_facet  = std::pair<std::vector<Point_3>, CGAL::Color>;
 			using Clean_facets = std::vector<Clean_facet>;
 			Clean_facets clean_facets;
 
