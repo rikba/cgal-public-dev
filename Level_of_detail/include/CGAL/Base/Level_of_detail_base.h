@@ -1371,16 +1371,18 @@ namespace CGAL {
 				if (!m_silent) exporter.save_polyhedrons(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "5_kinetic_polyhedrons_clean");
 			}
 
-			void creating_clean_facets(Buildings &buildings, const size_t exec_step) {
+			void creating_clean_facets(Buildings &buildings, const bool all_facets, const size_t exec_step) {
 
 				// Create clean facets by merging and removing some polyhedron facets.
 				std::cout << "(" << exec_step << ") creating clean facets;" << std::endl;
 				
 				Facets_cleaner facets_cleaner = Facets_cleaner(buildings);
+				facets_cleaner.use_all_facets(all_facets);
+
 				facets_cleaner.create_clean_facets();
 			}
 
-			void reconstructing_lod2(const CDT &cdt, const Buildings &buildings, const Ground &ground_bbox, const FT ground_height, Mesh &mesh, Mesh_facet_colors &mesh_facet_colors, const size_t exec_step) {
+			void reconstructing_lod2(const CDT &cdt, const Buildings &buildings, const Ground &ground_bbox, const FT ground_height, Mesh &mesh, Mesh_facet_colors &mesh_facet_colors, std::string name, const size_t exec_step) {
 
 				// LOD2 reconstruction.
 				std::cout << "(" << exec_step << ") reconstructing lod2;" << std::endl;
@@ -1389,7 +1391,7 @@ namespace CGAL {
 				lod2.reconstruct(mesh);
 
 				Log lod2_saver;
-				lod2_saver.save_mesh_as_ply(mesh, mesh_facet_colors, "LOD2");
+				lod2_saver.save_mesh_as_ply(mesh, mesh_facet_colors, name);
 			}
 
 			void finishing_execution() {
@@ -1635,11 +1637,11 @@ namespace CGAL {
 					
 					
 						// (08) ----------------------------------
-						creating_clean_facets(buildings, ++exec_step);
+						creating_clean_facets(buildings, false, ++exec_step);
+						reconstructing_lod2(cdt, buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, "LOD2", ++exec_step);
 
-
-						// (09) ----------------------------------
-						reconstructing_lod2(cdt, buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, ++exec_step);
+						// creating_clean_facets(buildings, true, ++exec_step);
+						// reconstructing_lod2(cdt, buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, "LOD2-tmp", ++exec_step);
 
 						return;
 					}

@@ -61,11 +61,14 @@ namespace CGAL {
             m_tolerance(FT(1) / FT(100000)),
             m_max_num_iters(50),
             m_use_global_conditions(true),
-            m_use_triangulation_merging(true)
+            m_use_triangulation_merging(true),
+            m_use_all_facets(false)
             { }
 
             void create_clean_facets() {
                 
+                // std::cout << m_use_all_facets << std::endl;
+
                 if (m_buildings.size() == 0) 
                     return;
 
@@ -77,6 +80,10 @@ namespace CGAL {
                 }
             }
 
+            void use_all_facets(const bool new_state) {
+                m_use_all_facets = new_state;
+            }
+
         private:
             Buildings &m_buildings;
             
@@ -85,6 +92,8 @@ namespace CGAL {
 
             const bool m_use_global_conditions;
             const bool m_use_triangulation_merging;
+
+            bool m_use_all_facets;
             
             void process_building(Building &building) const {
             
@@ -200,6 +209,8 @@ namespace CGAL {
             void merge_clean_facets_using_triangulation(Clean_facets &clean_facets) const {
 
                 Planar_region_merger planar_region_merger;
+                planar_region_merger.use_all_facets(m_use_all_facets);
+
                 planar_region_merger.merge(clean_facets);
             }
 

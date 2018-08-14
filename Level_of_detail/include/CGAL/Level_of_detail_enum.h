@@ -90,12 +90,13 @@ namespace CGAL {
 		};
 
 		// Vertex info class.
-		template<typename Label>
+		template<typename Label, typename FT>
 		class My_vertex_info {
 
 		public:
 			Label label = Label::CLUTTER;
 			CGAL::Color color = CGAL::Color(0, 0, 0);
+			FT height = FT(0);
 		};
 
 		// Building structure.

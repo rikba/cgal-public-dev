@@ -73,7 +73,19 @@ namespace CGAL {
 
             using Color = CGAL::Color;
 
-			Level_of_detail_planar_region_merger() { 
+            using Edge           = typename CDT::Edge;
+            using Face_handle    = typename CDT::Face_handle;
+            using Vertex_handle  = typename CDT::Vertex_handle;
+            using Faces_iterator = typename CDT::Finite_faces_iterator;
+
+            using Vertex_handles = std::vector< std::vector<Vertex_handle> >;
+            
+            using Final_constraint  = std::pair<Vertex_handle, Vertex_handle>;
+            using Final_constraints = std::vector<Final_constraint>;
+
+			Level_of_detail_planar_region_merger() :
+            m_tolerance(FT(1) / FT(100000)),
+            m_use_all_facets(false) { 
 
                 srand(time(NULL));
             }
@@ -89,7 +101,13 @@ namespace CGAL {
                 merge_facets(output_regions, clean_facets);
             }
 
+            void use_all_facets(const bool new_state) {
+                m_use_all_facets = new_state;
+            }
+
 		private:
+            const FT m_tolerance;
+            bool m_use_all_facets;
 			
             void create_mesh_and_input_regions(const Clean_facets &clean_facets, Mesh &mesh, Input_regions &input_regions) const {
 
@@ -156,8 +174,17 @@ namespace CGAL {
             void merge_facets(Output_regions &output_regions, Clean_facets &clean_facets) const {
 
                 clean_facets.clear();
-                for (size_t i = 0; i < output_regions.size(); ++i)
-                    merge_region_facets(output_regions[i], clean_facets);
+                for (size_t i = 0; i < output_regions.size(); ++i) {
+
+                    // if (i == 0)
+                        merge_region_facets(output_regions[i], clean_facets);
+
+                    /*if (!m_use_all_facets) {
+                        if (output_regions[i].size() == 2)
+                            merge_region_facets(output_regions[i], clean_facets);
+                    }
+                    else merge_region_facets(output_regions[i], clean_facets); */
+                }
             }
 
             bool merge_region_facets(Region_facets &region_facets, Clean_facets &clean_facets) const {
@@ -175,28 +202,28 @@ namespace CGAL {
                 FT angle; Vector_3 axis;
                 compute_angle_and_axis(source_normal, target_normal, angle, axis);
 
-                rotate_region_facets(region_facets,  angle, axis);
+                Point_3 b;
+                compute_barycentre(region_facets, b);
+
+                rotate_region_facets(region_facets, angle, axis, b);
 
                 CDT cdt;
                 triangulate_region_facets(region_facets, cdt);
                 get_back_region_facets(cdt, region_facets);
                 
-                rotate_region_facets(region_facets, -angle, axis);
+                rotate_region_facets(region_facets, -angle, axis, b);
                 
                 for (size_t i = 0; i< region_facets.size(); ++i)
                     clean_facets.push_back(std::make_pair(region_facets[i], color));
             }
 
-            void rotate_region_facets(Region_facets &region_facets, const FT angle, const Vector_3 &axis) const {
+            void rotate_region_facets(Region_facets &region_facets, const FT angle, const Vector_3 &axis, const Point_3 &b) const {
 
                 for (size_t i = 0; i < region_facets.size(); ++i)
-                    rotate_region_facet(region_facets[i], angle, axis);
+                    rotate_region_facet(region_facets[i], angle, axis, b);
             }
 
-            void rotate_region_facet(Region_facet &region_facet, const FT angle, const Vector_3 &axis) const {
-
-                Point_3 b;
-                compute_barycentre(region_facet, b);
+            void rotate_region_facet(Region_facet &region_facet, const FT angle, const Vector_3 &axis, const Point_3 &b) const {
 
                 if (angle != FT(0)) 
                     rotate_facet(b, angle, axis, region_facet);
@@ -266,8 +293,30 @@ namespace CGAL {
                 }
 			}
 
-            void compute_barycentre(const Region_facet &region_facet, Point_3 &b) const {
+            void compute_barycentre(const Region_facets &region_facets, Point_3 &b) const {
 
+                CGAL_precondition(region_facets.size() > 0);
+
+                Point_3 tmp_b; FT x = FT(0), y = FT(0), z = FT(0);
+                for (size_t i = 0; i < region_facets.size(); ++i) {
+                    
+                    const Region_facet &region_facet = region_facets[i];                    
+                    compute_facet_barycentre(region_facet, tmp_b);
+
+                    x += tmp_b.x();
+                    y += tmp_b.y();
+                    z += tmp_b.z();
+                }
+
+                x /= static_cast<FT>(region_facets.size());
+                y /= static_cast<FT>(region_facets.size());
+                z /= static_cast<FT>(region_facets.size());
+
+                b = Point_3(x, y, z);
+            }
+
+            void compute_facet_barycentre(const Region_facet &region_facet, Point_3 &b) const {
+                
                 CGAL_precondition(region_facet.size() != 0);
                 FT x = FT(0), y = FT(0), z = FT(0);
 
@@ -318,10 +367,233 @@ namespace CGAL {
 
             void triangulate_region_facets(const Region_facets &region_facets, CDT &cdt) const {
 
+				Vertex_handles vhs;
+                insert_points(region_facets, cdt, vhs);
+                
+                Final_constraints final_vhs;
+                update_constraints(region_facets, vhs, final_vhs);
+
+                insert_constraints(final_vhs, cdt);
+            }
+
+            void insert_points(const Region_facets &region_facets, CDT &cdt, Vertex_handles &vhs) const {
+                
+                cdt.clear();
+                vhs.clear();
+
+                vhs.resize(region_facets.size());
+				for (size_t i = 0; i < region_facets.size(); ++i) {
+					const Region_facet &region_facet = region_facets[i];
+
+					vhs[i].resize(region_facet.size());
+					for (size_t j = 0; j < region_facet.size(); ++j) {
+                        const Point_3 &p = region_facet[j];
+
+						vhs[i][j] = cdt.insert(Point_2(p.x(), p.y()));
+						vhs[i][j]->info().height = p.z();
+					}
+				}
+            }
+
+            void update_constraints(const Region_facets &region_facets, const Vertex_handles &vhs, Final_constraints &final_vhs) const {
+
+                for (size_t i = 0; i < region_facets.size(); ++i) {
+                    // new_vhs[i].resize(region_facets[i].size());
+
+                    for (size_t j = 0; j < region_facets[i].size(); ++j) {
+                        const size_t jp = (j + 1) % region_facets[i].size();
+
+                        if (is_boundary_edge(region_facets[i][j], region_facets[i][jp], i, region_facets)) {
+                            
+                            // new_vhs[i][j]  = vhs[i][j];
+                            // new_vhs[i][jp] = vhs[i][jp];
+
+                            const Final_constraint final_constraint = std::make_pair(vhs[i][j], vhs[i][jp]);
+                            final_vhs.push_back(final_constraint);
+                            
+                            // std::cout << "init constr: " << vhs[i][j]->point() << "; " << vhs[i][jp]->point() << std::endl;
+
+                        }
+                    }
+                }
+            }
+
+            bool is_boundary_edge(const Point_3 &p1, const Point_3 &p2, const size_t facet_index, const Region_facets &region_facets) const {
+
+                for (size_t i = 0; i < region_facets.size(); ++i) {
+                    if (i == facet_index) continue;
+
+                    for (size_t j = 0; j < region_facets[i].size(); ++j) {
+                        const size_t jp = (j + 1) % region_facets[i].size();
+
+                        if (are_equal_edges(p1, p2, region_facets[i][j], region_facets[i][jp])) return false;
+                    }
+                }
+                return true;
+            }
+
+            bool are_equal_edges(const Point_3 &p1, const Point_3 &p2, const Point_3 &q1, const Point_3 &q2) const {
+                return (are_equal_points(p1, q1) && are_equal_points(p2, q2)) || (are_equal_points(p1, q2) && are_equal_points(p2, q1));
+            }
+
+            bool are_equal_points(const Point_3 &p, const Point_3 &q) const {
+
+                const FT eps = m_tolerance;
+                return (CGAL::abs(p.x() - q.x()) < eps) && (CGAL::abs(p.y() - q.y()) < eps) && (CGAL::abs(p.z() - q.z()) < eps);
+            }
+
+            void insert_constraints(const Final_constraints &final_vhs, CDT &cdt) const {
+                
+                for (size_t i = 0; i < final_vhs.size(); ++i) {
+                    const Final_constraint &final_constraint = final_vhs[i];
+                    
+                    cdt.insert_constraint(final_constraint.first, final_constraint.second);
+                    // std::cout << "insert constr: " << final_constraint.first->point() << "; " << final_constraint.second->point() << std::endl;
+                }
             }
 
             void get_back_region_facets(const CDT &cdt, Region_facets &region_facets) const {
 
+                if (m_use_all_facets) get_all_triangles(cdt, region_facets);
+                else get_only_boundary(cdt, region_facets);
+            }
+
+            void get_all_triangles(const CDT &cdt, Region_facets &region_facets) const {
+                
+                // std::cout << "cdt: " << cdt.number_of_faces() << std::endl;
+
+                region_facets.clear();
+                region_facets.resize(cdt.number_of_faces());
+
+                size_t i = 0; Region_facet region_facet(3);
+                for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit, ++i) {
+
+                    const Vertex_handle &vh1 = fit->vertex(0);
+                    const Vertex_handle &vh2 = fit->vertex(1);
+                    const Vertex_handle &vh3 = fit->vertex(2);
+
+                    const Point_2 &p1 = vh1->point();
+                    const Point_2 &p2 = vh2->point();
+                    const Point_2 &p3 = vh3->point();
+
+                    // std::cout << p1 << "; " << p2 << "; " << p3 << std::endl;
+
+                    region_facet[0] = Point_3(p1.x(), p1.y(), vh1->info().height);
+                    region_facet[1] = Point_3(p2.x(), p2.y(), vh2->info().height);
+                    region_facet[2] = Point_3(p3.x(), p3.y(), vh3->info().height);
+
+                    region_facets[i] = region_facet;
+                }
+            }
+
+            void get_only_boundary(const CDT &cdt, Region_facets &region_facets) const {
+
+                // std::cout << "cdt: " << cdt.number_of_faces() << std::endl;
+
+                region_facets.clear();
+                region_facets.resize(1);
+                
+                Region_facet region_facet;
+
+                const Face_handle fh = find_first_face_handle(cdt);
+                traverse_cdt(fh, cdt, region_facet);
+
+                region_facets[0] = region_facet;
+            }
+
+            Face_handle find_first_face_handle(const CDT &cdt) const {
+
+                for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
+                    const Face_handle fh = static_cast<Face_handle>(fit);
+
+                    const Vertex_handle &vh1 = fh->vertex(0);
+                    const Vertex_handle &vh2 = fh->vertex(1);
+                    const Vertex_handle &vh3 = fh->vertex(2);
+
+                    const Point_2 &p1 = vh1->point();
+                    const Point_2 &p2 = vh2->point();
+                    const Point_2 &p3 = vh3->point();
+
+                    // std::cout << p1 << "; " << p2 << "; " << p3 << std::endl;
+
+                    for (size_t i = 0; i < 3; ++i) {
+                        
+                        const Edge edge = std::make_pair(fh, i);
+                        if (cdt.is_constrained(edge)) {
+                         
+                            // std::cout << "constr: " << edge.first->vertex((edge.second + 1) %3)->point() << "; " << edge.first->vertex((edge.second + 2) %3)->point() << std::endl;
+                            return fh;
+
+                        }
+                    }
+                }
+                
+                CGAL_postcondition(false);
+                return Face_handle();
+            }
+
+            void traverse_cdt(const Face_handle &fh, const CDT &cdt, Region_facet &region_facet) const {
+                
+                Edge edge;
+                region_facet.clear();
+
+                find_first_edge(fh, cdt, edge);
+                CGAL_precondition(edge.second >= 0 && edge.second <= 2);
+
+                Vertex_handle  vh = edge.first->vertex((edge.second + 2) % 3);
+                Vertex_handle end = vh;
+                
+                const Point_2 &p = vh->point();
+                region_facet.push_back(Point_3(p.x(), p.y(), vh->info().height));
+
+                // std::cout << "first p: " << p << std::endl;
+
+                size_t count = 0;
+                do {
+                    get_next_vertex_handle(cdt, vh, edge);
+
+                    const Point_2 &q = vh->point();
+                    // std::cout << "next q: " << q << std::endl;
+                    region_facet.push_back(Point_3(q.x(), q.y(), vh->info().height));
+                    
+                    if (count == 100) CGAL_precondition(false);
+                    ++count;
+
+                } while (vh != end);
+            }
+
+            void find_first_edge(const Face_handle &fh, const CDT &cdt, Edge &edge) const {
+
+                for (int i = 0; i < 3; ++i) {
+                    
+                    edge = std::make_pair(fh, i);
+                    if (cdt.is_constrained(edge)) {
+                     
+                        // std::cout << "first edge: " << edge.first->vertex((edge.second + 1) %3)->point() << "; " << edge.first->vertex((edge.second + 2) %3)->point() << std::endl;
+                        return;
+                    }
+                }
+                CGAL_postcondition(false);
+            }
+
+            void get_next_vertex_handle(const CDT &cdt, Vertex_handle &vh, Edge &edge) const {
+
+                const int index = edge.first->index(vh);
+                Edge next = std::make_pair(edge.first, (index + 2) % 3);
+
+                while (!cdt.is_constrained(next)) {
+
+                    const Face_handle fh = next.first->neighbor(next.second);
+                    const Vertex_handle tmp = next.first->vertex((next.second + 1) % 3);
+
+                    // std::cout << "neigh: " << fh->vertex(0)->point() << "; " << fh->vertex(1)->point() << "; " << fh->vertex(2)->point() << std::endl;
+                    
+                    const size_t tmp_index = fh->index(tmp);
+                    next = std::make_pair(fh, (tmp_index + 2) % 3);
+                }
+
+                vh   = next.first->vertex((next.second + 2) % 3);
+                edge = next;
             }
 
             Color generate_random_color() const {

@@ -81,8 +81,8 @@ namespace CGAL {
 			typedef CGAL::LOD::Level_of_detail_vertical_regularizer<Kernel, Container_3D, Planes> Vertical_regularizer;
 			typedef CGAL::LOD::Level_of_detail_segment_regularizer_2<Kernel> 					  Line_regularizer;
 
-			typedef CGAL::LOD::My_vertex_info<Structured_label>  My_vertex_info; 
-	    	typedef CGAL::LOD::My_face_info<typename Kernel::FT> My_face_info;
+			typedef CGAL::LOD::My_vertex_info<Structured_label, typename Kernel::FT> My_vertex_info; 
+	    	typedef CGAL::LOD::My_face_info<typename Kernel::FT> 					 My_face_info;
 
 			typedef CGAL::Triangulation_vertex_base_with_info_2<My_vertex_info, Kernel> VB;
 	 	    typedef CGAL::Triangulation_face_base_with_info_2<My_face_info, Kernel>     FB_with_info;
