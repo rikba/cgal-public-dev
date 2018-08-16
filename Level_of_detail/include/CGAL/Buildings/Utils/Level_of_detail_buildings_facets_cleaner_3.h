@@ -12,6 +12,7 @@
 // New CGAL includes.
 #include <CGAL/Buildings/Utils/Level_of_detail_local_mesh_builder.h>
 #include <CGAL/Region_growing/Level_of_detail_planar_region_growing.h>
+#include <CGAL/Region_growing/Level_of_detail_facets_based_region_growing.h>
 
 namespace CGAL {
 
@@ -54,15 +55,21 @@ namespace CGAL {
 			using Building_regions = std::vector<Building_region>;
 			using Regions 		   = std::vector<Building_regions>;
 
-            using Planar_region_merger = CGAL::LOD::Level_of_detail_planar_region_merger<Kernel, Building>;
+            using Clean_boundary = std::vector<Point_3>;
+            using Clean_region   = std::vector<Clean_boundary>;
+            using Clean_regions  = std::vector<Clean_region>;
+
+            using Planar_region_merger        = CGAL::LOD::Level_of_detail_planar_region_merger<Kernel, Building>;
+            using Facets_based_region_growing = CGAL::LOD::Level_of_detail_facets_based_region_growing<Kernel>;
 
             Level_of_detail_buildings_facets_cleaner_3(Buildings &buildings) :
             m_buildings(buildings),
             m_tolerance(FT(1) / FT(100000)),
             m_max_num_iters(50),
             m_use_global_conditions(true),
-            m_use_triangulation_merging(true),
-            m_use_all_facets(false)
+            m_use_triangulation_merging(false),
+            m_use_all_facets(true),
+            m_use_new_rg(false)
             { }
 
             void create_clean_facets() {
@@ -94,6 +101,7 @@ namespace CGAL {
             const bool m_use_triangulation_merging;
 
             bool m_use_all_facets;
+            const bool m_use_new_rg;
             
             void process_building(Building &building) const {
             
@@ -202,6 +210,14 @@ namespace CGAL {
 
 				Regions regions;
 				planar_region_growing.find_regions(regions);
+
+                if (m_use_new_rg) {
+                    
+                    Clean_regions clean_regions;
+                    Facets_based_region_growing region_growing(clean_facets);
+                    region_growing.create_regions(clean_regions);
+                    return;
+                }
 
                 set_merged_facets(regions[0], clean_facets);
             }

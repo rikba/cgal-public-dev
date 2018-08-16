@@ -82,7 +82,8 @@ namespace CGAL {
 			Level_of_detail_planar_region_merger() :
             m_tolerance(FT(1) / FT(100000)),
             m_use_all_facets(false),
-            m_use_old_rg(false) { 
+            m_use_old_rg(false),
+            m_max_num_iters(20) { 
 
                 srand(time(NULL));
             }
@@ -106,6 +107,8 @@ namespace CGAL {
             
                   bool m_use_all_facets;
             const bool m_use_old_rg;
+
+            const size_t m_max_num_iters;
 			
             void create_data_old(const Clean_facets &clean_facets, Output_regions &output_regions) const {
 
@@ -457,7 +460,8 @@ namespace CGAL {
                 for (size_t i = 0; i < final_vhs.size(); ++i) {
                     const Final_constraint &final_constraint = final_vhs[i];
                     
-                    cdt.insert_constraint(final_constraint.first, final_constraint.second);
+                    if (final_constraint.first != final_constraint.second)
+                        cdt.insert_constraint(final_constraint.first, final_constraint.second);
                     // std::cout << "insert constr: " << final_constraint.first->point() << "; " << final_constraint.second->point() << std::endl;
                 }
             }
@@ -505,16 +509,28 @@ namespace CGAL {
                 
                 Region_facet region_facet;
 
-                const Face_handle fh = find_first_face_handle(cdt);
-                traverse_cdt(fh, cdt, region_facet);
+                Face_handle fh;
+                bool success = find_first_face_handle(cdt, fh);
 
+                if (!success) {
+                    
+                    get_all_triangles(cdt, region_facets);
+                    return;
+                }
+
+                success = traverse_cdt(fh, cdt, region_facet);
+                if (!success) {
+                    
+                    get_all_triangles(cdt, region_facets);
+                    return;
+                }
                 region_facets[0] = region_facet;
             }
 
-            Face_handle find_first_face_handle(const CDT &cdt) const {
+            bool find_first_face_handle(const CDT &cdt, Face_handle &fh) const {
 
                 for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
-                    const Face_handle fh = static_cast<Face_handle>(fit);
+                    fh = static_cast<Face_handle>(fit);
 
                     const Vertex_handle &vh1 = fh->vertex(0);
                     const Vertex_handle &vh2 = fh->vertex(1);
@@ -531,21 +547,21 @@ namespace CGAL {
                         if (cdt.is_constrained(edge)) {
                          
                             // std::cout << "constr: " << edge.first->vertex((edge.second + 1) %3)->point() << "; " << edge.first->vertex((edge.second + 2) %3)->point() << std::endl;
-                            return fh;
+                            return true;
                         }
                     }
                 }
-                
-                CGAL_postcondition(false);
-                return Face_handle();
+                return false;
             }
 
-            void traverse_cdt(const Face_handle &fh, const CDT &cdt, Region_facet &region_facet) const {
+            bool traverse_cdt(const Face_handle &fh, const CDT &cdt, Region_facet &region_facet) const {
                 
                 Edge edge;
                 region_facet.clear();
 
-                find_first_edge(fh, cdt, edge);
+                const bool success = find_first_edge(fh, cdt, edge);
+                if (!success) return false;
+
                 CGAL_precondition(edge.second >= 0 && edge.second <= 2);
 
                 Vertex_handle  vh = edge.first->vertex((edge.second + 2) % 3);
@@ -556,7 +572,7 @@ namespace CGAL {
 
                 // std::cout << "first p: " << p << std::endl;
 
-                size_t count = 0;
+                size_t num_iters = 0; 
                 do {
                     get_next_vertex_handle(cdt, vh, edge);
                     const Point_2 &q = vh->point();
@@ -564,13 +580,14 @@ namespace CGAL {
                     // std::cout << "next q: " << q << std::endl;
                     region_facet.push_back(Point_3(q.x(), q.y(), vh->info().height));
                     
-                    if (count == 100) CGAL_precondition(false);
-                    ++count;
+                    if (num_iters == m_max_num_iters) return false;
+                    ++num_iters;
 
                 } while (vh != end);
+                return true;
             }
 
-            void find_first_edge(const Face_handle &fh, const CDT &cdt, Edge &edge) const {
+            bool find_first_edge(const Face_handle &fh, const CDT &cdt, Edge &edge) const {
 
                 for (int i = 0; i < 3; ++i) {
                     
@@ -578,10 +595,10 @@ namespace CGAL {
                     if (cdt.is_constrained(edge)) {
                      
                         // std::cout << "first edge: " << edge.first->vertex((edge.second + 1) %3)->point() << "; " << edge.first->vertex((edge.second + 2) %3)->point() << std::endl;
-                        return;
+                        return true;
                     }
                 }
-                CGAL_postcondition(false);
+                return false;
             }
 
             void get_next_vertex_handle(const CDT &cdt, Vertex_handle &vh, Edge &edge) const {
