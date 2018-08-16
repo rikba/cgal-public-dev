@@ -1,12 +1,6 @@
 #ifndef CGAL_LEVEL_OF_DETAIL_PLANAR_REGION_MERGER_H
 #define CGAL_LEVEL_OF_DETAIL_PLANAR_REGION_MERGER_H
 
-#if defined(WIN32) || defined(_WIN32) 
-#define PSR "\\" 
-#else 
-#define PSR "/" 
-#endif 
-
 // STL includes.
 #include <map>
 #include <vector>
@@ -23,9 +17,9 @@
 #include <CGAL/Polyhedron_3.h>
 
 // New CGAL includes.
-#include <CGAL/Mylog/Mylog.h>
 #include <CGAL/Buildings/Utils/Level_of_detail_local_mesh_builder.h>
 #include <CGAL/Region_growing/Level_of_detail_planar_region_growing.h>
+#include <CGAL/Region_growing/Level_of_detail_facets_based_region_growing.h>
 
 namespace CGAL {
 
@@ -83,20 +77,22 @@ namespace CGAL {
             using Final_constraint  = std::pair<Vertex_handle, Vertex_handle>;
             using Final_constraints = std::vector<Final_constraint>;
 
+            using Facets_based_region_growing = CGAL::LOD::Level_of_detail_facets_based_region_growing<Kernel>;
+
 			Level_of_detail_planar_region_merger() :
             m_tolerance(FT(1) / FT(100000)),
-            m_use_all_facets(false) { 
+            m_use_all_facets(false),
+            m_use_old_rg(false) { 
 
                 srand(time(NULL));
             }
 
 			void merge(Clean_facets &clean_facets) const {
 
-                Mesh mesh; Input_regions input_regions;
-                create_mesh_and_input_regions(clean_facets, mesh, input_regions);
-
                 Output_regions output_regions;
-                create_output_regions(input_regions, output_regions);
+                
+                if (m_use_old_rg) create_data_old(clean_facets, output_regions);
+                else create_data_new(clean_facets, output_regions);
 
                 merge_facets(output_regions, clean_facets);
             }
@@ -107,8 +103,23 @@ namespace CGAL {
 
 		private:
             const FT m_tolerance;
-            bool m_use_all_facets;
+            
+                  bool m_use_all_facets;
+            const bool m_use_old_rg;
 			
+            void create_data_old(const Clean_facets &clean_facets, Output_regions &output_regions) const {
+
+                Mesh mesh; Input_regions input_regions;
+                create_mesh_and_input_regions(clean_facets, mesh, input_regions);
+                create_output_regions(input_regions, output_regions);
+            }
+
+            void create_data_new(const Clean_facets &clean_facets, Output_regions &output_regions) const {
+
+                Facets_based_region_growing region_growing(clean_facets);
+                region_growing.create_regions(output_regions);
+            }
+
             void create_mesh_and_input_regions(const Clean_facets &clean_facets, Mesh &mesh, Input_regions &input_regions) const {
 
                 mesh.clear();
@@ -177,7 +188,7 @@ namespace CGAL {
                 for (size_t i = 0; i < output_regions.size(); ++i) {
 
                     // if (i == 0)
-                        merge_region_facets(output_regions[i], clean_facets);
+                    merge_region_facets(output_regions[i], clean_facets);
 
                     /*if (!m_use_all_facets) {
                         if (output_regions[i].size() == 2)
@@ -412,7 +423,6 @@ namespace CGAL {
                             final_vhs.push_back(final_constraint);
                             
                             // std::cout << "init constr: " << vhs[i][j]->point() << "; " << vhs[i][jp]->point() << std::endl;
-
                         }
                     }
                 }
@@ -515,7 +525,6 @@ namespace CGAL {
                     const Point_2 &p3 = vh3->point();
 
                     // std::cout << p1 << "; " << p2 << "; " << p3 << std::endl;
-
                     for (size_t i = 0; i < 3; ++i) {
                         
                         const Edge edge = std::make_pair(fh, i);
@@ -523,7 +532,6 @@ namespace CGAL {
                          
                             // std::cout << "constr: " << edge.first->vertex((edge.second + 1) %3)->point() << "; " << edge.first->vertex((edge.second + 2) %3)->point() << std::endl;
                             return fh;
-
                         }
                     }
                 }
@@ -551,8 +559,8 @@ namespace CGAL {
                 size_t count = 0;
                 do {
                     get_next_vertex_handle(cdt, vh, edge);
-
                     const Point_2 &q = vh->point();
+
                     // std::cout << "next q: " << q << std::endl;
                     region_facet.push_back(Point_3(q.x(), q.y(), vh->info().height));
                     

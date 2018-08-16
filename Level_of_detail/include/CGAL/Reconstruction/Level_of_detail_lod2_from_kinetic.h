@@ -289,7 +289,7 @@ namespace CGAL {
 				for (size_t i = 0; i < clean_facet.first.size(); ++i) builder.add_vertex_to_facet(m_index_counter++);
 				builder.end_facet();
 
-				m_facet_colors[cfh] = clean_facet.second;
+				m_facet_colors[cfh] = color; // clean_facet.second;
 			}
 
 			void add_ground(Builder &builder) {

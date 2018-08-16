@@ -1636,13 +1636,17 @@ namespace CGAL {
 						applying_3d_visibility(input, ground_height, buildings, ++exec_step);
 					
 					
-						// (08) ----------------------------------
+						// (08-09) ----------------------------------
 						creating_clean_facets(buildings, false, ++exec_step);
 						reconstructing_lod2(cdt, buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, "LOD2", ++exec_step);
 
-						// creating_clean_facets(buildings, true, ++exec_step);
-						// reconstructing_lod2(cdt, buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, "LOD2-tmp", ++exec_step);
 
+						// (debug) ----------------------------------
+						if (false) {
+							
+							creating_clean_facets(buildings, true, ++exec_step);
+							reconstructing_lod2(cdt, buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, "LOD2-debug", ++exec_step);
+						}
 						return;
 					}
 

@@ -93,6 +93,61 @@ namespace CGAL {
 				return true;
 			}
 
+			template<class Output_regions, class Output_colors>
+			void print_rg_output_facets(const Output_regions &output_regions, const Output_colors &output_colors, const std::string file_name) {
+
+				clear();
+
+				size_t num_faces    = 0;
+				size_t num_vertices = 0;
+
+				for (size_t i = 0; i < output_regions.size(); ++i) {
+					num_faces += output_regions[i].size();
+				
+					for (size_t j = 0; j < output_regions[i].size(); ++j)
+						num_vertices += output_regions[i][j].size();
+				}
+
+				// Add ply header.
+				out << 
+				"ply" + std::string(PN) + ""               					    << 
+				"format ascii 1.0" + std::string(PN) + ""     				    << 
+				"element vertex "        				   << num_vertices  << "" + std::string(PN) + "" << 
+				"property double x" + std::string(PN) + ""    				    << 
+				"property double y" + std::string(PN) + ""    				    << 
+				"property double z" + std::string(PN) + "" 					    <<
+				"element face " 						   << num_faces     << "" + std::string(PN) + "" << 
+				"property list uchar int vertex_indices" + std::string(PN) + "" <<
+				"property uchar red"   + std::string(PN) + "" 				    <<
+				"property uchar green" + std::string(PN) + "" 				    <<
+				"property uchar blue"  + std::string(PN) + "" 				    <<
+				"end_header" + std::string(PN) + "";
+
+				// Add vertices.
+				for (size_t i = 0; i < output_regions.size(); ++i)
+					for (size_t j = 0; j < output_regions[i].size(); ++j)
+						for (size_t k = 0; k < output_regions[i][j].size(); ++k)
+							out << output_regions[i][j][k] << std::endl;
+
+				// Add faces.
+				size_t count = 0;
+				for (size_t i = 0; i < output_regions.size(); ++i) {
+					for (size_t j = 0; j < output_regions[i].size(); ++j) {
+
+						out << output_regions[i][j].size() << " ";
+						for (size_t k = 0; k < output_regions[i][j].size(); ++k) {
+							
+							out << count << " "; 
+							++count;
+						}
+						out << output_colors[i] << std::endl;
+					}
+				}
+
+				// Save file.
+				save(file_name, ".ply");
+			}
+
 			template<class Bounding_boxes, class Point_3>
 			void save_bounding_boxes_as_ply(const Bounding_boxes &boxes, const std::string &filename) {
 
