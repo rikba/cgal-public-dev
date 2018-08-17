@@ -96,7 +96,7 @@ namespace CGAL {
 		public:
 			Label label = Label::CLUTTER;
 			CGAL::Color color = CGAL::Color(0, 0, 0);
-			FT height = FT(0);
+			FT height = -FT(100000000000000);
 		};
 
 		// Building structure.

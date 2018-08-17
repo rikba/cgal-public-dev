@@ -32,10 +32,11 @@ namespace CGAL {
 			using Kernel   = InputKernel;
             using Building = InputBuilding;
 
-			using FT       = typename Kernel::FT;
-            using Point_2  = typename Kernel::Point_2;
-            using Point_3  = typename Kernel::Point_3;
-            using Vector_3 = typename Kernel::Vector_3;
+			using FT         = typename Kernel::FT;
+            using Point_2    = typename Kernel::Point_2;
+            using Point_3    = typename Kernel::Point_3;
+            using Vector_3   = typename Kernel::Vector_3;
+            using Triangle_2 = typename Kernel::Triangle_2;
 
 			using CDT          = typename Building::CDT;
             using Clean_facet  = typename Building::Clean_facet;
@@ -83,7 +84,9 @@ namespace CGAL {
             m_tolerance(FT(1) / FT(100000)),
             m_use_all_facets(false),
             m_use_old_rg(false),
-            m_max_num_iters(20) { 
+            m_max_num_iters(100),
+            m_area_tolerance(FT(1) / FT(100)),
+            m_default_height(-FT(100000000000000)) { 
 
                 srand(time(NULL));
             }
@@ -95,6 +98,7 @@ namespace CGAL {
                 if (m_use_old_rg) create_data_old(clean_facets, output_regions);
                 else create_data_new(clean_facets, output_regions);
 
+                if (output_regions.size() == 0) return;
                 merge_facets(output_regions, clean_facets);
             }
 
@@ -109,6 +113,9 @@ namespace CGAL {
             const bool m_use_old_rg;
 
             const size_t m_max_num_iters;
+            const FT m_area_tolerance;
+
+            const FT m_default_height;
 			
             void create_data_old(const Clean_facets &clean_facets, Output_regions &output_regions) const {
 
@@ -187,6 +194,8 @@ namespace CGAL {
 
             void merge_facets(Output_regions &output_regions, Clean_facets &clean_facets) const {
 
+                const size_t out_size = output_regions.size();
+
                 clean_facets.clear();
                 for (size_t i = 0; i < output_regions.size(); ++i) {
 
@@ -199,6 +208,13 @@ namespace CGAL {
                     }
                     else merge_region_facets(output_regions[i], clean_facets); */
                 }
+
+                const size_t clean_size = clean_facets.size();
+                if (out_size == 0 || out_size > clean_size) {
+
+                    std::cout << "out: "   << out_size   << std::endl;
+                    std::cout << "clean: " << clean_size << std::endl << std::endl;
+                }
             }
 
             bool merge_region_facets(Region_facets &region_facets, Clean_facets &clean_facets) const {
@@ -206,7 +222,14 @@ namespace CGAL {
                 const Color color = generate_random_color();
 
                 Vector_3 source_normal;
-                compute_source_normal(region_facets, source_normal);
+                const bool success = compute_source_normal(region_facets, source_normal);
+
+                if (!success) {
+                 
+                    for (size_t i = 0; i < region_facets.size(); ++i)
+                        clean_facets.push_back(std::make_pair(region_facets[i], color));
+                    return;
+                }
 
                 Vector_3 target_normal;
                 compute_target_normal(target_normal);
@@ -223,18 +246,35 @@ namespace CGAL {
 
                 CDT cdt;
                 triangulate_region_facets(region_facets, cdt);
-                get_back_region_facets(cdt, region_facets);
+                if (cdt.number_of_faces() != 0) get_back_region_facets(cdt, region_facets);
+
+                rotate_region_facets(region_facets, -angle, axis, b, true);
                 
-                rotate_region_facets(region_facets, -angle, axis, b);
-                
-                for (size_t i = 0; i< region_facets.size(); ++i)
+                for (size_t i = 0; i < region_facets.size(); ++i)
                     clean_facets.push_back(std::make_pair(region_facets[i], color));
             }
 
-            void rotate_region_facets(Region_facets &region_facets, const FT angle, const Vector_3 &axis, const Point_3 &b) const {
+            void rotate_region_facets(Region_facets &region_facets, const FT angle, const Vector_3 &axis, const Point_3 &b, const bool show = false) const {
+
+                // Region_facets tmp = region_facets;
 
                 for (size_t i = 0; i < region_facets.size(); ++i)
                     rotate_region_facet(region_facets[i], angle, axis, b);
+
+                /*
+                if (show) {
+                    for (size_t i = 0; i < region_facets.size(); ++i) {
+
+                        for (size_t j = 0; j < region_facets[i].size(); ++j) {
+                            if (region_facets[i][j].z() < 250.0) {
+                             
+                                std::cout << "old: " << tmp[i][j] << std::endl;
+                                std::cout << "new: " << region_facets[i][j] << std::endl;
+                                std::cout << "here: " << angle << "; " << axis << "; " << b << std::endl;
+                            }
+                        }
+                    }
+                } */
             }
 
             void rotate_region_facet(Region_facet &region_facet, const FT angle, const Vector_3 &axis, const Point_3 &b) const {
@@ -243,14 +283,18 @@ namespace CGAL {
                     rotate_facet(b, angle, axis, region_facet);
             }
 
-            void compute_source_normal(const Region_facets &region_facets, Vector_3 &normal) const {
+            bool compute_source_normal(const Region_facets &region_facets, Vector_3 &normal) const {
+                
                 CGAL_precondition(region_facets.size() > 0);
+                if (region_facets.size() == 0) return false;
 
                 Vector_3 tmp_normal; 
                 FT x = FT(0), y = FT(0), z = FT(0);
 
                 for (size_t i = 0; i < region_facets.size(); ++i) {
-                    compute_facet_normal(region_facets[i], tmp_normal);
+                    const bool success = compute_facet_normal(region_facets[i], tmp_normal);
+
+                    if (!success) tmp_normal = Vector_3(FT(0), FT(0), FT(0));
 
                     x += tmp_normal.x();
                     y += tmp_normal.y();
@@ -262,21 +306,62 @@ namespace CGAL {
                 z /= static_cast<FT>(region_facets.size());
 
                 normal = Vector_3(x, y, z);
+                const Vector_3 zero = Vector_3(FT(0), FT(0), FT(0));
+
+                if (are_equal_points(normal, zero)) return false;
+                // std::cout << normal << " ::: ";
+
                 normalize(normal);
+                // std::cout << normal << std::endl;
+                return true;
             }
 
-            void compute_facet_normal(const Region_facet &region_facet, Vector_3 &normal) const {
-                CGAL_precondition(region_facet.size() >= 3);
+            bool compute_facet_normal(const Region_facet &region_facet, Vector_3 &normal) const {
                 
-                const Point_3 &p1 = region_facet[0];
-                const Point_3 &p2 = region_facet[1];
-                const Point_3 &p3 = region_facet[2];
+                CGAL_precondition(region_facet.size() >= 3);
+                if (region_facet.size() < 3) {
+                 
+                    return false;
 
-                const Vector_3 v1 = Vector_3(p1, p2);
-                const Vector_3 v2 = Vector_3(p1, p3);
+                    std::cout << "error: facet has no vertices" << std::endl;
+                    exit(0);
+                }
 
-                normal = cross_product_3(v1, v2);
-                normalize(normal);
+                const bool success = compute_cross_product(region_facet, normal);
+                if (success) {
+                    
+                    normalize(normal);
+                    return true;
+                }
+                return false;
+            }
+
+            bool compute_cross_product(const Region_facet &region_facet, Vector_3 &normal) const {
+
+                const Vector_3 zero = Vector_3(FT(0), FT(0), FT(0));
+                for (size_t i = 0; i < region_facet.size(); ++i) {
+
+                    const size_t ip  = (i + 1) % region_facet.size();
+                    const size_t ipp = (i + 2) % region_facet.size();
+
+                    const Point_3 &p1 = region_facet[i];
+                    const Point_3 &p2 = region_facet[ip];
+                    const Point_3 &p3 = region_facet[ipp];
+
+                    const Vector_3 v1 = Vector_3(p2, p1);
+                    const Vector_3 v2 = Vector_3(p2, p3);
+
+                    normal = cross_product_3(v1, v2);
+                    if (!are_equal_points(normal, zero)) {
+                     
+                        // std::cout << "norm: " << normal << "; ";
+                        return true;
+                    }
+                }
+                return false;
+
+                std::cout << "error: normal not found" << std::endl;
+                exit(1);
             }
 
             void compute_target_normal(Vector_3 &normal) const {
@@ -297,6 +382,11 @@ namespace CGAL {
                 if (angle == FT(0)) return;
 
                 CGAL_precondition(length != FT(0));
+                if (length == FT(0)) {
+
+                    std::cout << "error: length = 0" << std::endl;
+                    exit(0);
+                }
                 axis = cross / length;
 
                 const FT half_pi = static_cast<FT>(CGAL_PI) / FT(2);
@@ -449,7 +539,8 @@ namespace CGAL {
                 return (are_equal_points(p1, q1) && are_equal_points(p2, q2)) || (are_equal_points(p1, q2) && are_equal_points(p2, q1));
             }
 
-            bool are_equal_points(const Point_3 &p, const Point_3 &q) const {
+            template<class Point>
+            bool are_equal_points(const Point &p, const Point &q) const {
 
                 const FT eps = m_tolerance;
                 return (CGAL::abs(p.x() - q.x()) < eps) && (CGAL::abs(p.y() - q.y()) < eps) && (CGAL::abs(p.z() - q.z()) < eps);
@@ -462,22 +553,39 @@ namespace CGAL {
                     
                     if (final_constraint.first != final_constraint.second)
                         cdt.insert_constraint(final_constraint.first, final_constraint.second);
+
                     // std::cout << "insert constr: " << final_constraint.first->point() << "; " << final_constraint.second->point() << std::endl;
                 }
             }
 
             void get_back_region_facets(const CDT &cdt, Region_facets &region_facets) const {
 
-                if (m_use_all_facets) get_all_triangles(cdt, region_facets);
-                else get_only_boundary(cdt, region_facets);
+                if (m_use_all_facets) {
+                
+                    get_all_triangles(cdt, region_facets);
+
+                } else get_only_boundary(cdt, region_facets);
             }
 
             void get_all_triangles(const CDT &cdt, Region_facets &region_facets) const {
                 
+                if (cdt.number_of_faces() < 2) {
+                    if (cdt.number_of_faces() == 0) return;
+
+                    /*
+                    const Faces_iterator &fh = cdt.finite_faces_begin();
+
+                    const Point_2 &p1 = fh->vertex(0)->point();
+                    const Point_2 &p2 = fh->vertex(1)->point();
+                    const Point_2 &p3 = fh->vertex(2)->point();
+
+                    const Triangle_2 triangle = Triangle_2(p1, p2, p3);
+                    if (triangle.area() < m_area_tolerance) return; */
+                }
+
                 // std::cout << "cdt: " << cdt.number_of_faces() << std::endl;
 
                 region_facets.clear();
-                region_facets.resize(cdt.number_of_faces());
 
                 size_t i = 0; Region_facet region_facet(3);
                 for (Faces_iterator fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit, ++i) {
@@ -492,39 +600,41 @@ namespace CGAL {
 
                     // std::cout << p1 << "; " << p2 << "; " << p3 << std::endl;
 
+                    if (vh1->info().height == m_default_height || 
+                        vh2->info().height == m_default_height ||
+                        vh3->info().height == m_default_height) continue;
+
                     region_facet[0] = Point_3(p1.x(), p1.y(), vh1->info().height);
                     region_facet[1] = Point_3(p2.x(), p2.y(), vh2->info().height);
                     region_facet[2] = Point_3(p3.x(), p3.y(), vh3->info().height);
 
-                    region_facets[i] = region_facet;
+                    region_facets.push_back(region_facet);
                 }
             }
 
             void get_only_boundary(const CDT &cdt, Region_facets &region_facets) const {
 
                 // std::cout << "cdt: " << cdt.number_of_faces() << std::endl;
-
-                region_facets.clear();
-                region_facets.resize(1);
-                
-                Region_facet region_facet;
+                if (cdt.number_of_faces() == 0) return;
 
                 Face_handle fh;
-                bool success = find_first_face_handle(cdt, fh);
+                Region_facet region_facet;
 
-                if (!success) {
-                    
-                    get_all_triangles(cdt, region_facets);
-                    return;
-                }
+                bool success = find_first_face_handle(cdt, fh);
+                if (!success) return;
 
                 success = traverse_cdt(fh, cdt, region_facet);
-                if (!success) {
-                    
-                    get_all_triangles(cdt, region_facets);
-                    return;
-                }
-                region_facets[0] = region_facet;
+                if (!success) return;
+
+                if (region_facet.size() < 3) return;
+
+                /*
+                for (size_t i = 0; i < region_facet.size(); ++i)
+                    std::cout << region_facet[i] << std::endl;
+                std::cout << std::endl; */
+
+                region_facets.clear();
+                region_facets.push_back(region_facet);
             }
 
             bool find_first_face_handle(const CDT &cdt, Face_handle &fh) const {
@@ -567,6 +677,8 @@ namespace CGAL {
                 Vertex_handle  vh = edge.first->vertex((edge.second + 2) % 3);
                 Vertex_handle end = vh;
                 
+                if (vh->info().height == m_default_height) return false;
+
                 const Point_2 &p = vh->point();
                 region_facet.push_back(Point_3(p.x(), p.y(), vh->info().height));
 
@@ -577,6 +689,9 @@ namespace CGAL {
                     get_next_vertex_handle(cdt, vh, edge);
                     const Point_2 &q = vh->point();
 
+                    if (vh->info().height == m_default_height) return false;
+                    if (vh == end) break;
+
                     // std::cout << "next q: " << q << std::endl;
                     region_facet.push_back(Point_3(q.x(), q.y(), vh->info().height));
                     
@@ -584,6 +699,30 @@ namespace CGAL {
                     ++num_iters;
 
                 } while (vh != end);
+
+                return is_valid_traversal(region_facet);
+            }
+
+            bool is_valid_traversal(const Region_facet &region_facet) const {
+
+                if (region_facet.size() < 3) return false;
+
+                for (size_t i = 0; i < region_facet.size(); ++i) {
+                    const Point_3 &p = region_facet[i];
+                    
+                    // std::cout << "p: " << p << std::endl;
+
+                    for (size_t j = 0; j < region_facet.size(); ++j) {
+                        const Point_3 &q = region_facet[j];
+
+                        if (i == j) continue;
+
+                        // std::cout << "q: " << q << std::endl;
+
+                        if (are_equal_points(p, q)) return false;
+                    }
+                }
+                // std::cout << std::endl;
                 return true;
             }
 

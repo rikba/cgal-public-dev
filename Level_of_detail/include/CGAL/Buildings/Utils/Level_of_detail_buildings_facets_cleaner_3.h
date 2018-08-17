@@ -67,8 +67,8 @@ namespace CGAL {
             m_tolerance(FT(1) / FT(100000)),
             m_max_num_iters(50),
             m_use_global_conditions(true),
-            m_use_triangulation_merging(false),
-            m_use_all_facets(true),
+            m_use_triangulation_merging(true),
+            m_use_all_facets(false),
             m_use_new_rg(false)
             { }
 
@@ -114,6 +114,7 @@ namespace CGAL {
 				for (size_t i = 0; i < polyhedrons.size(); ++i)
 					process_polyhedron(i, polyhedrons, clean_facets);
 
+                if (clean_facets.size() == 0) return;
                 merge_clean_facets(clean_facets);
             }
 
