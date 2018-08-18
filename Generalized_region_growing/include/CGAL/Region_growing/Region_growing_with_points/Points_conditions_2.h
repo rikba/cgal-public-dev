@@ -132,9 +132,9 @@ namespace CGAL {
                         Local_point_2 centroid; // unused
 
                         #ifndef CGAL_EIGEN2_ENABLED
-                            linear_least_squares_fitting_2(points.begin(), points.end(), m_line_of_best_fit, centroid, CGAL::Dimension_tag<0>(), Kernel(), Default_diagonalize_traits<typename Kernel::FT, 2>());
+                            linear_least_squares_fitting_2(points.begin(), points.end(), m_line_of_best_fit, centroid, CGAL::Dimension_tag<0>(), Local_kernel(), Default_diagonalize_traits<Local_FT, 2>());
                         #else 
-                            linear_least_squares_fitting_2(points.begin(), points.end(), m_line_of_best_fit, centroid, CGAL::Dimension_tag<0>(), Kernel(), Eigen_diagonalize_traits<typename Kernel::FT, 2>());
+                            linear_least_squares_fitting_2(points.begin(), points.end(), m_line_of_best_fit, centroid, CGAL::Dimension_tag<0>(), Local_kernel(), Eigen_diagonalize_traits<Local_FT, 2>());
                         #endif
 
                         Local_vector_2 normal = m_line_of_best_fit.perpendicular(m_line_of_best_fit.point(0)).to_vector();

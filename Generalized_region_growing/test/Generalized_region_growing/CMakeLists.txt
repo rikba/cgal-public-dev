@@ -1,8 +1,4 @@
-# Created by the script cgal_create_cmake_script
-# This is the CMake script for compiling a CGAL application.
-
-
-project(Generalized_region_growing_Examples)
+project(Generalized_region_growing_Test)
 
 cmake_minimum_required(VERSION 2.8.10)
 
@@ -20,11 +16,9 @@ if (CGAL_FOUND)
 
     include_directories(BEFORE "include")
 
-    create_single_source_cgal_program("Simple_example.cpp")
-    create_single_source_cgal_program("Region_growing_with_points_2.cpp")
-    create_single_source_cgal_program("Region_growing_with_points_3.cpp")
-    create_single_source_cgal_program("Region_growing_with_mesh_cube.cpp")
-    create_single_source_cgal_program("Region_growing_with_mesh_big_test.cpp")
+    create_single_source_cgal_program("test_region_growing_with_points_2.cpp")
+    create_single_source_cgal_program("test_region_growing_with_points_3.cpp")
+    create_single_source_cgal_program("test_region_growing_with_mesh.cpp")
 
 else ()
 

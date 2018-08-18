@@ -141,12 +141,12 @@ namespace CGAL {
 
                         }
                         
-                        Point_3 centroid; // unused
+                        Local_point_3 centroid; // unused
                         // Fit the region to a plane
                         #ifndef CGAL_EIGEN3_ENABLED
-                            linear_least_squares_fitting_3(points.begin(), points.end(), m_plane_of_best_fit, centroid, CGAL::Dimension_tag<0>(), Kernel(), Default_diagonalize_traits<typename Kernel::FT, 3>());
+                            linear_least_squares_fitting_3(points.begin(), points.end(), m_plane_of_best_fit, centroid, CGAL::Dimension_tag<0>(), Local_kernel(), Default_diagonalize_traits<typename Local_kernel::FT, 3>());
                         #else 
-                            linear_least_squares_fitting_3(points.begin(), points.end(), m_plane_of_best_fit, centroid, CGAL::Dimension_tag<0>(), Kernel(), Eigen_diagonalize_traits<typename Kernel::FT, 3>());
+                            linear_least_squares_fitting_3(points.begin(), points.end(), m_plane_of_best_fit, centroid, CGAL::Dimension_tag<0>(), Local_kernel(), Eigen_diagonalize_traits<typename Local_kernel::FT, 3>());
                         #endif
 
                         Local_vector_3 normal = m_plane_of_best_fit.orthogonal_vector();
