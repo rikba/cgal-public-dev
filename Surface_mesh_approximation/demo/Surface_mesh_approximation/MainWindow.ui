@@ -74,6 +74,7 @@
      <string>&amp;Edit</string>
     </property>
     <addaction name="actionCopySnapshot"/>
+    <addaction name="actionSaveSnapshot"/>
    </widget>
    <widget class="QMenu" name="menuOperation">
     <property name="title">
