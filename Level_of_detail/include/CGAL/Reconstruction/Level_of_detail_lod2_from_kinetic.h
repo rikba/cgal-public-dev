@@ -65,7 +65,8 @@ namespace CGAL {
 			m_ground(ground),
 			m_ground_height(ground_height),
 			m_facet_colors(facet_colors),
-    		m_index_counter(0) { }
+    		m_index_counter(0),
+			m_tolerance(FT(1) / FT(10000)) { }
 
 			void operator()(HDS &hds) {
 				
@@ -104,7 +105,8 @@ namespace CGAL {
 			const FT m_ground_height;
 			Facet_colors &m_facet_colors;
 			
-			size_t m_index_counter;
+			size_t   m_index_counter;
+			const FT m_tolerance;
 
 			inline size_t estimate_number_of_vertices() {
 				return m_buildings.size() * 8 + 4;
@@ -280,16 +282,33 @@ namespace CGAL {
 
 			void add_clean_facet(const Clean_facet &clean_facet, const Color &color, Builder &builder) {
 
-				if (clean_facet.first.size() == 0) return;
+				if (clean_facet.first.size() == 0 || is_ground_facet(clean_facet)) 
+					return;
 
-				for (size_t i = 0; i < clean_facet.first.size(); ++i) 
-					builder.add_vertex(clean_facet.first[i]);
+				for (size_t i = 0; i < clean_facet.first.size(); ++i) {
+					
+					const Point_3 &p = clean_facet.first[i];
+					builder.add_vertex(p);
+				}
 
 				const Color_facet_handle cfh = builder.begin_facet();
 				for (size_t i = 0; i < clean_facet.first.size(); ++i) builder.add_vertex_to_facet(m_index_counter++);
 				builder.end_facet();
 
 				m_facet_colors[cfh] = color; // clean_facet.second;
+			}
+
+			bool is_ground_facet(const Clean_facet &clean_facet) const {
+				
+				FT average_height = FT(0);
+				for (size_t i = 0; i < clean_facet.first.size(); ++i) {
+					
+					const Point_3 &p = clean_facet.first[i];
+					average_height += p.z();
+				}
+				
+				average_height /= static_cast<FT>(clean_facet.first.size());
+				return CGAL::abs(average_height - m_ground_height) < m_tolerance;
 			}
 
 			void add_ground(Builder &builder) {

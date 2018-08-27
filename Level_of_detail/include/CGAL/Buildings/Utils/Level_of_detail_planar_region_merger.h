@@ -9,10 +9,12 @@
 #include <cassert>
 #include <stdlib.h>
 #include <iostream>
+#include <algorithm>
 
 // CGAL includes.
 #include <CGAL/utils.h>
 #include <CGAL/IO/Color.h>
+#include <CGAL/Polygon_2.h>
 #include <CGAL/number_utils.h>
 #include <CGAL/Polyhedron_3.h>
 
@@ -79,6 +81,8 @@ namespace CGAL {
             using Final_constraints = std::vector<Final_constraint>;
 
             using Facets_based_region_growing = CGAL::LOD::Level_of_detail_facets_based_region_growing<Kernel>;
+
+            using Polygon_2 = CGAL::Polygon_2<Kernel>;
 
 			Level_of_detail_planar_region_merger() :
             m_tolerance(FT(1) / FT(100000)),
@@ -246,12 +250,37 @@ namespace CGAL {
 
                 CDT cdt;
                 triangulate_region_facets(region_facets, cdt);
+                
                 if (cdt.number_of_faces() != 0) get_back_region_facets(cdt, region_facets);
+                fix_orientation(region_facets);
 
                 rotate_region_facets(region_facets, -angle, axis, b, true);
                 
                 for (size_t i = 0; i < region_facets.size(); ++i)
-                    clean_facets.push_back(std::make_pair(region_facets[i], color));
+                    add_clean_facet(region_facets[i], color, clean_facets);
+            }
+
+            void add_clean_facet(const Region_facet &region_facet, const Color &color, Clean_facets &clean_facets) const {
+                
+                clean_facets.push_back(std::make_pair(region_facet, color));
+            }
+
+            void fix_orientation(Region_facets &region_facets) const {
+
+                Polygon_2 polygon;
+                for (size_t i = 0; i < region_facets.size(); ++i) {
+                    Region_facet &region_facet = region_facets[i];
+
+                    polygon.clear();
+                    for (size_t j = 0; j < region_facet.size(); ++j) {
+                        
+                        const Point_3 &p = region_facet[j];
+                        polygon.push_back(Point_2(p.x(), p.y()));
+                    }
+
+                    if (polygon.is_clockwise_oriented()) 
+                        std::reverse(region_facet.begin(), region_facet.end());
+                }
             }
 
             void rotate_region_facets(Region_facets &region_facets, const FT angle, const Vector_3 &axis, const Point_3 &b, const bool show = false) const {

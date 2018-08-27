@@ -202,11 +202,11 @@ namespace CGAL {
 					for (size_t j = 0; j < f2.first.size(); ++j) {
 						const size_t jp = (j + 1) % f2.first.size();
 
-						// if (are_equal_edges(f1.first[i], f1.first[ip], f2.first[j], f2.first[jp])) 
-						// return true;
-
-						if (are_equal_points(f1.first[i], f2.first[j]))
+						if (are_equal_edges(f1.first[i], f1.first[ip], f2.first[j], f2.first[jp])) 
 							return true;
+
+						// if (are_equal_points(f1.first[i], f2.first[j]))
+						//     return true;
 					}
 				}
 				return false;
