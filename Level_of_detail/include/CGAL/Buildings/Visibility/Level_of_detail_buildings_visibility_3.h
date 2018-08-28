@@ -129,11 +129,12 @@ namespace CGAL {
                     polyhedron.is_valid = is_valid_polyhedron(building, polyhedron);
                 }
 
+                /*
                 for (size_t i = 0; i < polyhedrons.size(); ++i) {
                     
                     Polyhedron &polyhedron = polyhedrons[i];
                     if (is_thin_polyhedron(polyhedron, polyhedrons)) polyhedron.is_valid = false;
-                }
+                } */
             }
 
             bool is_thin_polyhedron(const Polyhedron &polyhedron, const Polyhedrons &polyhedrons) const {
@@ -157,7 +158,8 @@ namespace CGAL {
 
                         const FT angle = compute_angle(pm, p, pp);
 
-                        if (angle < m_angle_threshold && angle > FT(1) / FT(100000)) return true;
+                        if (facet.indices.size() == 3 && angle < m_angle_threshold / FT(2) && angle > FT(1) / FT(100000)) 
+                            return true;
                     }
                 }
                 return false;
