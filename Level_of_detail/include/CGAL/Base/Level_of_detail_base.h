@@ -85,8 +85,8 @@ namespace CGAL {
 			typedef typename CDT::Finite_edges_iterator Edge_iterator;
 			typedef typename CDT::Finite_faces_iterator Face_iterator;
 
-			typedef typename Traits::Graph_cut Graph_cut;
-			typedef typename Traits::Lods 	   Lods;
+			typedef typename Traits::Graphcut_2 Graphcut_2;
+			typedef typename Traits::Lods 	    Lods;
 
 			typedef typename Traits::Mesh 			   Mesh;
 			typedef typename Traits::Mesh_facet_colors Mesh_facet_colors;
@@ -139,6 +139,7 @@ namespace CGAL {
 			typedef typename Traits::Facets_cleaner Facets_cleaner;
 
 			typedef typename Traits::Roofs_creator Roofs_creator;
+			typedef typename Traits::Graphcut_3    Graphcut_3;
 
 
 			// Extra typedefs.
@@ -1052,13 +1053,15 @@ namespace CGAL {
 				// Apply graph cut.
 				std::cout << "(" << exec_step << ") applying graph cut;" << std::endl;
 
-				m_graph_cut.save_info(m_graph_cut_save_info);
-				m_graph_cut.set_alpha_parameter(m_graph_cut_alpha);
-				m_graph_cut.set_beta_parameter(m_graph_cut_beta);
-				m_graph_cut.set_gamma_parameter(m_graph_cut_gamma);
-				m_graph_cut.make_silent(m_silent);
+				Graphcut_2 graphcut_2 = Graphcut_2();
 
-				m_graph_cut.max_flow(cdt);
+				graphcut_2.save_info(m_graph_cut_save_info);
+				graphcut_2.set_alpha_parameter(m_graph_cut_alpha);
+				graphcut_2.set_beta_parameter(m_graph_cut_beta);
+				graphcut_2.set_gamma_parameter(m_graph_cut_gamma);
+				graphcut_2.make_silent(m_silent);
+
+				graphcut_2.max_flow(cdt);
 
 				if (!m_silent) {
 					Log ply_cdt_in; ply_cdt_in.save_cdt_ply(cdt, "tmp" + std::string(PSR) + "after_cut", "in");
@@ -1359,6 +1362,23 @@ namespace CGAL {
 				}
 			}
 
+			void applying_graphcut_3(const Container_3D &input, const FT ground_height, Buildings &buildings, const size_t exec_step) {
+
+				// Apply graph cut.
+				std::cout << "(" << exec_step << ") applying 3D graph cut;" << std::endl;
+
+				Graphcut_3 graphcut_3 = Graphcut_3(input, ground_height);
+
+				graphcut_3.set_alpha(m_graph_cut_alpha);
+				graphcut_3.set_beta(m_graph_cut_beta);
+				graphcut_3.set_gamma(m_graph_cut_gamma);
+
+				graphcut_3.solve(buildings);
+
+				Log exporter;
+				if (!m_silent) exporter.save_polyhedrons(buildings, "tmp" + std::string(PSR) + "lod_2" + std::string(PSR) + "5_graphcut");
+			}
+
 			void applying_3d_visibility(const Container_3D &input, const FT ground_height, Buildings &buildings, const size_t exec_step) {
 
 				// Apply 3D visibility.
@@ -1631,11 +1651,19 @@ namespace CGAL {
 					}
 					
 					if (m_simple_visibility_method) {
+					
+						if (true) {
+							
+							// using graph cut
+							applying_graphcut_3(input, ground_height, buildings, exec_step);
+
+							return;
+						}
 
 						// (07) ----------------------------------
 						applying_3d_visibility(input, ground_height, buildings, ++exec_step);
-					
-					
+
+
 						// (08-09) ----------------------------------
 						creating_clean_facets(buildings, false, ++exec_step);
 						reconstructing_lod2(cdt, buildings, ground_bbox, ground_height, mesh_2, mesh_facet_colors_2, "LOD2", ++exec_step);
@@ -1751,7 +1779,6 @@ namespace CGAL {
 			Utils 		 		 m_utils;
 			Region_growing_2   	 m_region_growing_2;
 			
-			Graph_cut m_graph_cut;
 			Lods m_lods;
 
 			Building_splitter m_building_splitter;

@@ -1,5 +1,5 @@
-#ifndef CGAL_LEVEL_OF_DETAIL_GRAPHCUT_H
-#define CGAL_LEVEL_OF_DETAIL_GRAPHCUT_H
+#ifndef CGAL_LEVEL_OF_DETAIL_GRAPHCUT_2_H
+#define CGAL_LEVEL_OF_DETAIL_GRAPHCUT_2_H
 
 #if defined(WIN32) || defined(_WIN32) 
 #define PSR "\\" 
@@ -35,7 +35,7 @@ namespace CGAL {
 
 		// Precondition: Be sure that there are no duplicated points.
 		template<class KernelTraits, class CDTInput>
-		class Level_of_detail_graphcut {
+		class Level_of_detail_graphcut_2 {
 
 		public:
 			typedef KernelTraits Kernel;
@@ -58,7 +58,7 @@ namespace CGAL {
 
 			enum class Node_value_adapter { NO_ADAPTER, TANH };
 
-			Level_of_detail_graphcut() : 
+			Level_of_detail_graphcut_2() : 
 			m_alpha(FT(1)), 
 			m_beta(FT(100000)), 
 			m_gamma(FT(1000)), 
@@ -493,4 +493,4 @@ namespace CGAL {
 	}
 }
 
-#endif // CGAL_LEVEL_OF_DETAIL_GRAPHCUT_H
+#endif // CGAL_LEVEL_OF_DETAIL_GRAPHCUT_2_H

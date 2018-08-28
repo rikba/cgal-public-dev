@@ -34,7 +34,8 @@
 #include <CGAL/Regularizer/Level_of_detail_polygonizer_jean_philippe.h>
 #include <CGAL/Structuring_2/Level_of_detail_structuring_2.h>
 #include <CGAL/Visibility_2/Level_of_detail_visibility_2.h>
-#include <CGAL/Graphcut/Level_of_detail_graphcut.h>
+#include <CGAL/Graphcut/Level_of_detail_graphcut_2.h>
+#include <CGAL/Graphcut/Level_of_detail_graphcut_3.h>
 
 #include <CGAL/Clutter/Level_of_detail_thinning.h>
 #include <CGAL/Buildings/Level_of_detail_buildings.h>
@@ -109,8 +110,8 @@ namespace CGAL {
 			typedef std::pair<typename Kernel::Point_2, Label> Point_with_label;
 			typedef std::vector<Point_with_label> 			   Container_2D;
 
-			typedef CGAL::LOD::Level_of_detail_structuring_2<Kernel> Structuring_2;
-			typedef CGAL::LOD::Level_of_detail_graphcut<Kernel, CDT> Graph_cut;
+			typedef CGAL::LOD::Level_of_detail_structuring_2<Kernel>   Structuring_2;
+			typedef CGAL::LOD::Level_of_detail_graphcut_2<Kernel, CDT> Graphcut_2;
 
 			typedef CGAL::LOD::Level_of_detail_visibility_from_classification_2<Kernel, Container_2D, CDT> Visibility_2;
 			
@@ -176,6 +177,8 @@ namespace CGAL {
 			typedef CGAL::LOD::Level_of_detail_buildings_visibility_3<Kernel, Container_3D, Building, Buildings> Visibility_3;
 			typedef CGAL::LOD::Level_of_detail_buildings_facets_cleaner_3<Kernel, Building, Buildings> 		     Facets_cleaner;
 			typedef CGAL::LOD::Level_of_detail_building_roofs_creator<Kernel, Container_3D, Building, Buildings> Roofs_creator;
+
+			typedef CGAL::LOD::Level_of_detail_graphcut_3<Kernel, Container_3D, Building, Buildings> Graphcut_3;
 		};
 	}
 }
