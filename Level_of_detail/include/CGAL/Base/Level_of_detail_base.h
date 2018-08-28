@@ -1657,7 +1657,7 @@ namespace CGAL {
 							// using graph cut
 							applying_graphcut_3(input, ground_height, buildings, exec_step);
 
-							return;
+							// return;
 						}
 
 						// (07) ----------------------------------

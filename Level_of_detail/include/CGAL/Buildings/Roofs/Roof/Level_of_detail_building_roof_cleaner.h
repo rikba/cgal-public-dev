@@ -18,6 +18,7 @@
 #include <CGAL/Fuzzy_sphere.h>
 #include <CGAL/number_utils.h>
 #include <CGAL/Search_traits_3.h>
+#include <CGAL/Simple_cartesian.h>
 #include <CGAL/Orthogonal_k_neighbor_search.h>
 
 // New CGAL includes.
@@ -40,11 +41,13 @@ namespace CGAL {
 			typename Kernel::Compute_squared_length_3 		  squared_length;
 			typename Kernel::Compute_scalar_product_3 		  dot_product;
 			typename Kernel::Construct_cross_product_vector_3 cross_product;
+            typename Kernel::Compute_squared_distance_3 	  squared_distance_3;
 
             using FT       = typename Kernel::FT;
             using Point_3  = typename Kernel::Point_3;
             using Vector_3 = typename Kernel::Vector_3;
             using Plane_3  = typename Kernel::Plane_3;
+            using Line_3   = typename Kernel::Line_3;
 
             using Vertex_handle = typename CDT::Vertex_handle;
             using Face_handle   = typename CDT::Face_handle;
@@ -182,9 +185,62 @@ namespace CGAL {
                 if (m_apply_vertical_criteria)    apply_vertical_criteria(shapes, indices);
                 if (m_apply_height_criteria)      apply_height_criteria(shapes, indices);
                 
-
+                apply_thin_criteria(shapes, indices);
                 update_shapes(indices, shapes);
+
                 // if (shapes.size() == 0) building.is_valid = false;
+            }
+
+            void apply_thin_criteria(const Shapes &shapes, Indices &indices) const {
+
+                Indices new_indices;
+                for (size_t i = 0; i < indices.size(); ++i) {
+
+                    const size_t index = indices[i];
+                    if (!is_thin(shapes[index])) new_indices.push_back(index);
+                }
+                indices = new_indices;
+            }
+
+            bool is_thin(const Shape_indices &shape_indices) const {
+
+                using Local_Kernel = CGAL::Simple_cartesian<double>;
+				using Point_3ft    = Local_Kernel::Point_3;
+				using Line_3ft     = Local_Kernel::Line_3;
+
+				std::vector<Point_3ft> tmp_points(shape_indices.size());
+				for (size_t i = 0; i < shape_indices.size(); ++i) {
+				
+					const Point_3 &p = m_input.point(shape_indices[i]);
+
+					const double x = CGAL::to_double(p.x());
+					const double y = CGAL::to_double(p.y());
+					const double z = CGAL::to_double(p.z());
+
+					tmp_points[i] = Point_3ft(x, y, z);
+				}
+
+				Line_3ft tmp_line;
+				CGAL::linear_least_squares_fitting_3(tmp_points.begin(), tmp_points.end(), tmp_line, CGAL::Dimension_tag<0>());
+
+                const Point_3ft &a = tmp_line.point(0);
+                const Point_3ft &b = tmp_line.point(1);
+
+				const Line_3 line = Line_3(
+                    Point_3(static_cast<FT>(a.x()), static_cast<FT>(a.y()), static_cast<FT>(a.z())), 
+                    Point_3(static_cast<FT>(b.x()), static_cast<FT>(b.y()), static_cast<FT>(b.z())));
+
+                FT distance = FT(0);
+                for (size_t i = 0; i < shape_indices.size(); ++i) {
+                    
+                    const Point_3 &p = m_input.point(shape_indices[i]);
+                    const Point_3  q = line.projection(p);
+
+                    distance += static_cast<FT>(std::sqrt(CGAL::to_double(squared_distance_3(p, q))));
+                }
+                distance /= static_cast<FT>(shape_indices.size());
+
+                return distance < FT(1) / FT(3);
             }
 
             void set_default_indices(Indices &indices, const size_t num_indices) const {
