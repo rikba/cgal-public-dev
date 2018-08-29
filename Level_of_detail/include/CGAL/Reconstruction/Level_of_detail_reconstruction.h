@@ -693,7 +693,7 @@ namespace CGAL {
 			template<class BuildingTmp>
 			void add_unoriented_building_structure_lod0(const BuildingTmp &building, Builder &builder) {
 
-				const Color color = building.color;
+				const Color color = Color(254, 127, 4); // building.color;
 				const auto &faces = building.faces;
 
 				add_horizontal_triangulation(faces, color, FT(1) / FT(100), builder); // floor
@@ -724,14 +724,15 @@ namespace CGAL {
 			template<class BuildingTmp>
 			void add_unoriented_building_structure_lod1(const BuildingTmp &building, Builder &builder) {
 
-				const FT height   = building.height;
-				const Color color = building.color;
+				const FT height    = building.height;
+				const Color color1 = Color(254, 127, 4); // building.color;
 
 				const auto &faces = building.faces;
-				add_horizontal_triangulation(faces, color, height, builder); // roof
+				add_horizontal_triangulation(faces, color1, height, builder); // roof
 	
 				const auto &boundary = building.boundaries[0];
-				add_walls_from_unoriented_boundary(boundary, color, FT(0), height, builder); // walls
+				const Color color2   = Color(254, 127, 4);
+				add_walls_from_unoriented_boundary(boundary, color2, FT(0), height, builder); // walls
 			}
 
 			template<class BoundaryTmp>
@@ -915,7 +916,7 @@ namespace CGAL {
 				const Point &c = m_ground[1];
 				const Point &d = m_ground[0];
 
-				const Color color(169, 169, 169);
+				const Color color(186, 189, 182); // color(169, 169, 169);
 				add_quad(a, b, c, d, color, builder);
 			}
 		}; 

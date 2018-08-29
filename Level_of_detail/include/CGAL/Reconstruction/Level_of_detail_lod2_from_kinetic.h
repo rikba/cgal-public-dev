@@ -38,6 +38,7 @@ namespace CGAL {
 			using Point_2    = typename Kernel::Point_2;
 			using Point_3    = typename Kernel::Point_3;
 			using Triangle_2 = typename Kernel::Triangle_2;
+			using Vector_3   = typename Kernel::Vector_3;
 
 			using Boundary 	  		= typename Building::Boundary;			
 			using Floor_faces 		= typename Building::Floor_faces;
@@ -58,6 +59,12 @@ namespace CGAL {
     		
 			using Building_iterator = typename Buildings::const_iterator;
     		using Ground 			= std::vector<Point_3>;
+
+			typename Kernel::Compute_squared_length_3   squared_length_3;
+            typename Kernel::Compute_squared_distance_2 squared_distance_2;
+
+            typename Kernel::Compute_scalar_product_3 		  dot_product_3;
+			typename Kernel::Construct_cross_product_vector_3 cross_product_3;
 
 			LOD2_builder_from_kinetic(const CDT &cdt, const Buildings &buildings, const Ground &ground, const FT ground_height, Facet_colors &facet_colors) : 
     		m_cdt(cdt),
@@ -276,9 +283,64 @@ namespace CGAL {
 				const Color 	   &color 		 = building.color;
 				const Clean_facets &clean_facets = building.clean_facets;
 
-				for (size_t i = 0; i < clean_facets.size(); ++i)
-					add_clean_facet(clean_facets[i], color, builder);
+				for (size_t i = 0; i < clean_facets.size(); ++i) {
+				
+					Color final_color;
+					// if (is_vertical_facet(clean_facets[i])) final_color = Color(255, 255, 255);
+					/* else */ final_color = Color(254, 127, 4);
+
+					add_clean_facet(clean_facets[i], final_color, builder);
+				}
 			}
+
+            bool is_vertical_facet(const Clean_facet &vertices) const {
+
+				Vector_3 facet_normal;
+				set_facet_normal(vertices, facet_normal);
+
+				Vector_3 ground_normal;
+				set_ground_normal(ground_normal);
+
+                const FT angle      = compute_angle(facet_normal, ground_normal);
+                const FT angle_diff = CGAL::abs(FT(90) - CGAL::abs(angle));
+
+                if (angle_diff < FT(15)) return true;
+                return false;
+            }
+
+            void set_facet_normal(const Clean_facet &vertices, Vector_3 &facet_normal) const {
+
+                CGAL_precondition(facet.indices.size() >= 3);
+                const Point_3 &p1 = vertices.first[0];
+                const Point_3 &p2 = vertices.first[1];
+                const Point_3 &p3 = vertices.first[2];
+
+                const Vector_3 v1 = Vector_3(p1, p2);
+                const Vector_3 v2 = Vector_3(p1, p3);
+
+                facet_normal = cross_product_3(v1, v2);
+                normalize(facet_normal);
+			}
+
+			void set_ground_normal(Vector_3 &ground_normal) const {
+				ground_normal = Vector_3(FT(0), FT(0), FT(1));
+			}
+
+            FT compute_angle(const Vector_3 &m, const Vector_3 &n) const {
+				
+				const auto cross = cross_product_3(m, n);
+				const FT length  = static_cast<FT>(CGAL::sqrt(CGAL::to_double(squared_length_3(cross))));
+				const FT dot     = dot_product_3(m, n);
+
+				const FT angle_rad = static_cast<FT>(std::atan2(CGAL::to_double(length), CGAL::to_double(dot)));
+                const FT angle_deg = angle_rad * FT(180) / static_cast<FT>(CGAL_PI);
+                
+                return angle_deg;
+			}
+
+            void normalize(Vector_3 &v) const {
+                v /= static_cast<FT>(CGAL::sqrt(CGAL::to_double(v.squared_length())));
+            }
 
 			void add_clean_facet(const Clean_facet &clean_facet, const Color &color, Builder &builder) {
 
@@ -327,7 +389,7 @@ namespace CGAL {
 				const Point_3 p3 = Point_3(c.x(), c.y(), c.z() + m_ground_height);
 				const Point_3 p4 = Point_3(d.x(), d.y(), d.z() + m_ground_height);
 
-				const Color color(169, 169, 169);
+				const Color color(186, 189, 182);
 				add_quad(p1, p2, p3, p4, color, builder);
 			}
         };

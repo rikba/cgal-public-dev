@@ -128,58 +128,6 @@ namespace CGAL {
                     Polyhedron &polyhedron = polyhedrons[i];
                     polyhedron.is_valid = is_valid_polyhedron(building, polyhedron);
                 }
-
-                /*
-                for (size_t i = 0; i < polyhedrons.size(); ++i) {
-                    
-                    Polyhedron &polyhedron = polyhedrons[i];
-                    if (is_thin_polyhedron(polyhedron, polyhedrons)) polyhedron.is_valid = false;
-                } */
-            }
-
-            bool is_thin_polyhedron(const Polyhedron &polyhedron, const Polyhedrons &polyhedrons) const {
-
-                return false;
-
-                const auto &vertices = polyhedron.vertices;
-				const auto &facets 	 = polyhedron.facets;
-
-                for (size_t i = 0; i < facets.size(); ++i) {
-                    const auto &facet = facets[i];
-
-                    for (size_t j = 0; j < facet.indices.size(); ++j) {
-                        
-                        const size_t jm = (j + facet.indices.size() - 1) % facet.indices.size();
-                        const size_t jp = (j + 1) % facet.indices.size();
-
-                        const Point_3 &pm = vertices[facet.indices[jm]];
-                        const Point_3 &p  = vertices[facet.indices[j]];
-                        const Point_3 &pp = vertices[facet.indices[jp]];
-
-                        const FT angle = compute_angle(pm, p, pp);
-
-                        if (facet.indices.size() == 3 && angle < m_angle_threshold / FT(2) && angle > FT(1) / FT(100000)) 
-                            return true;
-                    }
-                }
-                return false;
-            }
-
-            FT compute_angle(const Point_3 &a, const Point_3 &b, const Point_3 &c) const {
-
-                const Vector_3 m = Vector_3(b, a);
-                const Vector_3 n = Vector_3(b, c);
-
-                const auto cross = cross_product_3(m, n);
-				const FT length  = static_cast<FT>(CGAL::sqrt(CGAL::to_double(squared_length_3(cross))));
-				const FT dot     = dot_product_3(m, n);
-
-				FT angle = static_cast<FT>(std::atan2(CGAL::to_double(length), CGAL::to_double(dot)));
-
-                const FT half_pi = static_cast<FT>(CGAL_PI) / FT(2);
-                if (angle > half_pi) angle = static_cast<FT>(CGAL_PI) - angle;
-
-                return angle * FT(180) / static_cast<FT>(CGAL_PI);
             }
 
             bool is_valid_polyhedron(const Building &building, const Polyhedron &polyhedron) const {

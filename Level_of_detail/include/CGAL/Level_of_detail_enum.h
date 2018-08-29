@@ -201,6 +201,18 @@ namespace CGAL {
 			FT 	   current_percentage;
 			size_t total_contributions_size;
 
+			struct Graphcut_facet {
+			
+			public:
+				std::pair<size_t, size_t> neighbours;
+				FT weight  = -FT(1);
+				FT quality = -FT(1);
+			};
+
+			using Graphcut_facets = std::vector<Graphcut_facet>;
+
+			Graphcut_facets graphcut_facets;
+
 			struct Polyhedron {
 			
 			public:
@@ -220,6 +232,9 @@ namespace CGAL {
 				Facets 	 facets;
 
 				bool is_valid = true;
+
+				FT in  = -FT(1);
+				FT out = -FT(1);
 			};
 
 			using Polyhedrons = std::vector<Polyhedron>;
