@@ -266,6 +266,7 @@ namespace CGAL {
 			m_roof_cleaner_use_height_criteria(false),
 			m_roof_cleaner_use_vertical_criteria(false),
 			m_roof_cleaner_use_scale_based_criteria(false),
+			m_roof_cleaner_use_thin_criteria(false),
 			m_quality_based_method(false),
 			m_simple_visibility_method(true),
 			m_advanced_visibility_method(false)
@@ -492,6 +493,7 @@ namespace CGAL {
 				m_roof_cleaner_use_height_criteria 	    = false;
 				m_roof_cleaner_use_vertical_criteria    = false;
 				m_roof_cleaner_use_scale_based_criteria = false;
+				m_roof_cleaner_use_thin_criteria 		= false;
 			}
 
 			void set_the_most_important_options() {
@@ -572,6 +574,7 @@ namespace CGAL {
 				add_bool_parameter("-rc_use_height"  , m_roof_cleaner_use_height_criteria     , m_parameters);
 				add_bool_parameter("-rc_use_vertical", m_roof_cleaner_use_vertical_criteria   , m_parameters);
 				add_bool_parameter("-rc_use_scale"   , m_roof_cleaner_use_scale_based_criteria, m_parameters);
+				add_bool_parameter("-rc_use_thin"    , m_roof_cleaner_use_thin_criteria       , m_parameters);
 
 				// Important.
 				add_val_parameter("-eps"  , m_imp_eps  , m_parameters);
@@ -1310,6 +1313,7 @@ namespace CGAL {
 				m_roof_cleaner->use_height_criteria(m_roof_cleaner_use_height_criteria);
 				m_roof_cleaner->use_vertical_criteria(m_roof_cleaner_use_vertical_criteria);
 				m_roof_cleaner->use_scale_based_criteria(m_roof_cleaner_use_scale_based_criteria);
+				m_roof_cleaner->use_thin_criteria(m_roof_cleaner_use_thin_criteria);
 
 				m_roof_cleaner->make_silent(m_silent);
 				m_roof_cleaner->clean_shapes(buildings);
@@ -1948,6 +1952,7 @@ namespace CGAL {
 			bool m_roof_cleaner_use_height_criteria;
 			bool m_roof_cleaner_use_vertical_criteria;
 			bool m_roof_cleaner_use_scale_based_criteria;
+			bool m_roof_cleaner_use_thin_criteria;
 
 			bool m_quality_based_method;
 			bool m_simple_visibility_method;

@@ -75,10 +75,12 @@ namespace CGAL {
             m_scale_upper_bound(-FT(1)),
             m_max_percentage(FT(80)),
             m_angle_threshold(FT(25)),
+            m_distance_threshold(FT(1) / FT(5)),
             m_apply_size_criteria(true),
             m_apply_height_criteria(false),
             m_apply_vertical_criteria(true),
-            m_apply_scale_based_criteria(true) { }
+            m_apply_scale_based_criteria(true),
+            m_apply_thin_criteria(true) { }
 
             void use_size_criteria(const bool new_state) {
                 m_apply_size_criteria = new_state;
@@ -94,6 +96,10 @@ namespace CGAL {
 
             void use_scale_based_criteria(const bool new_state) {
                 m_apply_scale_based_criteria = new_state;
+            }
+
+            void use_thin_criteria(const bool new_state) {
+                m_apply_thin_criteria = new_state;
             }
 
             void clean_shapes(Buildings &buildings) const {
@@ -136,11 +142,13 @@ namespace CGAL {
             FT m_max_percentage;
 
             const FT m_angle_threshold;
+            const FT m_distance_threshold;
             
             bool m_apply_size_criteria;
             bool m_apply_height_criteria;
             bool m_apply_vertical_criteria;
             bool m_apply_scale_based_criteria;
+            bool m_apply_thin_criteria;
 
             class Size_comparator {
                 
@@ -184,11 +192,12 @@ namespace CGAL {
                 if (m_apply_scale_based_criteria) apply_scale_based_criteria(shapes, indices);
                 if (m_apply_vertical_criteria)    apply_vertical_criteria(shapes, indices);
                 if (m_apply_height_criteria)      apply_height_criteria(shapes, indices);
+                if (m_apply_thin_criteria)        apply_thin_criteria(shapes, indices);
                 
-                apply_thin_criteria(shapes, indices);
                 update_shapes(indices, shapes);
 
-                // if (shapes.size() == 0) building.is_valid = false;
+                // if (shapes.size() == 0) 
+                //     building.is_valid = false;
             }
 
             void apply_thin_criteria(const Shapes &shapes, Indices &indices) const {
@@ -203,6 +212,15 @@ namespace CGAL {
             }
 
             bool is_thin(const Shape_indices &shape_indices) const {
+
+                Line_3 line;
+                fit_line(shape_indices, line);
+
+                const FT average_distance = compute_average_distance(shape_indices, line);
+                return average_distance < m_distance_threshold;
+            }
+
+            void fit_line(const Shape_indices &shape_indices, Line_3 &line) const {
 
                 using Local_Kernel = CGAL::Simple_cartesian<double>;
 				using Point_3ft    = Local_Kernel::Point_3;
@@ -226,21 +244,24 @@ namespace CGAL {
                 const Point_3ft &a = tmp_line.point(0);
                 const Point_3ft &b = tmp_line.point(1);
 
-				const Line_3 line = Line_3(
+				line = Line_3(
                     Point_3(static_cast<FT>(a.x()), static_cast<FT>(a.y()), static_cast<FT>(a.z())), 
                     Point_3(static_cast<FT>(b.x()), static_cast<FT>(b.y()), static_cast<FT>(b.z())));
+            }
 
-                FT distance = FT(0);
+            FT compute_average_distance(const Shape_indices &shape_indices, const Line_3 &line) const {
+
+                FT average_distance = FT(0);
                 for (size_t i = 0; i < shape_indices.size(); ++i) {
                     
                     const Point_3 &p = m_input.point(shape_indices[i]);
                     const Point_3  q = line.projection(p);
 
-                    distance += static_cast<FT>(std::sqrt(CGAL::to_double(squared_distance_3(p, q))));
+                    average_distance += static_cast<FT>(std::sqrt(CGAL::to_double(squared_distance_3(p, q))));
                 }
-                distance /= static_cast<FT>(shape_indices.size());
-
-                return distance < FT(1) / FT(3);
+                
+                average_distance /= static_cast<FT>(shape_indices.size());
+                return average_distance;
             }
 
             void set_default_indices(Indices &indices, const size_t num_indices) const {
