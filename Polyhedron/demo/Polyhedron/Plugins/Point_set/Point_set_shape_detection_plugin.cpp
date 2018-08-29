@@ -17,7 +17,7 @@
 #include <CGAL/linear_least_squares_fitting_3.h>
 
 #include <CGAL/Random.h>
-#include <CGAL/Timer.h>
+#include <CGAL/Real_timer.h>
 
 #include <CGAL/Shape_detection_3.h>
 #include <CGAL/regularize_planes.h>
@@ -38,8 +38,27 @@
 #include <boost/foreach.hpp>
 #include <boost/function_output_iterator.hpp>
 
+#include "run_with_qprogressdialog.h"
+
 #include "ui_Point_set_shape_detection_plugin.h"
 
+template <typename Shape_detection>
+struct Detect_shapes_functor
+  : public Functor_with_signal_callback
+{
+  Shape_detection& shape_detection;
+  typename Shape_detection::Parameters& op;
+  
+  Detect_shapes_functor (Shape_detection& shape_detection,
+                         typename Shape_detection::Parameters& op)
+    : shape_detection (shape_detection), op (op)
+  { }
+
+  void operator()()
+  {
+    shape_detection.detect(op, *(this->callback()));
+  }
+};
 
 struct build_from_pair
 {
@@ -76,6 +95,7 @@ public:
   bool detect_cylinder() const { return cylinderCB->isChecked(); } 
   bool detect_torus() const { return torusCB->isChecked(); } 
   bool detect_cone() const { return coneCB->isChecked(); }
+  bool add_property() const { return m_add_property->isChecked(); }
   bool generate_colored_point_set() const { return m_one_colored_point_set->isChecked(); }
   bool generate_subset() const { return m_point_subsets->isChecked(); }
   bool generate_alpha() const { return m_alpha_shapes->isChecked(); }
@@ -184,8 +204,38 @@ private:
       colored_item->point_set()->check_colors();
       scene->addItem(colored_item);
     }
+
+    std::string& comments = item->comments();
     
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+    Point_set::Property_map<int> shape_id;
+    if (dialog.add_property())
+    {
+      bool added = false;
+      boost::tie (shape_id, added) = points->template add_property_map<int> ("shape", -1);
+      if (!added)
+      {
+        for (Point_set::iterator it = points->begin(); it != points->end(); ++ it)
+          shape_id[*it] = -1;
+      }
+
+      // Remove previously detected shapes from comments
+      std::string new_comment;
+      
+      std::istringstream stream (comments);
+      std::string line;
+      while (getline(stream, line))
+      {
+        std::stringstream iss (line);
+        std::string tag;
+        if (iss >> tag && tag == "shape")
+          continue;
+        new_comment += line + "\n";
+      }
+      comments = new_comment;
+      comments += "shape -1 no assigned shape\n";
+    }
+    
+    QApplication::setOverrideCursor(Qt::BusyCursor);
 
     Shape_detection shape_detection;
     shape_detection.set_input(*points, points->point_map(), points->normal_map());
@@ -220,9 +270,10 @@ private:
     }
 
     // The actual shape detection.
-    CGAL::Timer t;
+    CGAL::Real_timer t;
     t.start();
-    shape_detection.detect(op);
+    Detect_shapes_functor<Shape_detection> functor (shape_detection, op);
+    run_with_qprogressdialog<CGAL::Sequential_tag> (functor, "Detecting shapes...", mw);
     t.stop();
     
     std::cout << shape_detection.shapes().size() << " shapes found in "
@@ -255,11 +306,40 @@ private:
           continue;
         }
       }
+
+      if (dialog.add_property())
+      {
+        std::ostringstream oss;
+        oss << "shape " << index;
+        if (CGAL::Shape_detection_3::Plane<Traits>* s
+            = dynamic_cast<CGAL::Shape_detection_3::Plane<Traits> *>(shape.get()))
+          oss << " plane " << Kernel::Plane_3(*s) << std::endl;
+        else if (CGAL::Shape_detection_3::Cylinder<Traits>* s
+            = dynamic_cast<CGAL::Shape_detection_3::Cylinder<Traits> *>(shape.get()))
+          oss << " cylinder axis = [" << s->axis() << "] radius = " << s->radius() << std::endl;
+        else if (CGAL::Shape_detection_3::Cone<Traits>* s
+            = dynamic_cast<CGAL::Shape_detection_3::Cone<Traits> *>(shape.get()))
+          oss << " cone apex = [" << s->apex() << "] axis = [" << s->axis()
+              << "] angle = " << s->angle() << std::endl;
+        else if (CGAL::Shape_detection_3::Torus<Traits>* s
+            = dynamic_cast<CGAL::Shape_detection_3::Torus<Traits> *>(shape.get()))
+          oss << " torus center = [" << s->center() << "] axis = [" << s->axis()
+              << "] R = " << s->major_radius() << " r = " << s->minor_radius() << std::endl;
+        else if (CGAL::Shape_detection_3::Sphere<Traits>* s
+            = dynamic_cast<CGAL::Shape_detection_3::Sphere<Traits> *>(shape.get()))
+          oss << " sphere center = [" << s->center() << "] radius = " << s->radius() << std::endl;
+
+        comments += oss.str();
+      }
         
       Scene_points_with_normal_item *point_item = new Scene_points_with_normal_item;
       
       BOOST_FOREACH(std::size_t i, shape->indices_of_assigned_points())
+      {
         point_item->point_set()->insert(points->point(*(points->begin()+i)));
+        if (dialog.add_property())
+          shape_id[*(points->begin()+i)] = index;
+      }
       
       unsigned char r, g, b;
 
@@ -428,13 +508,13 @@ private:
         
         typename Shape_detection::Plane_range planes = shape_detection.planes();
         CGAL::structure_point_set (*points,
-                                   points->point_map(), points->normal_map(),
                                    planes,
-                                   CGAL::Shape_detection_3::Plane_map<Traits>(),
-                                   CGAL::Shape_detection_3::Point_to_shape_index_map<Traits>(*points, planes),
                                    boost::make_function_output_iterator (build_from_pair ((*(pts_full->point_set())))),
-                                   op.cluster_epsilon);
-        
+                                   op.cluster_epsilon,
+                                   points->parameters().
+                                   plane_map(CGAL::Shape_detection_3::Plane_map<Traits>()).
+                                   plane_index_map(CGAL::Shape_detection_3::Point_to_shape_index_map<Traits>(*points, planes)));
+                
         if (pts_full->point_set ()->empty ())
           delete pts_full;
         else

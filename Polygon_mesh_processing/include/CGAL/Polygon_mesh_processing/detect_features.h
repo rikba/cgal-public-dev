@@ -25,10 +25,12 @@
 
 #include <CGAL/license/Polygon_mesh_processing/detect_features.h>
 
+#include <CGAL/disable_warnings.h>
+
 #include <CGAL/Kernel/global_functions_3.h>
 #include <CGAL/Polygon_mesh_processing/compute_normal.h>
 #include <CGAL/Polygon_mesh_processing/internal/named_params_helper.h>
-#include <CGAL/Mesh_3/properties.h>
+#include <CGAL/boost/graph/properties.h>
 #include <CGAL/Polygon_mesh_processing/connected_components.h>
 #include <set>
 
@@ -223,7 +225,7 @@ template<typename GT,
   BOOST_FOREACH(edge_descriptor ed, edges(pmesh))
   {
     halfedge_descriptor he = halfedge(ed,pmesh);
-    if(is_border(he,pmesh)
+    if(is_border_edge(he,pmesh)
       || angle_in_deg == FT()
       || (angle_in_deg != FT(180) && internal::is_sharp<PolygonMesh, GT>(pmesh,he,cos_angle))
       )
@@ -246,17 +248,17 @@ template<typename GT,
  *
  * \tparam PolygonMesh a model of `HalfedgeListGraph`
  * \tparam FT a number type. It is
- * either deduced from the `geom_traits` \ref namedparameters if provided,
+ * either deduced from the `geom_traits` \ref pmp_namedparameters "Named Parameters" if provided,
  * or from the geometric traits class deduced from the point property map
  * of `PolygonMesh`.
  * \tparam EdgeIsFeatureMap a model of `ReadWritePropertyMap` with `boost::graph_traits<PolygonMesh>::%edge_descriptor`
- *  as key type and `bool` as value type. It should be default constructible.
- * \tparam NamedParameters a sequence of \ref namedparameters
+ *  as key type and `bool` as value type. It must be default constructible.
+ * \tparam NamedParameters a sequence of \ref pmp_namedparameters "Named Parameters"
  *
  * \param pmesh the polygon mesh
  * \param angle_in_deg the dihedral angle bound
  * \param edge_is_feature_map the property map that will contain the sharp-or-not status of each edge of `pmesh`
- * \param np optional \ref namedparameters described below
+ * \param np optional \ref pmp_namedparameters "Named Parameters" described below
  *
  * \cgalNamedParamsBegin
  *    \cgalParamBegin{geom_traits} an instance of a geometric traits class, model of `Kernel`\cgalParamEnd
@@ -378,25 +380,25 @@ namespace internal
  * computing a
  * surface patch id for each face.
  *
- * A property map for `CGAL::face_index_t`should be either available
+ * A property map for `CGAL::face_index_t` must be either available
  * as an internal property map to `pmesh` or provided as one of the Named Parameters.
  *
  * \tparam PolygonMesh a model of `FaceGraph`
  * \tparam FT a number type. It is
- * either deduced from the `geom_traits` \ref namedparameters if provided,
+ * either deduced from the `geom_traits` \ref pmp_namedparameters "Named Parameters" if provided,
  * or from the geometric traits class deduced from the point property map
  * of `PolygonMesh`.
  * \tparam EdgeIsFeatureMap a model of `ReadWritePropertyMap` with `boost::graph_traits<PolygonMesh>::%edge_descriptor`
  * \tparam PatchIdMap a model of `ReadWritePropertyMap` with
    `boost::graph_traits<PolygonMesh>::%face_descriptor` as key type
    and the desired patch id, model of `CopyConstructible` as value type.
- * \tparam NamedParameters a sequence of \ref namedparameters
+ * \tparam NamedParameters a sequence of \ref pmp_namedparameters "Named Parameters"
  *
  * \param pmesh the polygon mesh
  * \param angle_in_deg the dihedral angle bound
  * \param edge_is_feature_map the property map that will contain the sharp-or-not status of each edge of `pmesh`
  * \param patch_id_map the property map that will contain the surface patch ids for the faces of `pmesh`.
- * \param np optional \ref namedparameters described below
+ * \param np optional \ref pmp_namedparameters "Named Parameters" described below
  *
  * \cgalNamedParamsBegin
  *    \cgalParamBegin{geom_traits} an instance of a geometric traits class, model of `Kernel`\cgalParamEnd
@@ -468,5 +470,7 @@ sharp_edges_segmentation(PolygonMesh& p,
 
 } // end namespace PMP
 } // end namespace CGAL
+
+#include <CGAL/enable_warnings.h>
 
 #endif // CGAL_POLYGON_MESH_PROCESSING_DETECT_FEATURES_IN_POLYGON_MESH_H

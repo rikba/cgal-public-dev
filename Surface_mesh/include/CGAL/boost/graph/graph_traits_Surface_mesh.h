@@ -21,13 +21,17 @@
 #ifndef CGAL_BOOST_GRAPH_TRAITS_SURFACE_MESH_H
 #define CGAL_BOOST_GRAPH_TRAITS_SURFACE_MESH_H
 
+#ifndef DOXYGEN_RUNNING
+
+#include <CGAL/license/Surface_mesh.h>
+
 // include this to avoid a VC15 warning
 #include <CGAL/boost/graph/named_function_params.h>
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/properties.hpp>
 
-#include <boost/iterator/transform_iterator.hpp>
+#include <CGAL/boost/iterator/transform_iterator.hpp>
 
 #include <CGAL/boost/graph/properties_Surface_mesh.h>
 #include <CGAL/boost/graph/iterator.h>
@@ -519,15 +523,11 @@ add_face(InputIterator begin, InputIterator end, CGAL::Surface_mesh<P>& sm)
 }
 
 template<typename P>
-bool is_valid(const CGAL::Surface_mesh<P>& sm, bool verbose = false)
-{
-  return sm.is_valid(verbose);
-}
-
-template<typename P>
 void normalize_border(const CGAL::Surface_mesh<P>&)
 {}
 
 } // namespace CGAL
+
+#endif // DOXYGEN_RUNNING
 
 #endif // CGAL_BOOST_GRAPH_TRAITS_SURFACE_MESH_H

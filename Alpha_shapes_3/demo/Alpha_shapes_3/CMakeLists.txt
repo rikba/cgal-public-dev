@@ -21,16 +21,11 @@ include(${CGAL_USE_FILE})
 
 find_package(Qt5 QUIET COMPONENTS Xml Script OpenGL Svg)
 
-find_package(OpenGL)
-find_package(QGLViewer)
-
-if ( CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FOUND )
+if ( CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND )
 
   add_definitions(-DQT_NO_KEYWORDS)
 
  # include(${QT_USE_FILE})
-
-  include_directories (${QGLVIEWER_INCLUDE_DIR})
   include_directories (BEFORE ../../include ./ )
 
   # ui file, created wih Qt Designer
@@ -40,15 +35,17 @@ if ( CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_
   qt5_add_resources ( CGAL_Qt5_RESOURCE_FILES ./Alpha_shape_3.qrc )
 
   add_executable  ( Alpha_shape_3 Alpha_shape_3.cpp MainWindow.cpp Viewer.cpp ${uis}  ${CGAL_Qt5_RESOURCE_FILES} ${CGAL_Qt5_MOC_FILES})
-  qt5_use_modules(Alpha_shape_3 Xml Script OpenGL Svg)
   add_to_cached_list( CGAL_EXECUTABLE_TARGETS Alpha_shape_3 )
 
-  target_link_libraries( Alpha_shape_3 ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES})
-  target_link_libraries( Alpha_shape_3 ${QT_LIBRARIES} ${QGLVIEWER_LIBRARIES} )
-  target_link_libraries( Alpha_shape_3 ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
+  target_link_libraries( Alpha_shape_3 PRIVATE
+    CGAL::CGAL CGAL::CGAL_Qt5
+    Qt5::OpenGL Qt5::Gui  )
+
+  include(${CGAL_MODULES_DIR}/CGAL_add_test.cmake)
+  cgal_add_compilation_test(Alpha_shape_3)
 
 else()
 
-  message(STATUS "NOTICE: This demo requires CGAL, the QGLViewer, OpenGL and Qt5, and will not be compiled.")
+  message(STATUS "NOTICE: This demo requires CGAL, and Qt5, and will not be compiled.")
 
 endif()

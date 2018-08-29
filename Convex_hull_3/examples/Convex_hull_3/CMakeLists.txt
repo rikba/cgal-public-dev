@@ -64,11 +64,15 @@ create_single_source_cgal_program( "quickhull_3.cpp" )
 
 create_single_source_cgal_program( "quickhull_any_dim_3.cpp" )
 
+create_single_source_cgal_program( "extreme_points_3_sm.cpp" )
+
+create_single_source_cgal_program( "extreme_indices_3.cpp" )
+
 
 if(OpenMesh_FOUND)
   create_single_source_cgal_program( "quickhull_OM_3.cpp" )
   create_single_source_cgal_program( "dynamic_hull_OM_3.cpp" )
 
-  target_link_libraries( quickhull_OM_3 ${OPENMESH_LIBRARIES} )
-  target_link_libraries( dynamic_hull_OM_3 ${OPENMESH_LIBRARIES} )
+  target_link_libraries( quickhull_OM_3 PRIVATE ${OPENMESH_LIBRARIES} )
+  target_link_libraries( dynamic_hull_OM_3 PRIVATE ${OPENMESH_LIBRARIES} )
 endif()

@@ -24,6 +24,7 @@
 
 #include <CGAL/license/Mesh_3.h>
 
+#include <CGAL/disable_warnings.h>
 
 #include <string>
 
@@ -42,7 +43,6 @@
 
 #ifdef CGAL_LINKED_WITH_TBB
 # include <tbb/task.h>
-# include <tbb/tbb.h>
 #endif
 
 #include <string>
@@ -1222,5 +1222,7 @@ private:
 
 #include <CGAL/Mesher_level_visitors.h>
 #include <CGAL/Mesh_3/Mesher_level_default_implementations.h>
+
+#include <CGAL/enable_warnings.h>
 
 #endif // CGAL_MESH_3_MESHER_LEVEL_H

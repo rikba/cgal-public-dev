@@ -25,6 +25,7 @@
 
 #include <CGAL/license/Polygon_mesh_processing/orientation.h>
 
+#include <CGAL/disable_warnings.h>
 
 #include <CGAL/tuple.h>
 #include <CGAL/array.h>
@@ -448,7 +449,7 @@ struct Polygon_soup_orienter
  * When it is not possible to produce a combinatorial manifold surface,
  * some points are duplicated.
  * Because a polygon soup does not have any connectivity (each point
- * has as many occurences as the number of polygons it belongs to),
+ * has as many occurrences as the number of polygons it belongs to),
  * duplicating one point (or a pair of points)
  * amounts to duplicate the polygon to which it belongs.
  *
@@ -489,5 +490,7 @@ bool orient_polygon_soup(PointRange& points,
 }
 
 } }//end namespace CGAL::Polygon_mesh_processing
+
+#include <CGAL/enable_warnings.h>
 
 #endif // CGAL_POLYGON_MESH_PROCESSING_ORIENT_POLYGON_SOUP

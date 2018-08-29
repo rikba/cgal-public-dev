@@ -1,4 +1,4 @@
-#version 430 core
+#version 150
 
 in GS_OUT
 {
@@ -21,27 +21,21 @@ out vec4 out_color;
 void main(void)
 {
   if(is_clipbox_on)
-    if(fs_in.dist[0]>0 ||
-       fs_in.dist[1]>0 ||
-       fs_in.dist[2]>0 ||
-       fs_in.dist[3]>0 ||
-       fs_in.dist[4]>0 ||
-       fs_in.dist[5]>0)
+    if(fs_in.dist[0]>0.0 ||
+       fs_in.dist[1]>0.0 ||
+       fs_in.dist[2]>0.0 ||
+       fs_in.dist[3]>0.0 ||
+       fs_in.dist[4]>0.0 ||
+       fs_in.dist[5]>0.0)
       discard;
   vec3 L = light_pos.xyz - fs_in.fP.xyz;
   vec3 V = -fs_in.fP.xyz;
 
   vec3 N;
-  vec3 X = dFdx(fs_in.fP.xyz);
-  vec3 Y = dFdy(fs_in.fP.xyz);
-  vec3 normal=normalize(cross(X,Y));
-  if(dot(normal, fs_in.normal) <0)
-    normal = - normal;
-
-  if(normal == highp vec3(0.0,0.0,0.0))
+  if(fs_in.normal == highp vec3(0.0,0.0,0.0))
        N = highp vec3(0.0,0.0,0.0);
    else
-       N = normalize(normal);
+       N = fs_in.normal;
   L = normalize(L);
   V = normalize(V);
 

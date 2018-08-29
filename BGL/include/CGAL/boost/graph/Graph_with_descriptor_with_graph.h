@@ -25,7 +25,7 @@
 #include <CGAL/boost/graph/properties.h>
 #include <boost/graph/graph_traits.hpp>
 #include <CGAL/boost/graph/iterator.h>
-#include <boost/iterator/transform_iterator.hpp>
+#include <CGAL/boost/iterator/transform_iterator.hpp>
 
 #include <CGAL/boost/graph/Graph_with_descriptor_with_graph_fwd.h>
 
@@ -153,7 +153,7 @@ struct Graph_with_descriptor_with_graph
 
 
 template <typename Graph, typename Graph_descriptor, typename Descriptor>
-struct Descriptor2Descriptor: public CGAL::unary_function<Graph_descriptor,Descriptor>
+struct Descriptor2Descriptor: public CGAL::cpp98::unary_function<Graph_descriptor,Descriptor>
 {
 
   Descriptor2Descriptor()
@@ -691,7 +691,7 @@ template <class Graph>
 bool
 is_valid(const Graph_with_descriptor_with_graph<Graph> & w, bool verbose = false)
 {
-  return is_valid(*w.graph,verbose);
+  return is_valid_polygon_mesh(*w.graph,verbose);
 }
 
 
@@ -828,6 +828,9 @@ std::size_t hash_value(CGAL::Gwdwg_descriptor<G,D> d)
   return hash_value(d.descriptor);
 }
 
+template<typename Graph, typename PropertyTag>
+struct graph_has_property<CGAL::Graph_with_descriptor_with_graph<Graph>, PropertyTag>
+  : graph_has_property<Graph, PropertyTag> {};
 }//end namespace CGAL
 
 namespace boost {
@@ -837,9 +840,6 @@ namespace boost {
     typedef CGAL::Graph_with_descriptor_with_graph_property_map<Graph, typename boost::property_map<Graph, PropertyTag >::const_type> const_type;
   };
 
-  template<typename Graph, typename PropertyTag>
-  struct graph_has_property<CGAL::Graph_with_descriptor_with_graph<Graph>, PropertyTag>
-    : graph_has_property<Graph, PropertyTag> {};
 
 }// namespace boost
 

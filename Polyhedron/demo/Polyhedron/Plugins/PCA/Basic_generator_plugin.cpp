@@ -4,6 +4,7 @@
 #include <QVector>
 #include <QMessageBox>
 #include <QBitmap>
+#include <QTabBar>
 #include <CGAL/boost/graph/helpers.h>
 #include <CGAL/boost/graph/Euler_operations.h>
 #include <CGAL/Three/Scene_item.h>
@@ -128,7 +129,7 @@ public :
     return false;
   }
   QList<QAction*> actions() const {
-    return _actions;
+    return QList<QAction*>();
   }
 public Q_SLOTS:
 

@@ -13,7 +13,7 @@
 
 #include <CGAL/Image_3.h>
 #include <CGAL/ImageIO.h>
-#include <CGAL/read_sep_image_data.h>
+#include <CGAL/SEP_to_ImageIO.h>
 #include <CGAL/Three/Polyhedron_demo_plugin_helper.h>
 #include <CGAL/Three/Polyhedron_demo_plugin_interface.h>
 #include <CGAL/Three/Scene_interface.h>
@@ -71,8 +71,8 @@ struct IntConverter {
   std::pair<int, int> min_max;
 
   int operator()(float f) {
-    float s = f * (min_max.second - min_max.first);
-    return s + min_max.first;
+    float s = f * float((min_max.second - min_max.first));
+    return s + float(min_max.first);
   }
 };
 
@@ -123,8 +123,8 @@ class Plane_slider : public QSlider
 {
   Q_OBJECT
 public:
-  Plane_slider(const qglviewer::Vec& v, int id, Scene_interface* scene,
-               qglviewer::ManipulatedFrame* frame, Qt::Orientation ori, QWidget* widget)
+  Plane_slider(const CGAL::qglviewer::Vec& v, int id, Scene_interface* scene,
+               CGAL::qglviewer::ManipulatedFrame* frame, Qt::Orientation ori, QWidget* widget)
     : QSlider(ori, widget), v(v), id(id), scene(scene), frame(frame) {
     this->setTracking(true);
     connect(frame,  SIGNAL(manipulated()), this, SLOT(updateCutPlane()));
@@ -141,8 +141,8 @@ public Q_SLOTS:
   {
     if(!ready_to_move)
       return;
-    const qglviewer::Vec offset = static_cast<CGAL::Three::Viewer_interface*>(QGLViewer::QGLViewerPool().first())->offset();
-    qglviewer::Vec v2 = v * (this->value() / scale);
+    const CGAL::qglviewer::Vec offset = static_cast<CGAL::Three::Viewer_interface*>(CGAL::QGLViewer::QGLViewerPool().first())->offset();
+    CGAL::qglviewer::Vec v2 = v * (this->value() / scale);
     v2+=offset;
     frame->setTranslationWithConstraint(v2);
     scene->itemChanged(id);
@@ -153,21 +153,17 @@ public Q_SLOTS:
   void updateValue() {
     if(!ready_to_cut)
       return;
-#if QGLVIEWER_VERSION >= 0x020600
     typedef qreal qglviewer_real;
-#else // QGLViewer < 2.6.0
-    typedef float qglviewer_real;
-#endif // QGLViewer < 2.6.0
     qglviewer_real a, b, c;
     frame->getPosition(a, b, c);
-    const qglviewer::Vec offset = static_cast<CGAL::Three::Viewer_interface*>(QGLViewer::QGLViewerPool().first())->offset();
+    const CGAL::qglviewer::Vec offset = static_cast<CGAL::Three::Viewer_interface*>(CGAL::QGLViewer::QGLViewerPool().first())->offset();
     a-=offset.x;
     b-=offset.y;
     c-=offset.z;
     float sum1 = float(a + b + c);
     float sum2 = float(v.x + v.y + v.z);
     sum1 /= sum2;
-    setValue(sum1 * scale);
+    setValue(sum1 * float(scale));
     ready_to_cut = false;
   }
 
@@ -184,10 +180,10 @@ private:
   static const unsigned int scale;
   bool ready_to_cut;
   bool ready_to_move;
-  qglviewer::Vec v;
+  CGAL::qglviewer::Vec v;
   int id;
   Scene_interface* scene;
-  qglviewer::ManipulatedFrame* frame;
+  CGAL::qglviewer::ManipulatedFrame* frame;
 };
 
 const unsigned int Plane_slider::scale = 100;
@@ -373,7 +369,7 @@ public Q_SLOTS:
 
   void addVP(Volume_plane_thread* thread) {
     Volume_plane_interface* plane = thread->getItem();
-    plane->init();
+    plane->init(static_cast<CGAL::Three::Viewer_interface*>(CGAL::QGLViewer::QGLViewerPool().first()));
     // add the interface for this Volume_plane
     int id = scene->addItem(plane);
     scene->changeGroup(plane, group);
@@ -483,7 +479,7 @@ public Q_SLOTS:
 
   }
 private:
-  qglviewer::Vec first_offset;
+  CGAL::qglviewer::Vec first_offset;
 #ifdef CGAL_USE_VTK
   vtkImageData* vtk_image;
   vtkDICOMImageReader* dicom_reader;
@@ -575,7 +571,7 @@ private:
 
       // Find the right width for the label to accommodate at least 9999
       QFontMetrics metric = x_cubeLabel->fontMetrics();
-      x_cubeLabel->setFixedWidth(metric.width(QString("9999")));
+      x_cubeLabel->setFixedWidth(metric.width(QString(".9999.")));
       x_cubeLabel->setText("0");
       x_cubeLabel->setValidator(validator);
 
@@ -601,7 +597,7 @@ private:
 
       // Find the right width for the label to accommodate at least 9999
       QFontMetrics metric = y_cubeLabel->fontMetrics();
-      y_cubeLabel->setFixedWidth(metric.width(QString("9999")));
+      y_cubeLabel->setFixedWidth(metric.width(QString(".9999.")));
       y_cubeLabel->setText("0");
       y_cubeLabel->setValidator(validator);
       y_slider = new QSlider(mw);
@@ -626,7 +622,7 @@ private:
 
       // Find the right width for the label to accommodate at least 9999
       QFontMetrics metric = z_cubeLabel->fontMetrics();
-      z_cubeLabel->setFixedWidth(metric.width(QString("9999")));
+      z_cubeLabel->setFixedWidth(metric.width(QString(".9999.")));
       z_cubeLabel->setText("0");
       z_cubeLabel->setValidator(validator);
       z_slider = new QSlider(mw);
@@ -647,7 +643,10 @@ private:
           Volume_plane_intersection* i
           = new Volume_plane_intersection(img->xdim() * img->vx()-1,
                                           img->ydim() * img->vy()-1,
-                                          img->zdim() * img->vz()-1);
+                                          img->zdim() * img->vz()-1,
+                                          img->image()->tx,
+                                          img->image()->ty,
+                                          img->image()->tz);
       this->intersection_id = scene->addItem(i);
       scene->changeGroup(i, group);
       group->lockChild(i);
@@ -670,9 +669,9 @@ private:
 
     switchReaderConverter< Word >(minmax);
 
-    Volume_plane<x_tag> *x_item = new Volume_plane<x_tag>();
-    Volume_plane<y_tag> *y_item = new Volume_plane<y_tag>();
-    Volume_plane<z_tag> *z_item = new Volume_plane<z_tag>();
+    Volume_plane<x_tag> *x_item = new Volume_plane<x_tag>(img->image()->tx,img->image()->ty, img->image()->tz);
+    Volume_plane<y_tag> *y_item = new Volume_plane<y_tag>(img->image()->tx,img->image()->ty, img->image()->tz);
+    Volume_plane<z_tag> *z_item = new Volume_plane<z_tag>(img->image()->tx,img->image()->ty, img->image()->tz);
 
     x_item->setProperty("img",qVariantFromValue((void*)seg_img));
     y_item->setProperty("img",qVariantFromValue((void*)seg_img));
@@ -681,7 +680,7 @@ private:
     x_item->setColor(QColor("red"));
     y_item->setColor(QColor("green"));
     z_item->setColor(QColor("blue"));
-    CGAL::Three::Viewer_interface* viewer = static_cast<CGAL::Three::Viewer_interface*>(QGLViewer::QGLViewerPool().first());
+    CGAL::Three::Viewer_interface* viewer = static_cast<CGAL::Three::Viewer_interface*>(CGAL::QGLViewer::QGLViewerPool().first());
     viewer->installEventFilter(x_item);
     viewer->installEventFilter(y_item);
     viewer->installEventFilter(z_item);
@@ -754,7 +753,7 @@ private Q_SLOTS:
     msgBox.setText(QString("Planes created : %1/3").arg(nbPlanes));
     if(nbPlanes == 3)
     {
-      const qglviewer::Vec offset = static_cast<CGAL::Three::Viewer_interface*>(QGLViewer::QGLViewerPool().first())->offset();
+      const CGAL::qglviewer::Vec offset = static_cast<CGAL::Three::Viewer_interface*>(CGAL::QGLViewer::QGLViewerPool().first())->offset();
       if(offset != first_offset)
       {
         for(int i=0; i<scene->numberOfEntries(); ++i)
@@ -810,8 +809,9 @@ private Q_SLOTS:
                            this, SLOT(erase_group()));
         group_map.remove(img_item);
         QList<int> deletion;
-        Q_FOREACH(Scene_item* child, group->getChildren())
+        Q_FOREACH(Scene_interface::Item_id id, group->getChildren())
         {
+          Scene_item* child = group->getChild(id);
           group->unlockChild(child);
           deletion.append(scene->item_id(child));
         }
@@ -860,7 +860,7 @@ private Q_SLOTS:
 
       x_box->addWidget(x_slider);
       x_box->addWidget(x_cubeLabel);
-      show_sliders &= x_slider->maximum() > 0;
+      show_sliders &= qobject_cast<Scene_image_item*>(sel_itm)->image()->xdim() > 1;
     }
     //y line
     if(c.y_item != NULL)
@@ -880,7 +880,7 @@ private Q_SLOTS:
       y_slider->setValue(c.y_value);
       y_box->addWidget(y_slider);
       y_box->addWidget(y_cubeLabel);
-      show_sliders &= y_slider->maximum() > 0;
+      show_sliders &= qobject_cast<Scene_image_item*>(sel_itm)->image()->ydim() > 1;
     }
     // z line
     if(c.z_item != NULL)
@@ -900,8 +900,9 @@ private Q_SLOTS:
       z_slider->setValue(c.z_value);
       z_box->addWidget(z_slider);
       z_box->addWidget(z_cubeLabel);
-      show_sliders &= z_slider->maximum() > 0;
+      show_sliders &= qobject_cast<Scene_image_item*>(sel_itm)->image()->zdim() > 1;
     }
+
       x_control->setEnabled(show_sliders);
       y_control->setEnabled(show_sliders);
       z_control->setEnabled(show_sliders);
@@ -1060,7 +1061,7 @@ Io_image_plugin::load(QFileInfo fileinfo) {
   //read a sep file
   else if(fileinfo.suffix() == "H" || fileinfo.suffix() == "HH")
   {
-    Sep_reader<float> reader(fileinfo.filePath().toUtf8().data());
+    CGAL::SEP_to_ImageIO<float> reader(fileinfo.filePath().toUtf8().data());
     *image = *reader.cgal_image();
     is_gray = true;
   }

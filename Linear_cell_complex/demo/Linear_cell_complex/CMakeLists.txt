@@ -40,20 +40,15 @@ include(${CGAL_USE_FILE})
 
 find_package(Qt5 QUIET COMPONENTS Xml Script OpenGL Svg)
 
-find_package(OpenGL)
-find_package(QGLViewer)
+if ( NOT (CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND ) )
 
-if ( NOT (CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND AND
-      OPENGL_FOUND AND QGLVIEWER_FOUND) )
-
-  MESSAGE(STATUS "NOTICE: This demo requires CGAL, QGLViewer, OpenGL "
+  MESSAGE(STATUS "NOTICE: This demo requires CGAL, "
     "and Qt5, and will not be compiled.")
 
 else()
 
 add_definitions(-DQT_NO_KEYWORDS)
 
-include_directories(${QGLVIEWER_INCLUDE_DIR})
 include_directories(BEFORE . ../../include/)
 
 # ui file, created wih Qt Designer
@@ -63,7 +58,6 @@ qt5_wrap_ui(uis MainWindow.ui CreateMesh.ui CreateMenger.ui
 # qrc files (resources files, that contain icons, at least)
 qt5_add_resources (CGAL_Qt5_RESOURCE_FILES ./Linear_cell_complex_3.qrc)
 
-
 add_executable(Linear_cell_complex_3_demo
   Linear_cell_complex_3_demo.cpp MainWindow.cpp
   Viewer.cpp Linear_cell_complex_3_subdivision.cpp
@@ -71,14 +65,11 @@ add_executable(Linear_cell_complex_3_demo
   typedefs.h import_moka.h
   ${uis} ${CGAL_Qt5_RESOURCE_FILES} ${CGAL_Qt5_MOC_FILES})
 
-qt5_use_modules(Linear_cell_complex_3_demo Xml Script OpenGL Svg)
 add_to_cached_list(CGAL_EXECUTABLE_TARGETS Linear_cell_complex_3_demo)
 
-target_link_libraries(Linear_cell_complex_3_demo ${CGAL_LIBRARIES}
-                                                 ${CGAL_3RD_PARTY_LIBRARIES})
-target_link_libraries(Linear_cell_complex_3_demo ${QT_LIBRARIES}
-                                                 ${QGLVIEWER_LIBRARIES} )
-target_link_libraries(Linear_cell_complex_3_demo ${OPENGL_gl_LIBRARY}
-                                                 ${OPENGL_glu_LIBRARY} )
+target_link_libraries(Linear_cell_complex_3_demo PRIVATE
+  CGAL::CGAL CGAL::CGAL_Qt5 Qt5::Gui Qt5::OpenGL)
 
+include(${CGAL_MODULES_DIR}/CGAL_add_test.cmake)
+cgal_add_compilation_test(Linear_cell_complex_3_demo)
 endif()

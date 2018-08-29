@@ -25,6 +25,8 @@
 
 namespace CGAL {
 
+#include <CGAL/disable_warnings.h>
+  
 #include <CGAL/basic.h>
 
 #include <CGAL/Arithmetic_kernel.h>
@@ -118,7 +120,7 @@ public:
     //! \name Functors
     //! @{
 
-    struct Is_zero : public CGAL::unary_function<Coefficient,bool> {
+    struct Is_zero : public CGAL::cpp98::unary_function<Coefficient,bool> {
         
         Is_zero(Algebraic_kernel_d_1* kernel,Algebraic_real_1 alpha) 
             : _m_kernel(kernel),_m_alpha(alpha) {}
@@ -138,7 +140,7 @@ public:
     }
 
     struct Convert_to_bfi 
-        : public CGAL::unary_function<Coefficient,Bigfloat_interval> {
+        : public CGAL::cpp98::unary_function<Coefficient,Bigfloat_interval> {
         
         Convert_to_bfi(Algebraic_kernel_d_1* kernel,
 		       Algebraic_real_1 alpha) 
@@ -226,5 +228,6 @@ public:
 
 } //namespace CGAL
 
+#include <CGAL/enable_warnings.h>
 
 #endif // CGAL_BITSTREAM_COEFFICIENT_KERNEL_AT_ALPHA_H

@@ -155,21 +155,21 @@ namespace Polygon_mesh_processing {
   * @tparam PolygonMesh model of `HalfedgeGraph`. If `PolygonMesh`
   *  has an internal property map
   *  for `CGAL::face_index_t` and no `face_index_map` is given
-  *  as a named parameter, then the internal one should be initialized
+  *  as a named parameter, then the internal one must be initialized
   * @tparam FaceRange range of
        `boost::graph_traits<PolygonMesh>::%face_descriptor`, model of `Range`.
         Its iterator type is `InputIterator`.
   * @tparam HalfedgeOutputIterator model of `OutputIterator`
      holding `boost::graph_traits<PolygonMesh>::%halfedge_descriptor`
      for patch border
-  * @tparam NamedParameters a sequence of \ref namedparameters
+  * @tparam NamedParameters a sequence of \ref pmp_namedparameters "Named Parameters"
   *
   * @param pmesh the polygon mesh to which `faces` belong
   * @param faces the range of faces defining the patch whose border halfedges
   *              are collected
   * @param out the output iterator that collects the border halfedges of the patch,
   *            seen from outside.
-  * @param np optional sequence of \ref namedparameters among the ones listed below
+  * @param np optional sequence of \ref pmp_namedparameters "Named Parameters" among the ones listed below
 
   * \cgalNamedParamsBegin
       \cgalParamBegin{face_index_map} a property map containing the index of each face of `pmesh` \cgalParamEnd

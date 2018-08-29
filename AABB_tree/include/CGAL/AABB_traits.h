@@ -25,6 +25,8 @@
 
 #include <CGAL/license/AABB_tree.h>
 
+#include <CGAL/disable_warnings.h>
+
 #include <CGAL/Bbox_3.h>
 #include <CGAL/Default.h>
 #include <CGAL/intersections.h>
@@ -247,7 +249,7 @@ public:
   /// \bug This is not documented for now in the AABBTraits concept.
   typedef typename GeomTraits::Iso_cuboid_3 Iso_cuboid_3;
 
-  ///
+  /// Bounding box type.
   typedef typename CGAL::Bbox_3 Bounding_box;
 
   /// @}
@@ -289,7 +291,8 @@ public:
    */
   class Sort_primitives
   {
-  const AABB_traits<GeomTraits,AABBPrimitive,BboxMap>& m_traits;
+    typedef AABB_traits<GeomTraits,AABBPrimitive,BboxMap> Traits;
+    const Traits& m_traits;
   public:
     Sort_primitives(const AABB_traits<GeomTraits,AABBPrimitive,BboxMap>& traits)
       : m_traits(traits) {}
@@ -300,16 +303,16 @@ public:
                     const typename AT::Bounding_box& bbox) const
       {
         PrimitiveIterator middle = first + (beyond - first)/2;
-        switch(longest_axis(bbox))
+        switch(Traits::longest_axis(bbox))
         {
         case AT::CGAL_AXIS_X: // sort along x
-          std::nth_element(first, middle, beyond, boost::bind(less_x,_1,_2,m_traits));
+          std::nth_element(first, middle, beyond, boost::bind(Traits::less_x,_1,_2,m_traits));
           break;
         case AT::CGAL_AXIS_Y: // sort along y
-          std::nth_element(first, middle, beyond, boost::bind(less_y,_1,_2,m_traits));
+          std::nth_element(first, middle, beyond, boost::bind(Traits::less_y,_1,_2,m_traits));
           break;
         case AT::CGAL_AXIS_Z: // sort along z
-          std::nth_element(first, middle, beyond, boost::bind(less_z,_1,_2,m_traits));
+          std::nth_element(first, middle, beyond, boost::bind(Traits::less_z,_1,_2,m_traits));
           break;
         default:
           CGAL_error();
@@ -540,5 +543,7 @@ private:
 /// @}
 
 }  // end namespace CGAL
+
+#include <CGAL/enable_warnings.h>
 
 #endif // CGAL_AABB_TRAITS_H_

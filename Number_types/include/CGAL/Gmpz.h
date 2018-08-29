@@ -52,7 +52,7 @@ public:
     typedef INTERN_AST::Is_square_per_sqrt< Type >
     Is_square;
     class Integral_division
-        : public CGAL::binary_function< Type, Type,
+        : public CGAL::cpp98::binary_function< Type, Type,
                                 Type > {
     public:
         Type operator()( const Type& x,
@@ -65,7 +65,7 @@ public:
     };
 
     class Gcd
-        : public CGAL::binary_function< Type, Type,
+        : public CGAL::cpp98::binary_function< Type, Type,
                                 Type > {
     public:
         Type operator()( const Type& x,
@@ -97,7 +97,7 @@ public:
     typedef INTERN_AST::Mod_per_operator< Type > Mod;
 
     class Sqrt
-        : public CGAL::unary_function< Type, Type > {
+        : public CGAL::cpp98::unary_function< Type, Type > {
     public:
         Type operator()( const Type& x ) const {
             Gmpz result;
@@ -111,7 +111,7 @@ template <> class Real_embeddable_traits< Gmpz >
     : public INTERN_RET::Real_embeddable_traits_base< Gmpz , CGAL::Tag_true > {
 public:
     class Sgn
-        : public CGAL::unary_function< Type, ::CGAL::Sign > {
+        : public CGAL::cpp98::unary_function< Type, ::CGAL::Sign > {
     public:
         ::CGAL::Sign operator()( const Type& x ) const {
             return x.sign();
@@ -119,7 +119,7 @@ public:
     };
 
     class To_double
-        : public CGAL::unary_function< Type, double > {
+        : public CGAL::cpp98::unary_function< Type, double > {
     public:
         double operator()( const Type& x ) const {
             return x.to_double();
@@ -127,19 +127,34 @@ public:
     };
 
     class To_interval
-        : public CGAL::unary_function< Type, std::pair< double, double > > {
+        : public CGAL::cpp98::unary_function< Type, std::pair< double, double > > {
     public:
         std::pair<double, double> operator()( const Type& x ) const {
-
-            mpfr_t y;
-            mpfr_init2 (y, 53); /* Assume IEEE-754 */
-            mpfr_set_z (y, x.mpz(), GMP_RNDD);
-            double i = mpfr_get_d (y, GMP_RNDD); /* EXACT but can overflow */
-            mpfr_set_z (y, x.mpz(), GMP_RNDU);
-            double s = mpfr_get_d (y, GMP_RNDU); /* EXACT but can overflow */
-            mpfr_clear (y);
-            return std::pair<double, double>(i, s);
-        }
+#if MPFR_VERSION_MAJOR >= 3
+	  MPFR_DECL_INIT (y, 53); /* Assume IEEE-754 */
+	  int r = mpfr_set_z (y, x.mpz(), MPFR_RNDA);
+	  double i = mpfr_get_d (y, MPFR_RNDA); /* EXACT but can overflow */
+	  if (r == 0 && is_finite (i))
+	    return std::pair<double, double>(i, i);
+	  else
+	  {
+	    double s = nextafter (i, 0);
+	    if (i < 0)
+	      return std::pair<double, double>(i, s);
+	    else
+	      return std::pair<double, double>(s, i);
+	  }
+#else
+	  mpfr_t y;
+	  mpfr_init2 (y, 53); /* Assume IEEE-754 */
+	  mpfr_set_z (y, x.mpz(), GMP_RNDD);
+	  double i = mpfr_get_d (y, GMP_RNDD); /* EXACT but can overflow */
+	  mpfr_set_z (y, x.mpz(), GMP_RNDU);
+	  double s = mpfr_get_d (y, GMP_RNDU); /* EXACT but can overflow */
+	  mpfr_clear (y);
+	  return std::pair<double, double>(i, s);
+#endif
+	}
     };
 };
 
@@ -149,7 +164,7 @@ template<> class Algebraic_structure_traits< Quotient<Gmpz> >
 public:
     typedef Quotient<Gmpz> Type;
 
-    struct To_double: public CGAL::unary_function<Quotient<Gmpz>, double>{
+    struct To_double: public CGAL::cpp98::unary_function<Quotient<Gmpz>, double>{
         double operator()(const Quotient<Gmpz>& quot){
             mpq_t  mpQ;
             mpq_init(mpQ);

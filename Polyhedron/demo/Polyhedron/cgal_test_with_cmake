@@ -140,6 +140,8 @@ distance_plugin \
 distance_sm_plugin \
 edit_polyhedron_plugin \
 edit_sm_plugin \
+extrude_poly_plugin \
+extrude_sm_plugin \
 fairing_plugin \
 features_detection_plugin \
 gocad_plugin \
@@ -194,7 +196,6 @@ polylines_io_plugin \
 p_sphere_function_plugin \
 p_tanglecube_function_plugin \
 random_perturbation_plugin \
-remeshing_plugin \
 repair_polyhedron_plugin \
 selection_io_plugin \
 selection_sm_io_plugin \
