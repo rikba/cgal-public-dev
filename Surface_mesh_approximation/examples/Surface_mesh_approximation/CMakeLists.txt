@@ -13,7 +13,7 @@ add_definitions(-std=c++11)
 if ( NOT CGAL_FOUND )
 
   message(STATUS "This project requires the CGAL library, and will not be compiled.")
-  return()  
+  return()
 
 endif()
 
@@ -28,7 +28,7 @@ if ( NOT Boost_FOUND )
 
   message(STATUS "This project requires the Boost library, and will not be compiled.")
 
-  return()  
+  return()
 
 endif()
 
@@ -38,6 +38,10 @@ add_definitions(-DBOOST_NO_CXX11_TEMPLATE_ALIASES)
 
 # include for local package
 include_directories( BEFORE ../../include )
+
+# Use Eigen
+find_package(Eigen3 3.1.0 REQUIRED)
+include( ${EIGEN3_USE_FILE} )
 
 
 # Creating entries for all C++ files with "main" routine
@@ -58,4 +62,3 @@ create_single_source_cgal_program( "vsa_isotropic_metric_example.cpp" )
 create_single_source_cgal_program( "vsa_segmentation_example.cpp" )
 
 create_single_source_cgal_program( "vsa_simple_approximation_example.cpp" )
-
