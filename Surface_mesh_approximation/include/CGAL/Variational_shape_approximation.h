@@ -122,11 +122,11 @@ private:
   typedef typename boost::graph_traits<TriangleMesh>::face_descriptor face_descriptor;
 
   // internal typedefs
-  typedef CGAL::internal::vertex_property_t<std::size_t> Vertex_anchor_tag;
-  typedef typename CGAL::internal::dynamic_property_map<TriangleMesh, Vertex_anchor_tag >::type Vertex_anchor_map;
+  typedef CGAL::dynamic_vertex_property_t<std::size_t> Vertex_anchor_tag;
+  typedef typename boost::property_map<TriangleMesh, Vertex_anchor_tag >::type Vertex_anchor_map;
 
-  typedef CGAL::internal::face_property_t<std::size_t> Face_proxy_tag;
-  typedef typename CGAL::internal::dynamic_property_map<TriangleMesh, Face_proxy_tag >::type Face_proxy_map;
+  typedef CGAL::dynamic_face_property_t<std::size_t> Face_proxy_tag;
+  typedef typename boost::property_map<TriangleMesh, Face_proxy_tag >::type Face_proxy_map;
 
   typedef std::vector<halfedge_descriptor> Boundary_chord;
   typedef typename Boundary_chord::iterator Boundary_chord_iterator;
@@ -299,18 +299,18 @@ public:
     scalar_product_functor = traits.compute_scalar_product_3_object();
     translate_point_functor = traits.construct_translated_point_3_object();
 
-    m_vanchor_map = CGAL::internal::add_property(
-      Vertex_anchor_tag("VSA-vertex_anchor"), *(const_cast<TriangleMesh *>(m_ptm)));
+    m_vanchor_map = CGAL::get(
+      Vertex_anchor_tag(), *(const_cast<TriangleMesh *>(m_ptm)));
 
-    m_fproxy_map = CGAL::internal::add_property(
-      Face_proxy_tag("VSA-face_proxy"), *(const_cast<TriangleMesh *>(m_ptm)));
+    m_fproxy_map = CGAL::get(
+      Face_proxy_tag(), *(const_cast<TriangleMesh *>(m_ptm)));
   }
   /// @}
-  
+
   ~Variational_shape_approximation() {
     if (m_ptm) {
-      CGAL::internal::remove_property(m_vanchor_map, *(const_cast<TriangleMesh *>(m_ptm)));
-      CGAL::internal::remove_property(m_fproxy_map, *(const_cast<TriangleMesh *>(m_ptm)));
+      CGAL::remove_property(m_vanchor_map, *(const_cast<TriangleMesh *>(m_ptm)));
+      CGAL::remove_property(m_fproxy_map, *(const_cast<TriangleMesh *>(m_ptm)));
     }
   }
 
@@ -1050,9 +1050,9 @@ private:
   /*!
    * @brief Randomly initializes proxies to target number of proxies.
    * @note To ensure the randomness, call `std::srand()` beforehand.
-   * @param max_nb_of_proxies maximum number of proxies, 
+   * @param max_nb_of_proxies maximum number of proxies,
    * should be in range (nb_connected_components, num_faces(*m_ptm))
-   * @param num_iterations number of re-fitting iterations 
+   * @param num_iterations number of re-fitting iterations
    * @return number of proxies initialized
    */
   std::size_t init_random(const std::size_t max_nb_of_proxies,
@@ -1070,9 +1070,9 @@ private:
 
   /*!
    * @brief Incrementally initializes proxies to target number of proxies.
-   * @param max_nb_of_proxies maximum number of proxies, 
+   * @param max_nb_of_proxies maximum number of proxies,
    * should be in range (nb_connected_components, num_faces(*m_ptm))
-   * @param num_iterations number of re-fitting iterations 
+   * @param num_iterations number of re-fitting iterations
    * before each incremental proxy insertion
    * @return number of proxies initialized
    */
@@ -1086,7 +1086,7 @@ private:
 
   /*!
    * @brief Hierarchically initializes proxies to target number of proxies.
-   * @param max_nb_of_proxies maximum number of proxies, 
+   * @param max_nb_of_proxies maximum number of proxies,
    * should be in range (nb_connected_components, num_faces(*m_ptm))
    * @param num_iterations number of re-fitting iterations
    * before each hierarchical proxy insertion
@@ -1116,7 +1116,7 @@ private:
    * @note To ensure the randomness, call `std::srand()` beforehand.
    * @param max_nb_of_proxies maximum number of proxies, should be in range (nb_connected_components, num_faces(tm) / 3)
    * @param min_error_drop minimum error drop, should be in range (0.0, 1.0)
-   * @param num_iterations number of re-fitting iterations 
+   * @param num_iterations number of re-fitting iterations
    * @return number of proxies initialized
    */
   std::size_t init_random_error(const std::size_t max_nb_of_proxies,
@@ -1151,7 +1151,7 @@ private:
    * The first criterion met stops the seeding.
    * @param max_nb_of_proxies maximum number of proxies, should be in range (nb_connected_components, num_faces(tm) / 3)
    * @param min_error_drop minimum error drop, should be in range (0.0, 1.0)
-   * @param num_iterations number of re-fitting iterations 
+   * @param num_iterations number of re-fitting iterations
    * @return number of proxies initialized
    */
   std::size_t init_incremental_error(const std::size_t max_nb_of_proxies,
@@ -1174,7 +1174,7 @@ private:
    * where the first criterion met stops the seeding.
    * @param max_nb_of_proxies maximum number of proxies, should be in range (nb_connected_components, num_faces(tm) / 3)
    * @param min_error_drop minimum error drop, should be in range (0.0, 1.0)
-   * @param num_iterations number of re-fitting iterations 
+   * @param num_iterations number of re-fitting iterations
    * @return number of proxies initialized
    */
   std::size_t init_hierarchical_error(const std::size_t max_nb_of_proxies,
@@ -1417,7 +1417,7 @@ private:
     for (std::size_t i = 0; i < nb_requested; ++i) {
       // swap ith element with a random one
       std::size_t r = static_cast<std::size_t>(
-        static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX) * 
+        static_cast<double>(std::rand()) / static_cast<double>(RAND_MAX) *
         static_cast<double>(nb_nsf - 1));
       std::swap(non_seed_faces[i], non_seed_faces[r]);
     }
@@ -1499,7 +1499,7 @@ private:
       px_faces[get(m_fproxy_map, f)].push_back(f);
 
     BOOST_FOREACH(const std::list<face_descriptor> &px_patch, px_faces) {
-      Plane_3 fit_plane = if_pca_plane ? 
+      Plane_3 fit_plane = if_pca_plane ?
         fit_plane_pca(px_patch.begin(), px_patch.end()) :
           fit_plane_area_averaged(px_patch.begin(), px_patch.end());
 
@@ -2107,7 +2107,7 @@ private:
       tri_list.end(),
       fit_plane,
       CGAL::Dimension_tag<2>());
-    
+
     return fit_plane;
   }
 };

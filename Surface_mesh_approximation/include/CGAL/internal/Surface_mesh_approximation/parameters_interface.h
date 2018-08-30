@@ -1,5 +1,4 @@
 // List of named parameters used in the Polygon Mesh Processing package
-CGAL_add_named_parameter(geom_traits_t, geom_traits, geom_traits)
 
 // approximation parameters
 CGAL_add_named_parameter(verbose_level_t, verbose_level, verbose_level)

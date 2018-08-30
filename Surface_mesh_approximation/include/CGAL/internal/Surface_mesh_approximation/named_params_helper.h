@@ -57,7 +57,7 @@ public:
 template<typename PolygonMesh, typename NamedParameters>
 class GetGeomTraits
 {
-  typedef typename boost::graph_has_property<PolygonMesh, boost::vertex_point_t>::type
+  typedef typename CGAL::graph_has_property<PolygonMesh, boost::vertex_point_t>::type
     Has_internal_pmap;
   struct Fake_GT {};//to be used if there is no internal vertex_point_map in PolygonMesh
 
@@ -86,16 +86,16 @@ void face_proxy_map_helper(const Approximation &, internal_np::dummy_output_t) {
 // proxies
 
 template <typename Approximation, typename OutputIterator>
-void proxies_helper(const Approximation &approx, OutputIterator out) 
+void proxies_helper(const Approximation &approx, OutputIterator out)
 {
   approx.proxies(out);
 }
 
 template <typename Approximation>
-void proxies_helper(const Approximation &, internal_np::dummy_output_t) 
+void proxies_helper(const Approximation &, internal_np::dummy_output_t)
 {}
 
-// anchors 
+// anchors
 
 template <typename Approximation, typename OutputIterator>
 void anchors_helper(const Approximation &approx, OutputIterator out)
