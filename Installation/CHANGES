@@ -1,301 +1,14 @@
 Release History
 ===============
 
-Release 4.13
-------------
-
-Release date: September 2018
-
-### 3D Periodic Mesh Generation (new package)
-
--   This package generates 3-dimensional periodic meshes. It computes
-    isotropic simplicial meshes for domains described through implicit
-    functional boundaries over the flat torus (which can also seen in
-    the Euclidean space as a periodic cube). The output is a periodic
-    3D mesh of the domain volume and conformal surface meshes for all
-    the boundary and subdividing surfaces.  The package is closely
-    related to the 3D Mesh Generation package, with similar concepts,
-    classes, and API.
-
-### Installation
-
--   The library `CGAL_Qt5` now contains a fork of the version 2.7.0 of
-    `libQGLViewer`.  The corresponding code is in the package
-    `GraphicsView`.  The dependency for the external library
-    `libQGLViewer` is therefore dropped for all demos.
-
-### General
-
- -  A new function `CGAL::draw()` is added in the packages Polyhedral
-    Surface, Surface Mesh, Linear Cell Complex, 2D Triangulations, and
-    3D Triangulations, enabling to draw the corresponding data
-    structures.
-
-### 2D and 3D Linear Geometry Kernel
-
--   An `operator()` that takes a `Ray_3` has been added to the concept
-    `ConstructProjectedPoint_3`.
-
-### Convex hull 3
-
--   Added the function `extreme_points_3()` computing the points on
-    the convex hull without underlying connectivity.
-
--   Added a traits adapter called `Extreme_points_traits_adapter_3`
-    that enables the use of the function `extreme_points_3()` on a
-    range of keys, each key being associated to 3D point using a
-    property map.  This can be used to get the vertices of a mesh that
-    are on it convex hull, or the indices of points in a range that
-    are on it convex hull.
-
--   Fix a bug in the computation of the 3D convex hull that was
-    leaving extra points within subset of coplanar points that do not
-    belong to the minimal convex hull.
-
-
-### 2D and 3D Triangulations
-
--   Added a new type of intersection to handle the insertion of
-    intersecting constraints in a `Constrained_triangulation_2`.
-
--   **Breaking change:** The long-deprecated class
-    `Triangulation_cell_base_with_circumcenter_3` and its associated
-    concept have been removed. Users should use the classes
-    `Delaunay_cell_base_with_circumcenter_3` or
-    `Regular_cell_base_with_circumcenter_3`, depending on which type
-    of triangulation they are using.
-
--   **Breaking change:** The deprecated functions `mirror_index` and
-    `mirror_vertex` of the class `Triangulation_face_base_2` have been
-    removed. Users should use the equivalent functions from the class
-    `Triangulation_2`.
-
-### 3D Mesh Generation
-
--   **Breaking change:** The template parameters of the class template
-    `Labeled_mesh_domain_3` have been simplified. The three
-    constructors of that class template have been replaced by a new
-    unique constructor using Boost named parameters. Three new static
-    template member functions that act as named constructors have been
-    added:
-      - `create_gray_image_mesh_domain()`, to create a domain from a 3D
-        gray image,
-      - `create_labeled_image_mesh_domain()`, to create a domain from a 3D
-        labeled image, and
-      - `create_implicit_mesh_domain()`, to create a domain from an
-        implicit function.
-
--   The class templates `Implicit_mesh_domain_3`,
-    `Gray_image_mesh_domain_3`, and `Labeled_image_mesh_domain_3` are
-    now deprecated.
-
--   **Breaking change:** The headers
-    `<CGAL/Mesh_3/Implicit_to_labeled_function_wrapper.h>` and
-    `<CGAL/Mesh_3/Labeled_mesh_domain_3.h>`, that were deprecated
-    since CGAL 4.5, have been removed.
-
--   **Breaking change:** the concepts `MeshCellCriteria_3` and
-    `MeshFacetCriteria_3` now require the triangulation to be passed
-    in their `operator()`.  Models of these concepts that are provided
-    by CGAL have been modified accordingly.
-
--   **Breaking change:** It is no longer possible to use the
-    deprecated, pre-CGAL 3.8 specifications in `MeshCellCriteria_3`
-    and `MeshFacetCriteria_3` (that is, using `Facet_badness` and
-    `Cell_badness` instead of `Is_facet_bad` and `Is_cell_bad`).
-
--   The concept `MeshFacetCriteria_3` no longer requires the function
-    `operator()(Cell_handle c, int i)`.
-
--   The concept `MeshEdgeCriteria_3` no longer requires the function
-    `operator()(const Edge& e)`.
-g
--   The concept `MeshComplexWithFeatures_3InTriangulation_3` no longer
-    requires the functions `number_of_edges(Curve_index index)` and
-    `number_of_corners(Corner_index index)`.
-
--   Introduced the concept `MeshTriangulationTraits_3`, which covers
-    the needs of the traits class used in `Mesh_3` (and
-    `Periodic_3_mesh_3`). The traits class used as template parameter
-    of `Mesh_triangulation_3` and `Periodic_3_mesh_triangulation_3`
-    must be a model of this concept.
-
--   Added the function
-    `Mesh_domain_with_polyline_features_3::add_corner()`, which allows
-    users to add a single corner (that is not incident to any
-    polyline) to the mesh complex.
-
--   **Breaking change**: `CGAL::lloyd_optimize_mesh_3` now depends on
-    the _Eigen_ library.
-
-### Polygon Mesh Processing
-
--   Added a named parameter in stitching functions that allows to
-    choose whether the operation should be performed per connected
-    component or globally.
-
--   Added a function, `CGAL::Polygon_mesh_processing::transform()`, to
-    apply a transformation to a mesh.
-
--   Added a named parameter `visitor` in corefinement-related
-    functions that makes it possible to pass a visitor to the function
-    in order to track the creation of new faces.
-
--   Added a named parameter `throw_on_self_intersection` in all
-    corefinement-related functions, which enables to check for
-    self-intersecting faces involved in the intersection before trying
-    to corefine the input meshes. This new parameter replaces the
-    `bool` parameter in `corefine()`.
-
--   Added the function `corefine_and_compute_boolean_operations()`,
-    which can be used to compute the result of several Boolean
-    operations between two volumes at the same time.
-
--   Added the function `clip()`, which can be used to clip a
-    triangulated surface mesh by a plane or a clipping volume.
-
--   Constrained vertices are now guaranteed to be kept in the mesh
-    after calling `isotropic_remeshing()` (and not only the points
-    associated to constrained vertices, as it was before).
-
--   Added a function, `CGAL::Polygon_mesh_processing::extrude_mesh()`,
-    to perform an extrusion of an open polygon mesh.
-
-### Estimation of Local Differential Properties of Point-Sampled Surfaces Reference
-
--   **Breaking change**: `CGAL::Monge_via_jet_fitting` now depends on
-    the _Eigen_ library.
-
-### Point Set Processing
-
--   Added a callback mechanism to the following functions:
-    `CGAL::bilateral_smooth_point_set()`,
-    `CGAL::compute_average_spacing()`,
-    `CGAL::grid_simplify_point_set()`,
-    `CGAL::hierarchy_simplify_point_set()`,
-    `CGAL::jet_estimate_normals()`, `CGAL::jet_smooth_point_set()`,
-    `CGAL::pca_estimate_normals()`, `CGAL::remove_outliers()` and
-    `CGAL::wlop_simplify_and_regularize_point_set()`.
-
-
-### Classification 
-
--   Added data structures to handle classification of Surface Meshes
-    and of Clusters.
-
--   Added public API to compute features in parallel.
-
--   **Breaking change**: features based on products/divisions of
-    eigenvalues are replaced by simple eigenvalue features. Features
-    based on statistics on the HSV color channels are replaced by
-    simple HSV color channel features.
-
--   **Breaking change**: the API of
-    `CGAL::Classification::Point_set_feature_generator` has been
-    simplified.
-
-
-### Bounding Volumes
-
--   **Breaking change**: `CGAL::Approximate_min_ellipsoid_d` now
-    depends on the _Eigen_ library.
-
-### Interpolation
-
--   The output of the natural and regular neighbor functions
-    (resp. the gradient fitting functions) is no longer restricted to
-    a Point/Coordinate pair (resp. Point/Vector pair). Instead, users
-    can provide their own functor to format the output as they desire.
-
--   The interpolation functions can now operate on any combination of
-    Type/Coordinate, provided that the values and gradients functors
-    can also be evaluated using 'Type'.
-
-    The combination of these two changes allow, for example, to
-    operate with Vertex/Coordinate pairs, which enables a more
-    efficient access to values and gradients by storing information
-    directly in the vertex.
-
--   The concepts `InterpolationTraits` and `GradientFittingTraits`
-    have been updated to reflect the real needs of the code (some
-    types and operators were used in the code but did not appear in
-    the concepts).
-
-### CGAL and the Boost Graph Library (BGL)
-
--   Added a helper function, `CGAL::is_valid_polygon_mesh`, that
-    checks the validity of a polygon mesh using BGL functions.
-
--   Improved the function `CGAL::Euler::collapse_edge` such that the
-    target vertex of the collapsed edge is now always kept after the
-    collapse.
-
--   The function `copy_face_graph()` now uses named parameters, some
-    allowing it to use property maps instead of output iterators.
-
--   Addition of the following named parameters : 
-    -   vertex_to_vertex_output_iterator
-    -   halfedge_to_halfedge_output_iterator
-    -   face_to_face_output_iterator
-    -   vertex_to_vertex_map
-    -   halfedge_to_halfedge_map
-    -   face_to_face_map
-
-### CGAL and Solvers
-
--   **Breaking change**: `CGAL::Diagonalize_traits` is now deprecated
-    and should not be used. The class `CGAL::Eigen_diagonalize_traits`
-    (along with the _Eigen_ library) should be used instead.
-
-### CGAL and Boost Property Maps
-
--   Added a read-write property map to convert on-the-fly geometric
-    objects from Cartesian kernels.
-
-
 Release 4.12
 ------------
 
 Release date: April 2018
 
+### 2D Movable Separability of Sets
 
-### Important Notice
-
--   The CMake scripts used by CGAL have been changed to use modern patterns
-    introduced by CMake 2.8.12 and CMake 3.0: instead of setting CMake
-    variables, the script now defines imported targets and uses link
-    interfaces.
-    
-    That is mostly backward-compatible with existing usages of CGAL CMake
-    scripts. The only non-compatible effect is that the `CMAKE_BUILD_TYPE`
-    and compilation flags are no longer copied from the `CGAL_DIR` to the
-    project using it. Note also that the `CMAKE_BUILD_TYPE` is no longer
-    set to `Release` by default. For a developer using the Visual Studio
-    IDE or the Xcode IDE, the change should be transparent. Developers using
-    makefiles or the Ninja build-system should set the `CMAKE_BUILD_TYPE`
-    to `Release` manually, to avoid using CGAL libraries without any
-    compile-time optimization.
-
-### Header-only Mode
-
--   Since CGAL-4.9, it has been possible to use CGAL by configuring it
-    using CMake, but without compiling the CGAL libraries. With CGAL-4.12,
-    it is now possible to use CGAL header-only, without even configuring
-    it. CMake is then used only to configure programs using CGAL.
-
-### Compiler Support
-
--   The Microsoft Visual C++ 2017 version 15.3 has introduced support for
-    C++17, with the compilation flag `/std:c++17`. CGAL 4.12 has an initial
-    support for that flag: the code will compile, but a lot of deprecation
-    warnings will remain. Note that Boost version 1.67 is the first version
-    of Boost supporting `/std:c++17`.
-
--   The compilation flag `/permissive-` of Visual C++ is now supported.
-
-### 2D Movable Separability of Sets (new package)
-
--   A new package called "2D Movable Separability of Sets" has been
+-   A new packaged called "2D Movable Separability of Sets" has been
     introduced. It handles a class of problems that deal with moving
     sets of objects in the plane; the challenge is to avoid collisions
     between the objects while considering different kinds of motions and
@@ -317,30 +30,10 @@ Release date: April 2018
     type of data, compute their own local features on the input data
     set, and define their own labels.
 
-### Kinetic Data Structures (removed package)
+### 2D Alpha Shapes
 
--   This package has been removed from CGAL-4.12. Users of the package
-    will have to keep using the source code available in CGAL-4.11 or
-    earlier.
-
-
-### 3D Convex Hull
-
--   **Breaking change**: The header `<CGAL/convex_hull_3.h>` no longer
-    includes `<CGAL/Polyhedron_3.h>`, as the convex hull function works
-    with any model of the concept `MutableFaceGraph`.
-
-### 2D Arrangements
-
--   When removing an edge from an arrangement and the user has requested to
-    remove the end-vertices in case they become redundant (either isolated or
-    approach infinity), defer the removal of the such end-vertices to occur
-    after the observer is notified that the edge has been removed. This is
-    symmetric (opposite) to the order of notification when an edge is inserted.
-
-    The user can restore old (non-symmetric) behaviour by defining the macro:
-
-    `CGAL_NON_SYMETRICAL_OBSERVER_EDGE_REMOVAL_BACKWARD_COMPATIBILITY`
+-   It is now possible to use `CGAL::Periodic_2_triangulation_2` as
+    underlying triangulation for `Alpha_shape_2`.
 
 ### 2D Periodic Triangulations
 
@@ -355,22 +48,17 @@ Release date: April 2018
     `Periodic_2_triangulation_2` to
     `Periodic_2_Delaunay_triangulation_2`.
 
-### 2D Alpha Shapes
-
--   It is now possible to use `CGAL::Periodic_2_triangulation_2` as
-    underlying triangulation for `Alpha_shape_2`.
-
 ### 3D Surface Mesh Generation
 
--   Add the function `facets_in_complex_2_to_triangle_mesh()` that
-    exports `Surface_mesh_complex_2_in_triangulation_3` facets into
-    a `MutableFaceGraph`.
+-   Add the function facets\_in\_complex\_2\_to\_triangle\_mesh() that
+    exports Surface\_mesh\_complex\_2\_in\_triangulation\_3 facets into
+    a MutableFaceGraph.
 
 ### 3D Mesh Generation
 
--   Add the function `facets_in_complex_3_to_triangle_mesh()` that
-    exports `Mesh_complex_3_in_triangulation_3` facets into a
-    `MutableFaceGraph`.
+-   Add the function facets\_in\_complex\_3\_to\_triangle\_mesh() that
+    exports Mesh\_complex\_3\_in\_triangulation\_3 facets into a
+    MutableFaceGraph.
 -   **Breaking change:** The concept `MeshDomainWithFeatures_3` has been
     modified, to improve the performance and the reliability of the
     sampling of 1D curves of the domain.
@@ -379,24 +67,7 @@ Release date: April 2018
     `manifold()`, `manifold_with_boundary()`, and `non_manifold()` are
     added.
 
-### Optimal Transportation Curve Reconstruction
-
--   New method `run_under_wasserstein_tolerance()` which allows the
-    user to perform curve reconstruction by relying on a threshold on
-    the Wasserstein distance. This is useful when the number of edges
-    in the expected output reconstruction is not known.
-
 ### Polygon Mesh Processing
-
--   Added two functions for orienting connected components :
-    -   `CGAL::Polygon_mesh_processing::orient()`
-    -   `CGAL::Polygon_mesh_processing::orient_to_bound_a_volume()`
-
--   Added a new function for intersection tests between triangle meshes
-    and/or polylines or range of polylines, and another one to report
-    all the pairs of meshes intersecting from a range of meshes:
-    -   `CGAL::Polygon_mesh_processing::do_intersect()`
-    -   `CGAL::Polygon_mesh_processing::intersecting_meshes()`
 
 -   Added new functions for feature detection and feature-guided
     segmentation:
@@ -406,40 +77,21 @@ Release date: April 2018
 
 ### Point Set Shape Detection
 
--   **Breaking change**:
-    `CGAL::Shape_detection_3::Efficient_RANSAC_traits` is now called
-    `CGAL::Shape_detection_3::Shape_detection_traits`.
 -   New algorithm: `CGAL::Region_growing`. This is a deterministic
     alternative to RANSAC for plane detection.
 -   **Breaking change**: the API of `CGAL::regularize_planes()` is
     generalized to accept other types of input than the RANSAC output.
--   Add a callback mechanism for both `CGAL::Efficient_RANSAC` and
-    `CGAL::Region_growing`.
 
 ### Point Set Processing
 
 -   **Breaking change**: the API of `CGAL::structure_point_set()` is
     generalized to accept other types of input than the RANSAC output.
--   **Breaking change**: the API of all functions of Point Set
-    Processing is modified to use ranges (instead of iterators) and
-    Named Parameters (similarly to the API of Polygon Mesh
-    Processing). The old API is kept as deprecated.
 
 ### CGAL and the Boost Graph Library (BGL)
 
 -   Add helper function `CGAL::expand_face_selection_for_removal` that
     expands a face selection to avoid creating a non manifold mesh when
     removing the selected faces.
-
--   Added support for dynamic property maps.
-
--   Added an interface to the [METIS library], which allows to partition
-    any mesh that is a model of `FaceListGraph`.  Wrappers to the
-    METIS functions `METIS_PartMeshNodal` and `METIS_PartMeshDual` are
-    offered.
-
-    [METIS library]: http://glaros.dtc.umn.edu/gkhome/metis/metis/overview
-
 
 Release 4.11
 ------------
@@ -991,7 +643,7 @@ Release date: April 2016
 
 ### 2D Regularized Boolean Set-Operations
 
--   Improve the performance of operations in some settings.
+-   Improve the performance of operations in some settings.  
     **Breaking change**: This improvement requires changes of the face
     and halfedge type of the underlying arrangement Dcel. See the
     concepts `GeneralPolygonSetDcelHalfedge` and
@@ -1038,7 +690,7 @@ Release date: April 2016
 -   Optional template functor `Filter` is replaced by another optional
     template functor `Priority`. This allows to change the way facets
     are prioritized by the algorithm instead of having a simple option
-    to reject some facets.
+    to reject some facets.  
     **Breaking change**: Programs using the old `Filter` API will not
     compile anymore as it must be replaced with the `Priority` API as
     described in the manual. Codes using the default behavior are not
@@ -3078,7 +2730,7 @@ fixes for this release.
     that you replace the direct access to the data members (.first,
     .second, .third, .fourth), by the get&lt;i&gt;() member function;
     and replace the make\_triple and make\_quadruple maker functions by
-    make\_tuple.
+    make\_tuple.  
     This way, in a further release, we will be able to switch to
     boost::tuple more easily.
 -   The class CGAL::Uncertain&lt;&gt; has been documented. It is
@@ -3237,7 +2889,7 @@ This is a bug fix release.
 -   CAUTION: Since version 3.3.1, CGAL is no longer compatible with the
     official release of TAUCS (currently 2.2). Make sure to use the
     version modified by the CGAL project and available from the download
-    section of https://www.cgal.org.
+    section of http://www.cgal.org.
 
 Release 3.3
 -----------
@@ -3279,57 +2931,57 @@ CGAL now works around the preprocessor macros 'min' and 'max' defined in
 
 ### Algebraic Foundations
 
--   Algebraic Foundations (new package)
+-   Algebraic Foundations (new package)  
     This package defines what algebra means for CGAL, in terms of
     concepts, classes and functions. The main features are: (i) explicit
     concepts for interoperability of types (ii) separation between
     algebraic types (not necessarily embeddable into the reals), and
     number types (embeddable into the reals).
--   Number Types
+-   Number Types  
     Fixed\_precision\_nt and Filtered\_exact number types have been
     removed.
 
 ### Kernels
 
--   2D Circular Kernel
+-   2D Circular Kernel  
     Efficiency improved through geometric filtering of predicates,
     introduced with the filtered kernel
     Filtered\_bbox\_circular\_kernel\_2&lt;.&gt;, and also chosen for
     the predefined kernel Exact\_circular\_kernel\_2.
--   Linear Kernel
+-   Linear Kernel  
     Exact\_predicates\_exact\_constructions\_kernel memory and run-time
     improvements through usage of lazy geometric constructions instead
     of lazy arithmetic.
 
 ### Data Structures and Algorithms
 
--   Surface Mesh Simplification (new package)
+-   Surface Mesh Simplification (new package)  
     This package provides a mesh simplification framework using edge
     collapse operations, and provides the Turk/Lindstrom simplification
     algorithm.
--   Skin Surface Meshing (new package)
+-   Skin Surface Meshing (new package)  
     This package allows to build a triangular mesh of a skin surface.
     Skin surfaces are used for modeling large molecules in biological
     computing. The surface is defined by a set of balls, representing
     the atoms of the molecule, and a shrink factor that determines the
     size of the smooth patches gluing the balls together.
--   Estimation of Local Differential Properties (new package)
+-   Estimation of Local Differential Properties (new package)  
     This package allows to compute local differential quantities of a
     surface from a point sample
 -   Approximation of Ridges and Umbilics on Triangulated Surface Meshes
-    (new package)
+    (new package)  
     This package enables the approximation of differential features on
     triangulated surface meshes. Such curvature related features are
     lines: ridges or crests, and points: umbilics.
--   Envelopes of Curves in 2D (new package)
+-   Envelopes of Curves in 2D (new package)  
     This package contains two sets of functions that construct the lower
     and upper envelope diagram for a given range of bounded or unbounded
     curves.
--   Envelopes of Surfaces in 3D (new package)
+-   Envelopes of Surfaces in 3D (new package)  
     This package contains two sets of functions that construct the lower
     and upper envelope diagram for a given range of bounded or unbounded
     surfaces. The envelope diagram is realized as a 2D arrangement.
--   Minkowski Sums in 2D (new package)
+-   Minkowski Sums in 2D (new package)  
     This package contains functions for computing planar Minkowski sums
     of two closed polygons, and for a polygon and a disc (an operation
     also known as offsetting or dilating a polygon). The package also
@@ -3337,10 +2989,10 @@ CGAL now works around the preprocessor macros 'min' and 'max' defined in
     computation, which provides a guaranteed approximation bound while
     significantly expediting the running times w.r.t. the exact
     computation procedure.
--   Surface Mesh Parametrization
+-   Surface Mesh Parametrization  
     Added Jacobi and SSOR preconditioners to OpenNL solver, which makes
     it much faster and more stable.
--   2D Arrangements
+-   2D Arrangements  
     -   Added support for unbounded curves.
     -   Added a traits class that supports bounded and unbounded linear
         objects, namely lines, rays and line segments.
@@ -3356,7 +3008,7 @@ CGAL now works around the preprocessor macros 'min' and 'max' defined in
     -   Fixed a memory leak in the sweep-line code.
     -   Fixed a bug in computing the minor axis of non-degenerate
         hyperbolas.
--   Boolean Set Operations
+-   Boolean Set Operations  
     -   Added the DCEL as a default template parameter to the
         General\_polygon\_set\_2 and Polygon\_set\_2 classes. This
         allows users to extend the DCEL of the underlying arrangement.
@@ -3366,28 +3018,28 @@ CGAL now works around the preprocessor macros 'min' and 'max' defined in
         boundary using zero-width passages.
     -   Added a non-const function member to General\_polygon\_set\_2
         that obtains the underlying arrangement.
--   2D and 3D Triangulations
+-   2D and 3D Triangulations  
     -   The constructors and insert member functions which take an
         iterator range perform spatial sorting in order to speed up the
         insertion.
--   Optimal Distances
+-   Optimal Distances  
     -   Polytope\_distance\_d: has support for homogeneous points;
         bugfix in fast exact version.
--   Bounding Volumes
+-   Bounding Volumes  
     -   Min\_annulus\_d has support for homogeneous points; bugfix in
         fast exact version.
 
 ### Support Library
 
--   CGAL and the Boost Graph Library (BGL) (new package)
+-   CGAL and the Boost Graph Library (BGL) (new package)  
     This package provides the glue layer for several CGAL data
     structures such that they become models of the BGL graph concept.
--   Spatial Sorting (new package)
+-   Spatial Sorting (new package)  
     This package allows to sort points and other objects along a Hilbert
     curve which can improve the performance of algorithms like
     triangulations. It is used by the constructors of the triangulation
     package which have an iterator range of points as argument.
--   Linear and Quadratic Programming Solver (new package)
+-   Linear and Quadratic Programming Solver (new package)  
     This package contains algorithms for minimizing linear and convex
     quadratic functions over polyhedral domains, described by linear
     equations and inequalities.
@@ -3469,25 +3121,25 @@ static runtime (/ML).
 
 ### Kernels
 
--   2D Circular Kernel (new package)
+-   2D Circular Kernel (new package)  
     This package is an extension of the linear CGAL Kernel. It offers
     functionalities on circles, circular arcs and line segments in the
     plane.
 
 ### Data Structures and Algorithms
 
--   2D Regularized Boolean Set-Operations (new package)
+-   2D Regularized Boolean Set-Operations (new package)  
     This package consists of the implementation of Boolean
     set-operations on point sets bounded by weakly x-monotone curves in
     2-dimensional Euclidean space. In particular, it contains the
     implementation of regularized Boolean set-operations, intersection
     predicates, and point containment predicates.
--   2D Straight Skeleton and Polygon Offsetting (new package)
+-   2D Straight Skeleton and Polygon Offsetting (new package)  
     This package implements an algorithm to construct a halfedge data
     structure representing the straight skeleton in the interior of 2D
     polygons with holes and an algorithm to construct inward offset
     polygons at any offset distance given a straight skeleton.
--   2D Voronoi Diagram Adaptor (new package)
+-   2D Voronoi Diagram Adaptor (new package)  
     This package provides an adaptor that adapts a 2-dimensional
     triangulated Delaunay graph to the corresponding Voronoi diagram,
     represented as a doubly connected edge list (DCEL) data structure.
@@ -3498,7 +3150,7 @@ static runtime (/ML).
     type of operations that the underlying Delaunay graph supports, the
     adaptor allows for the incremental or dynamic construction of
     Voronoi diagrams and can support point location queries.
--   3D Surface Mesher (new package)
+-   3D Surface Mesher (new package)  
     This package provides functions to generate surface meshes that
     interpolate smooth surfaces. The meshing algorithm is based on
     Delaunay refinement and provides some guarantees on the resulting
@@ -3512,7 +3164,7 @@ static runtime (/ML).
     described as the zero level set of some function and surfaces
     described as a gray level set in a three-dimensional image.
 
--   3D Surface Subdivision Methods (new package)
+-   3D Surface Subdivision Methods (new package)  
     Subdivision methods recursively refine a control mesh and generate
     points approximating the limit surface. This package consists of
     four popular subdivision methods and their refinement hosts.
@@ -3522,7 +3174,7 @@ static runtime (/ML).
     easily extended by substituting the geometry computation of the
     refinement host.
 -   Planar Parameterization of Triangulated Surface Meshes (new
-    package)
+    package)  
     Parameterizing a surface amounts to finding a one-to-one mapping
     from a suitable domain to the surface. In this package, we focus on
     triangulated surfaces that are homeomorphic to a disk and on
@@ -3531,14 +3183,14 @@ static runtime (/ML).
     parameterization methods, such as least squares conformal maps,
     discrete conformal map, discrete authalic parameterization, Floater
     mean value coordinates or Tutte barycentric mapping.
--   Principal Component Analysis (new package)
+-   Principal Component Analysis (new package)  
     This package provides functions to compute global informations on
     the shape of a set of 2D or 3D objects such as points. It provides
     the computation of axis-aligned bounding boxes, centroids of point
     sets, barycenters of weighted point sets, as well as linear least
     squares fitting for point sets in 2D, and point sets as well as
     triangle sets in 3D.
--   2D Placement of Streamlines (new package)
+-   2D Placement of Streamlines (new package)  
     Visualizing vector fields is important for many application domains.
     A good way to do it is to generate streamlines that describe the
     flow behaviour. This package implements the "Farthest Point Seeding"
@@ -3548,7 +3200,7 @@ static runtime (/ML).
     triangulation to model objects and adress different queries, and
     relies on choosing the centers of the biggest empty circles to start
     the integration of the streamlines.
--   Kinetic Data Structures (new package)
+-   Kinetic Data Structures (new package)  
     Kinetic data structures allow combinatorial structures to be
     maintained as the primitives move. The package provides
     implementations of kinetic data structures for Delaunay
@@ -3556,15 +3208,15 @@ static runtime (/ML).
     dimension and regular triangulations in three dimensions. The
     package supports exact or inexact operations on primitives which
     move along polynomial trajectories.
--   Kinetic Framework (new package)
+-   Kinetic Framework (new package)  
     Kinetic data structures allow combinatorial geometric structures to
     be maintained as the primitives move. The package provides a
     framework to ease implementing and debugging kinetic data
     structures. The package supports exact or inexact operations on
     primitives which move along polynomial trajectories.
--   Smallest Enclosing Ellipsoid (new package)
+-   Smallest Enclosing Ellipsoid (new package)  
     This algorithm is new in the chapter Geometric Optimisation.
--   2D Arrangement (major revision)
+-   2D Arrangement (major revision)  
     This package can be used to construct, maintain, alter, and display
     arrangements in the plane. Once an arrangement is constructed, the
     package can be used to obtain results of various queries on the
@@ -3578,11 +3230,11 @@ static runtime (/ML).
     construction history of the arrangement, such that it is possible to
     obtain the originating curve of an arrangement subcurve.
 
--   Geometric Optimisation (major revision)
+-   Geometric Optimisation (major revision)  
     The underlying QP solver which is the foundation for several
     algorithms in the Geometric Optimisation chapter has been completely
     rewritten.
--   3D Triangulation (new functionality)
+-   3D Triangulation (new functionality)  
     Regular\_triangulation\_3 now offers vertex removal.
 
 Release 3.1
@@ -3607,7 +3259,7 @@ The following platforms are no longer supported:
 
 -   MS Visual C++, version 7.0
 
-The following functionality has been added or changed:
+The following functionality has been added or changed:  
 
 
 ### All
@@ -3636,37 +3288,37 @@ The following functionality has been added or changed:
 
 ### Basic Library
 
--   2D Segment Voronoi Diagram (new package)
+-   2D Segment Voronoi Diagram (new package)  
     A data structure for Voronoi diagrams of segments in the plane under
     the Euclidean metric. The Voronoi edges are arcs of straight lines
     and parabolas. The algorithm provided in this package is
     incremental.
--   2D Conforming Triangulations and Meshes (new package)
+-   2D Conforming Triangulations and Meshes (new package)  
     An implementation of Shewchuk's algorithm to construct conforming
     triangulations and 2D meshes.
--   3D Boolean Operations on Nef Polyhedra (new package)
+-   3D Boolean Operations on Nef Polyhedra (new package)  
     A new class (Nef\_polyhedron\_3) representing 3D Nef polyhedra, a
     boundary representation for cell-complexes bounded by halfspaces
     that supports boolean operations and topological operations in full
     generality including unbounded cells, mixed dimensional cells (e.g.,
     isolated vertices and antennas). Nef polyhedra distinguish between
     open and closed sets and can represent non-manifold geometry.
--   2D and Surface Function Interpolation (new package)
+-   2D and Surface Function Interpolation (new package)  
     This package implements different methods for scattered data
     interpolation: Given measures of a function on a set of discrete
     data points, the task is to interpolate this function on an
     arbitrary query point. The package further offers functions for
     natural neighbor interpolation.
--   Planar Nef polyhedra embedded on the sphere (new package)
+-   Planar Nef polyhedra embedded on the sphere (new package)  
     A new class (Nef\_polyhedron\_S2) designed and supported mainly to
     represent sphere neighborhoods around vertices of the three-
     dimensional Nef polyhedra.
--   Box\_intersection\_d (new package)
+-   Box\_intersection\_d (new package)  
     A new efficient algorithm for finding all intersecting pairs for
     large numbers of iso-oriented boxes, i.e., typically these will be
     bounding boxes of more complicated geometries. Useful for (self-)
     intersection tests of surfaces etc.
--   2D Snap Rounding (new package)
+-   2D Snap Rounding (new package)  
     Snap Rounding is a well known method for converting
     arbitrary-precision arrangements of segments into a fixed-precision
     representation. In the study of robust geometric computing, it can
@@ -3784,7 +3436,7 @@ Here is the list of bug-fixes.
 ### 2D Triangulation
 
 -   added missing figure in html doc
--   in Line\_face\_circulator\_2.h:
+-   in Line\_face\_circulator\_2.h:  
     Fixed changes made to support handles with a typedef to iterator.
     The fix concerns operator== and !=.
 
@@ -3837,7 +3489,7 @@ The following platforms are no longer supported:
 -   GNU g++ 2.95.2 (2.95.3 is still supported)
 -   Kai C++ and Borland C++, all versions
 
-The following functionality has been added or changed:
+The following functionality has been added or changed:  
 
 **All**
 
@@ -3853,7 +3505,7 @@ The following functionality has been added or changed:
     -   Exact\_predicates\_exact\_constructions\_kernel\_with\_sqrt
 -   Progress has been made towards the complete adaptability and
     extensibility of our kernels.
--   New faster Triangle\_3 intersection test routines.
+-   New faster Triangle\_3 intersection test routines.  
     *(see Erratum)*
 -   Added a Kernel concept archetype to check that generic algorithms
     don't use more functionality than they should.
@@ -3861,19 +3513,19 @@ The following functionality has been added or changed:
 
 ### Basic Library
 
--   2D Apollonius Graph (new package)
+-   2D Apollonius Graph (new package)  
     Algorithms for computing the Apollonius graph in two dimensions. The
     Apollonius graph is the dual of the Apollonius diagram, also known
     as the additively weighted Voronoi diagram. The latter can be
     thought of as the Voronoi diagram of a set of circles under the
     Euclidean metric, and it is a generalization of the standard Voronoi
     diagram for points. The algorithms provided are dynamic.
--   dD Min Sphere of Spheres (new package)
+-   dD Min Sphere of Spheres (new package)  
     Algorithms to compute the smallest enclosing sphere of a given set
     of spheres in R<sup>d</sup>. The package provides an algorithm with
     maximal expected running time *O(2<sup>O(d)</sup> n)* and a fast and
     robust heuristic (for dimension less than 30).
--   Spatial Searching (new package)
+-   Spatial Searching (new package)  
     Provides exact and approximate distance browsing in a set of points
     in *d*-dimensional space using implementations of algorithms
     supporting:
@@ -3884,16 +3536,16 @@ The following functionality has been added or changed:
     -   (approximate) incremental nearest and incremental furthest
         neighbor searching
     -   query items representing points and spatial objects.
--   **Kd-tree**
+-   **Kd-tree**  
     this package is deprecated, its documentation is removed. It is
     replaced by the Spatial Searching package.
--   Largest\_empty\_rectangle\_2
+-   Largest\_empty\_rectangle\_2  
     Given a set of points P in the plane, the class
     Largest\_empty\_iso\_rectangle\_2 is a data structure that maintains
     an iso-rectangle with the largest area among all iso-rectangles that
     are inside a given iso-rectangle bounding box, and that do not
     contain any point of the point set P.
--   2D Triangulation and 3D Triangulation
+-   2D Triangulation and 3D Triangulation  
     -   The classes Triangulation\_data\_structure\_2 (and 3), which
         implements the data structure for 2D triangulation class, now
         makes use of CGAL::Compact\_container (see Support Library
@@ -3907,13 +3559,13 @@ The following functionality has been added or changed:
     -   New classes Triangulation\_vertex\_base\_with\_info\_2 (and 3)
         and Triangulation\_face\_base\_with\_info\_2 (and 3) to make
         easier the customisation of base classes in most cases.
--   2D Triangulation
+-   2D Triangulation  
     -   Regular triangulation provides an easy access to hidden points.
     -   The Triangulation\_hierarchy\_2, which provide an efficient
         location data structure, can now be used with any 2D
         triangulation class plugged in (including Regular
         triangulations).
--   3D Triangulation
+-   3D Triangulation  
     -   faster vertex removal function in Delaunay\_triangulation\_3.
     -   Delaunay\_triangulation\_3 is now independent of the order of
         insertions of the points (in case of degenerate cosphericity).
@@ -3924,12 +3576,12 @@ The following functionality has been added or changed:
         set\_number\_of\_vertices().
     -   Triangulation\_3 now gives non-const access to the data
         structure.
--   Interval Skip List (new package)
+-   Interval Skip List (new package)  
     An interval skip list is a data strucure for finding all intervals
     that contain a point, and for stabbing queries, that is for
     answering the question whether a given point is contained in an
     interval or not.
--   Planar Maps and Arrangements
+-   Planar Maps and Arrangements  
     The changes concern mainly the traits classes.
     1.  New traits hierarchy and interface: The set of requirements was
         made sound and complete. A couple of requirements were
@@ -4043,7 +3695,7 @@ The following functionality has been added or changed:
             With the use of the Leda\_rat\_kernel new external package
             the same functionality can be achieved with less overhead
             and more efficiency.
-    9.  Sweep Line
+    9.  Sweep Line  
         -   The Sweep\_line\_2 package was reimplemented. As a
             consequence it is much more efficient, its traits is tighter
             (namely neither the two \_left nor the reflection functions
@@ -4081,7 +3733,7 @@ The following functionality has been added or changed:
             disjoint, the new functions below can be used to insert them
             into the map efficiently.
 
--   Polyhedral Surface
+-   Polyhedral Surface  
     -   The old design that was deprecated since CGAL 2.3 has been
         removed.
     -   Class `Polyhedron_incremental_builder_3`:
@@ -4094,7 +3746,7 @@ The following functionality has been added or changed:
             adding them.
         -   Added `vertex( size_t i)` to return `Vertex_handle` for
             index `i`.
--   Halfedge Data Structure
+-   Halfedge Data Structure  
     -   The old design that was deprecated since CGAL 2.3 has been
         removed.
 
@@ -4150,7 +3802,7 @@ The following functionality has been added or changed:
 -   Intersection test routines
 
     The documentation of CGAL::do\_intersect should mention, for the 3D
-    case:
+    case:  
     Also, in three-dimensional space *Type1* can be
 
     -   either *Plane\_3&lt;Kernel&gt;*
@@ -4164,7 +3816,7 @@ The following functionality has been added or changed:
     -   *Segment\_3&lt;Kernel&gt;*
     -   *Triangle\_3&lt;Kernel&gt;*
 
-    In the same way, for *Kernel::DoIntersect\_3*:
+    In the same way, for *Kernel::DoIntersect\_3*:  
     for all pairs *Type1* and *Type2*, where the type *Type1* is
 
     -   either *Kernel::Plane\_3*
@@ -4196,7 +3848,7 @@ Additional supported platforms:
 -   SunPro 5.3 (with patch 111685-05) on Solaris
 -   g++ 3.1 on Linux and Solaris
 
-The following functionality has been added or changed:
+The following functionality has been added or changed:  
 
 
 ### Kernels
@@ -4206,16 +3858,16 @@ The following functionality has been added or changed:
 
 ### Basic Library
 
--   2D Polygon Partitioning
+-   2D Polygon Partitioning  
     Traits requirements for optimal partitioning have been changed
-    slightly.
+    slightly.  
 
--   2D Sweep line
+-   2D Sweep line  
     A new package that implements a sweep-line algorithm to compute
     arrangements of curves for different families of curves, which are
     not necessarily line segments (e.g., it also works for circular
     arcs). The resulting output can be the list of vertex points, the
-    resulting subcurves or a planar map.
+    resulting subcurves or a planar map.  
 
 -   Planar Maps and Arrangements
     -   New quicker insertion functions of Planar\_map\_2 for cases
@@ -4286,7 +3938,7 @@ The following functionality has been added or changed:
 
 
 
--   2D Search structures
+-   2D Search structures  
     Additional range search operations taking a predicate functor have
     been added
 
@@ -4304,7 +3956,7 @@ The following functionality has been added or changed:
 
 
 
--   Timer
+-   Timer  
     Fixed Timer class (for user process time) to have no wrap-around
     anymore on Posix-compliant systems.
 
@@ -4356,7 +4008,7 @@ Additional supported platform:
 
 -   Gnu g++ 3.0 on Solaris and Linux
 
-The following functionality has been added:
+The following functionality has been added:  
 
 
 ### Kernels
@@ -4389,7 +4041,7 @@ kernel design to realize the flexibility this design makes possible. In
 several packages, this means that the traits class requirements have
 changed to conform to the function objects offered in the kernels so the
 kernels themselves can be used as traits classes in many instances.
--   2D Convex Hull
+-   2D Convex Hull  
     The traits requirements have changed slightly to bring them in line
     with the CGAL kernels.
 -   3D Convex Hull
@@ -4400,11 +4052,11 @@ kernels themselves can be used as traits classes in many instances.
         purposes.
 
 
--   `Convex_hull_d, Delaunay_d`
+-   `Convex_hull_d, Delaunay_d`  
     Two new application classes offering the calculation of
-    d-dimensional convex hulls and delaunay triangulations
+    d-dimensional convex hulls and delaunay triangulations  
 
--   Polygons and Polygon Operations
+-   Polygons and Polygon Operations  
     -   The traits class requirements have been changed.
     -   The simplicity test has a completely new implementation.
     -   Properties like convexity, simplicity and area can now be cached
@@ -4413,13 +4065,13 @@ kernels themselves can be used as traits classes in many instances.
 
 
 
--   Planar Nef Polyhedra
+-   Planar Nef Polyhedra  
     A new class (`Nef_polyhedron_2`) representing planar Nef polyhedra =
     rectilinearly bounded points sets that are the result of binary and
-    topological operations starting from halfplanes.
+    topological operations starting from halfplanes.  
 
 -   A new package offering functions to partition planar polygons into
-    convex and y-monotone pieces is available.
+    convex and y-monotone pieces is available.  
 
 -   Planar Maps and Arrangements
     -   A new class `Planar_map_with_intersections_2<Planar_map>` for
@@ -4439,7 +4091,7 @@ kernels themselves can be used as traits classes in many instances.
 
 
 
--   Halfedge Data Structure
+-   Halfedge Data Structure  
 
     The halfedge data structure has been completely revised. The new
     design is more in line with the STL naming scheme and it provides a
@@ -4447,16 +4099,16 @@ kernels themselves can be used as traits classes in many instances.
     pointers anymore), which allows for better extendibility. A user can
     add new incidences in the mesh easily. The new design also uses
     standard allocators with a new template parameter that has a
-    suitable default.
+    suitable default.  
 
     The old design is still available, but its use is deprecated, see
     the manual of deprecated packages for its documentation. Reported
     bugs in copying the halfedge data structure (and therefore also
     polyhedral surfaces) have been fixed in both designs. Copying a
     list-based representation is now based on hash maps instead of
-    std::map and is therefore considerably faster.
+    std::map and is therefore considerably faster.  
 
--   Polyhedral Surface
+-   Polyhedral Surface  
 
     The polyhedral surface has been rewritten to work with the new
     halfedge data structure design. The user level interface of the
@@ -4466,11 +4118,11 @@ kernels themselves can be used as traits classes in many instances.
     data structure, such as a self-written facet class, and that the
     distinction between supported normals and supported planes has been
     removed. Only planes are supported. See the manuals for suggestions
-    how to handle normals instead of planes.
+    how to handle normals instead of planes.  
 
     More example programs are provided with polyhedral surfaces, for
     example, one about Euler operator and one computing a subdivision
-    surface given a control mesh as input.
+    surface given a control mesh as input.  
 
     The old design is still available for backwards compatibility and to
     support older compiler, such as MSVC++6.0. For the polyhedral
@@ -4481,7 +4133,7 @@ kernels themselves can be used as traits classes in many instances.
     appropriate macros before the include files. The old design is
     selected with the `CGAL_USE_POLYHEDRON_DESIGN_ONE` macro. The new
     design is selected with the `CGAL_USE_POLYHEDRON_DESIGN_TWO`
-    macro.
+    macro.  
 
 -   2D Triangulation
     -   The geometric traits class requirements have been changed to
@@ -4525,10 +4177,10 @@ kernels themselves can be used as traits classes in many instances.
 
 
 -   A new class (`Alpha_shapes_3`) that computes Alpha shapes of point
-    sets in 3D is available.
+    sets in 3D is available.  
 
 -   The traits requirements for matrix search and minimum quadrilaterals
-    have been changed to bring them in line with the CGAL kernels.
+    have been changed to bring them in line with the CGAL kernels.  
 
 -   Point\_set\_2
     -   now independent of LEDA; based on the CGAL Delaunay
@@ -4624,7 +4276,7 @@ Supported platforms:
 -   the mips CC compiler version 7.3 under Irix.
 
 Support for the old g++ compiler (2.8) and for mips CC 7.2 has been
-dropped.
+dropped.  
 
 The following functionality has been added:
 -   Alpha shapes and weighted alpha shapes in 2D. Alpha shapes are a

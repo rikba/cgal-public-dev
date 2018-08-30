@@ -8,6 +8,8 @@ cmake_minimum_required(VERSION 2.8.11)
 # CGAL and its components
 find_package( CGAL QUIET COMPONENTS  )
 
+add_definitions(-std=c++11)
+
 if ( NOT CGAL_FOUND )
 
   message(STATUS "This project requires the CGAL library, and will not be compiled.")
