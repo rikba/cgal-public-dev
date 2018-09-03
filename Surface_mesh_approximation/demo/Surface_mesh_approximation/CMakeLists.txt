@@ -93,7 +93,8 @@ if(CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FO
   target_link_libraries( VSA_demo ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} )
 
   # Link with libQGLViewer, OpenGL
-  target_link_libraries( VSA_demo ${QGLVIEWER_LIBRARY} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
+  set(QGLVIEWER_LIBRARIES /usr/lib/x86_64-linux-gnu/libQGLViewer.so.2)
+  target_link_libraries( VSA_demo ${QGLVIEWER_LIBRARIES} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
 
   # Link with TBB
   if(ACTIVATE_CONCURRENCY)
