@@ -24,14 +24,15 @@ find_package(CGAL COMPONENTS Qt5)
 include( ${CGAL_USE_FILE} )
 
 # Find Qt5 itself
-find_package(Qt5 QUIET COMPONENTS Xml OpenGL)
+find_package(Qt5 REQUIRED QUIET COMPONENTS Xml OpenGL)
 
 # Find OpenGL
 find_package(OpenGL)
 
 # Find QGLViewer
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 if(Qt5_FOUND)
-  find_package(QGLViewer)
+  find_package(QGLViewer REQUIRED)
 endif(Qt5_FOUND)
 
 # Active verbose output ? (turned ON by default)
