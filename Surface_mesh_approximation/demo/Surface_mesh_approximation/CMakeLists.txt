@@ -63,6 +63,10 @@ if(CGAL_FOUND AND CGAL_Qt5_FOUND AND Qt5_FOUND AND OPENGL_FOUND AND QGLVIEWER_FO
   # Include this package's headers first
   include_directories( BEFORE ../../include ./ )
 
+  # Use Eigen
+  find_package(Eigen3 3.1.0 REQUIRED)
+  include( ${EIGEN3_USE_FILE} )
+
   include_directories ( ${QGLVIEWER_INCLUDE_DIR} )
 
   # ui files, created with Qt Designer

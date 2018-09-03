@@ -6,6 +6,7 @@
 #include <CGAL/Kernel/global_functions.h>
 #include <CGAL/squared_distance_3.h>
 #include <CGAL/linear_least_squares_fitting_3.h>
+#include <CGAL/boost/graph/properties.h>
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/unordered_map.hpp>
@@ -37,8 +38,8 @@ class L2_metric_plane_proxy {
   typedef typename boost::graph_traits<TriangleMesh>::face_descriptor face_descriptor;
   typedef typename boost::graph_traits<TriangleMesh>::halfedge_descriptor halfedge_descriptor;
 
-  typedef CGAL::internal::face_property_t<FT> Face_area_tag;
-  typedef typename CGAL::internal::dynamic_property_map<TriangleMesh, Face_area_tag >::type Face_area_map;
+  typedef CGAL::dynamic_face_property_t<FT> Face_area_tag;
+  typedef typename boost::property_map<TriangleMesh, Face_area_tag >::type Face_area_map;
 
 public:
   /// \name Types
@@ -55,8 +56,8 @@ public:
    */
   L2_metric_plane_proxy(const TriangleMesh &tm, const VertexPointMap &vpmap)
     : m_tm(&tm), m_vpmap(vpmap){
-    m_famap = CGAL::internal::add_property(
-      Face_area_tag("VSA-face_area"), const_cast<TriangleMesh &>(*m_tm));
+    m_famap = CGAL::get(
+      Face_area_tag(), const_cast<TriangleMesh &>(*m_tm));
 
     BOOST_FOREACH(face_descriptor f, faces(*m_tm)) {
       const halfedge_descriptor he = halfedge(f, *m_tm);
@@ -69,7 +70,7 @@ public:
   /// @}
 
   /*!
-   * @brief Computes the L21 error from a face to a proxy, 
+   * @brief Computes the L21 error from a face to a proxy,
    * using integral (closed-form) computation.
    * @param tm input triangle mesh
    * @param f face_descriptor of a face
@@ -89,12 +90,12 @@ public:
     const FT d1(std::sqrt(CGAL::to_double(sq_d1)));
     const FT d2(std::sqrt(CGAL::to_double(sq_d2)));
 
-    return (sq_d0 + sq_d1 + sq_d2 + 
+    return (sq_d0 + sq_d1 + sq_d2 +
             d0 * d1 + d1 * d2 + d2 * d0) * get(m_famap, f) / FT(6.0);
   }
 
   /*!
-   * @brief Fits a proxy from a range of faces, in the L2 sense, with an 
+   * @brief Fits a proxy from a range of faces, in the L2 sense, with an
    * integral (closed-form) formulation. The best-fit plane passes
    * through the center of mass and is defined by the two principal
    * components of the integral covariance matrix.
