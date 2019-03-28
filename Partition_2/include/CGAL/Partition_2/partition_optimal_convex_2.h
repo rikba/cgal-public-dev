@@ -21,7 +21,7 @@
 
 
 // ===========================================================================
-// There is a known bug in this algorithm that causes more than the optimal 
+// There is a known bug in this algorithm that causes more than the optimal
 // number of convex pieces to be reported in cases where there are many
 // collinear vertices (as in a Hilbert polygon, for example).  More precisely,
 // the problem is known to crop up in this situation:
@@ -45,13 +45,13 @@
 // it is believed an edge is necessary to divide the polygon (1 2 5 6 12 13).
 //
 // A hack that partially fixes this problem is implemented as follows:
-// a vertex r is marked as visible from a point q for the purposes of 
-// the decompose function if p is the other endpoint of the edge containing r 
+// a vertex r is marked as visible from a point q for the purposes of
+// the decompose function if p is the other endpoint of the edge containing r
 // and p is visible from q.
 //
-// This causes the problem that decomposition from 8 to 12 indicates that 
+// This causes the problem that decomposition from 8 to 12 indicates that
 // valid vertices are 8 9 and 12. Diagonal (9 12) is valid, but (8 12) is
-// also considered to be valid and necessary since 9 is a reflex vertex. 
+// also considered to be valid and necessary since 9 is a reflex vertex.
 // The result is a polygon split with diagonals (2 5) (12 5) (9 12) and
 // (13 1), which is obviously not optimal.
 //
@@ -226,9 +226,9 @@ bool collinearly_visible(unsigned int edge_num1, unsigned int e_num,
 
 template <class Polygon, class Traits>
 int partition_opt_cvx_decompose(unsigned int edge_num1, unsigned int edge_num2,
-                                Polygon& polygon, 
-                                Matrix<Partition_opt_cvx_edge>& edges, 
-                                const Traits& traits, 
+                                Polygon& polygon,
+                                Matrix<Partition_opt_cvx_edge>& edges,
+                                const Traits& traits,
                                 Partition_opt_cvx_diagonal_list& diag_list)
 {
 #ifdef CGAL_PARTITION_OPTIMAL_CONVEX_DEBUG
@@ -236,7 +236,7 @@ int partition_opt_cvx_decompose(unsigned int edge_num1, unsigned int edge_num2,
 #endif
    if (edges[edge_num1][edge_num2].is_done())  {
 #ifdef CGAL_PARTITION_OPTIMAL_CONVEX_DEBUG
-      std::cout << " returning " << edges[edge_num1][edge_num2].value() 
+      std::cout << " returning " << edges[edge_num1][edge_num2].value()
                 << std::endl;
 #endif
       diag_list = edges[edge_num1][edge_num2].solution();
@@ -258,12 +258,12 @@ int partition_opt_cvx_decompose(unsigned int edge_num1, unsigned int edge_num2,
 #endif
    typedef typename Polygon::size_type  size_type;
 
-   for (size_type e_num = edge_num1; e_num <= edge_num2; e_num++) 
+   for (size_type e_num = edge_num1; e_num <= edge_num2; e_num++)
    {
-       if ((edges[edge_num1][e_num].is_visible() && 
-            edges[e_num][edge_num2].is_visible() ) || 
+       if ((edges[edge_num1][e_num].is_visible() &&
+            edges[e_num][edge_num2].is_visible() ) ||
            collinearly_visible(edge_num1, static_cast<unsigned int>(e_num), edge_num2, edges, polygon,
-                               traits) ) 
+                               traits) )
        {
          v_list.push_back(Partition_opt_cvx_vertex( static_cast<unsigned int>(e_num)));
        }
@@ -282,7 +282,7 @@ int partition_opt_cvx_decompose(unsigned int edge_num1, unsigned int edge_num2,
        partition_opt_cvx_load(int(v), v_list, polygon, edges, traits);
    }
 
-   int num_pieces = partition_opt_cvx_best_so_far(v_list[v_list.size()-1], 
+   int num_pieces = partition_opt_cvx_best_so_far(v_list[v_list.size()-1],
                                                   edge_num1, polygon, traits,
                                                   diag_list) + 1;
 #ifdef CGAL_PARTITION_OPTIMAL_CONVEX_DEBUG
@@ -294,16 +294,16 @@ int partition_opt_cvx_decompose(unsigned int edge_num1, unsigned int edge_num2,
    edges[edge_num1][edge_num2].set_solution(diag_list);
    edges[edge_num1][edge_num2].set_done(true);
    edges[edge_num1][edge_num2].set_valid(old_validity);
-   // revalidate the edge; next time it will pick up the computed value 
+   // revalidate the edge; next time it will pick up the computed value
    // stored with this edge
 #ifdef CGAL_PARTITION_OPTIMAL_CONVEX_DEBUG
    std::cout << "decompose(" << edge_num1 << ", " << edge_num2 << "): "
-             << " edge[" << edge_num1 << "][" << edge_num2 << "] set to " 
+             << " edge[" << edge_num1 << "][" << edge_num2 << "] set to "
              << edges[edge_num1][edge_num2] << std::endl;
-   std::cout << " with diagonal list " 
+   std::cout << " with diagonal list "
              << edges[edge_num1][edge_num2].solution()
              << std::endl;
-   std::cout << "decompose(" << edge_num1 << ", " << edge_num2 
+   std::cout << "decompose(" << edge_num1 << ", " << edge_num2
              << "): returning " << num_pieces << std::endl;
    partition_opt_cvx_debug_list_count--;
 #endif
@@ -323,7 +323,7 @@ bool partition_opt_cvx_is_visible_n3(const Polygon& polygon, unsigned int i,
    typedef typename Traits::Point_2       Point_2;
    typedef typename Traits::Construct_segment_2 Construct_segment_2;
 
-   static Construct_segment_2 construct_segment_2 = 
+   static Construct_segment_2 construct_segment_2 =
                                  traits.construct_segment_2_object();
 
    Segment_2 segment = construct_segment_2(polygon[i], polygon[j]);
@@ -358,11 +358,11 @@ bool partition_opt_cvx_is_visible_n3(const Polygon& polygon, unsigned int i,
    return true;
 }
 
-// when consecutive sequence of vertices are collinear, they must all be 
+// when consecutive sequence of vertices are collinear, they must all be
 // visible to each other as if there were no vertices in between.
 template <class Polygon, class Traits>
-void make_collinear_vertices_visible(Polygon& polygon, 
-                                     Matrix<Partition_opt_cvx_edge>& edges, 
+void make_collinear_vertices_visible(Polygon& polygon,
+                                     Matrix<Partition_opt_cvx_edge>& edges,
                                      const Traits& traits)
 {
     typedef typename Polygon::size_type                   size_type;
