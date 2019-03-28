@@ -15,7 +15,7 @@
 // $URL$
 // $Id$
 // SPDX-License-Identifier: GPL-3.0+
-// 
+//
 //
 // Author(s)     : Susan Hert <hert@mpi-sb.mpg.de>
 
@@ -332,14 +332,14 @@ Vertex_visibility_graph_2<Traits>::left_turn_to_parent(
                                    Tree& tree) const
 {
    typedef typename Traits::Point_2 Point;
-   if (tree.parent_is_p_infinity(q)) 
+   if (tree.parent_is_p_infinity(q))
    {
       return (less_xy_2(Point(*p), Point(*q)));
    }
    else if (orientation_2(Point(*p), Point(*q), Point(*q->parent())) == COLLINEAR &&
             (collinear_ordered_2(Point(*p), Point(*q), Point(*q->parent())) ||
              collinear_ordered_2(Point(*p), Point(*q), Point(*q->parent()))))
-      
+
    {
       return true;
    }
@@ -362,7 +362,7 @@ Vertex_visibility_graph_2<Traits>::diagonal_in_interior(
    Polygon_const_iterator before_p;
    if (p == polygon.begin())
       before_p = polygon.end();
-   else 
+   else
       before_p = p;
    before_p--;
    Polygon_const_iterator after_p = p; after_p++;
@@ -385,7 +385,7 @@ Vertex_visibility_graph_2<Traits>::diagonal_in_interior(
    }
    return true;
 }
- 
+
 
 
 // returns true if the looker can see the point_to_see
@@ -419,12 +419,12 @@ bool Vertex_visibility_graph_2<Traits>::point_is_visible(
                << *vis_endpt << ") next: (" << *next_vis_endpt << ")" << std::endl;
 #endif
 
-    // if the point to see is the current visibility point or if the looker 
-    // and the point to see flank the old visibility point, they are visible 
-    // to each other since it is known at this point that the edge from 
+    // if the point to see is the current visibility point or if the looker
+    // and the point to see flank the old visibility point, they are visible
+    // to each other since it is known at this point that the edge from
     // the looker to the point to see goes through the interior of the polygon
     if ((*looker).second.second == point_to_see)
-        
+
     {
 #ifdef CGAL_VISIBILITY_GRAPH_DEBUG
        std::cout << "looker sees point (vis_endpt)" << std::endl;
@@ -446,7 +446,7 @@ bool Vertex_visibility_graph_2<Traits>::point_is_visible(
 #endif
           return false;
        }
-       else                      
+       else
        {
 #ifdef CGAL_VISIBILITY_GRAPH_DEBUG
           cout << "looker sees point" << endl;
@@ -456,7 +456,7 @@ bool Vertex_visibility_graph_2<Traits>::point_is_visible(
     }
     else if ((*looker).second.first == prev_vis_endpt ||
              point_to_see == prev_vis_endpt)
-    // point to see or looker is not adjacent to old visibility, so check 
+    // point to see or looker is not adjacent to old visibility, so check
     // intersection with next visibility segment
     {
        if (orientation_2(*vis_endpt, *next_vis_endpt, (*looker).first) !=
@@ -479,7 +479,7 @@ bool Vertex_visibility_graph_2<Traits>::point_is_visible(
     }
     else if ((*looker).second.first == next_vis_endpt ||
              point_to_see == next_vis_endpt)
-    // point to see or looker is not adjacent to old visibility, so check 
+    // point to see or looker is not adjacent to old visibility, so check
     // intersection with previous visibility segment
     {
        if (orientation_2(*vis_endpt, *prev_vis_endpt, (*looker).first) !=
@@ -500,7 +500,7 @@ bool Vertex_visibility_graph_2<Traits>::point_is_visible(
          return true;
        }
     }
-    else 
+    else
     // neither is adjacent to the old visibility point so check intersection
     // with both visibility segments
     {
@@ -533,13 +533,13 @@ bool Vertex_visibility_graph_2<Traits>::point_is_visible(
        }
    }
 }
-   
+
 template <class Traits>
 void Vertex_visibility_graph_2<Traits>::update_visibility(
                                                       Vertex_map_iterator p_it,
                                                       Vertex_map_iterator q_it,
                                                       const Polygon& polygon,
-                                                      int are_adjacent)
+                                                      int are_adjacent) const
 {
 #ifdef CGAL_VISIBILITY_GRAPH_DEBUG
       std::cout << "[] Updating visibility with p: ("
@@ -664,23 +664,23 @@ void Vertex_visibility_graph_2<Traits>::update_visibility(
 #ifdef CGAL_VISIBILITY_GRAPH_DEBUG
             std::cout << "p sees something in direction of q, but q is closer;"
                       << " p sees q" << std::endl;
-#endif 
+#endif
          }
 #ifdef CGAL_VISIBILITY_GRAPH_DEBUG
-         else 
+         else
          {
             std::cout << "p sees something in direction of q that's closer "
                       << " than q; p doesn't see  q" << std::endl;
          }
-#endif 
+#endif
       }
       else
       {
          (*p_it).second.second = (*q_it).second.first;
 #ifdef CGAL_VISIBILITY_GRAPH_DEBUG
-         std::cout << "p doesn't see something in direction of q; p sees q" 
+         std::cout << "p doesn't see something in direction of q; p sees q"
                    << std::endl;
-#endif 
+#endif
       }
    }
    else // p sees what q sees
@@ -688,7 +688,7 @@ void Vertex_visibility_graph_2<Traits>::update_visibility(
       (*p_it).second.second = (*q_it).second.first;
 #ifdef CGAL_VISIBILITY_GRAPH_DEBUG
       std::cout << "p sees nothing; p sees what q sees" << std::endl;
-#endif 
+#endif
    }
 }
 

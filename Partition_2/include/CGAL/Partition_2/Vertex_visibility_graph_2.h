@@ -15,7 +15,7 @@
 // $URL$
 // $Id$
 // SPDX-License-Identifier: GPL-3.0+
-// 
+//
 //
 // Author(s)     : Susan Hert <hert@mpi-sb.mpg.de>
 
@@ -45,10 +45,10 @@
     the updates, it is necessary to keep track of all the leaves that are
     leftmost children of their parents.  In particular, one needs to know the
     rightmost of these leftmost children.
-    
+
     Two data structures are needed for the implementation of the algorithm:
     the sweep data structure $G$, and a stack $S$ that contains all the
-    leaves in $G$ that are the leftmost children of their parents.  
+    leaves in $G$ that are the leftmost children of their parents.
 
     TODO:
       --is_valid function is not complete
@@ -68,8 +68,8 @@
 #include <CGAL/Partition_2/Iterator_list.h>
 #include <CGAL/Partition_2/Turn_reverser.h>
 #include <CGAL/Partition_2/Point_pair_less_xy_2.h>
-#include <CGAL/Segment_2_Ray_2_intersection.h>
-#include <CGAL/Segment_2_Segment_2_intersection.h>
+#include <CGAL/Intersections_2/Ray_2_Segment_2.h>
+#include <CGAL/Intersections_2/Segment_2_Segment_2.h>
 #include <CGAL/Partition_2/Segment_less_yx_2.h>
 
 #include <cmath>
@@ -84,7 +84,7 @@
 namespace CGAL {
 
 template <class Traits>
-class Vertex_visibility_graph_2 
+class Vertex_visibility_graph_2
 {
 private:
    typedef Vertex_visibility_graph_2<Traits>  Self;
@@ -95,15 +95,15 @@ private:
    typedef typename Traits::Left_turn_2        Left_turn_2;
    typedef typename Traits::Less_xy_2         Less_xy_2;
    typedef typename Traits::Orientation_2     Orientation_2;
-   typedef typename Traits::Collinear_are_ordered_along_line_2 
+   typedef typename Traits::Collinear_are_ordered_along_line_2
                                             Collinear_are_ordered_along_line_2;
-   typedef typename Traits::Are_strictly_ordered_along_line_2 
+   typedef typename Traits::Are_strictly_ordered_along_line_2
                                             Are_strictly_ordered_along_line_2;
-   typedef typename Traits::Construct_segment_2 
-                                            Construct_segment_2; 
-   typedef typename Traits::Construct_ray_2   Construct_ray_2; 
-   typedef typename Traits::Intersect_2       Intersect_2; 
-   typedef typename Traits::Assign_2          Assign_2; 
+   typedef typename Traits::Construct_segment_2
+                                            Construct_segment_2;
+   typedef typename Traits::Construct_ray_2   Construct_ray_2;
+   typedef typename Traits::Intersect_2       Intersect_2;
+   typedef typename Traits::Assign_2          Assign_2;
    typedef CGAL::Segment_less_yx_2<Traits>    Segment_less_yx_2;
 
    typedef Rotation_tree_2<Traits>            Tree;
@@ -120,8 +120,8 @@ private:
 
    // this map associates with each point (vertex), the iterator in the
    // original list that it originated from and its current visibility
-   // point iterator. 
-   typedef std::pair<Polygon_const_iterator, Polygon_const_iterator>   
+   // point iterator.
+   typedef std::pair<Polygon_const_iterator, Polygon_const_iterator>
                                                Iterator_pair;
    typedef std::map<Point_2, Iterator_pair, Less_xy_2>     Vertex_map;
    typedef typename Vertex_map::iterator                   Vertex_map_iterator;
@@ -137,8 +137,8 @@ public:
    //
    template <class ForwardIterator>
    Vertex_visibility_graph_2(ForwardIterator first, ForwardIterator beyond):
-     left_turn_2(Traits().left_turn_2_object()), 
-     orientation_2(Traits().orientation_2_object()), 
+     left_turn_2(Traits().left_turn_2_object()),
+     orientation_2(Traits().orientation_2_object()),
      collinear_ordered_2(Traits().collinear_are_ordered_along_line_2_object()),
      are_strictly_ordered_along_line_2(
            Traits().are_strictly_ordered_along_line_2_object()),
